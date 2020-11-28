@@ -52,10 +52,12 @@ NB_LOOKBACK_DAYS = 21
 NB_TEST_DAYS = 14
 WINDOW_SIZE = 7
 US_PREFIX = "United States / "
-NUM_TRIALS = 1
+# NUM_TRIALS = 1
+NUM_TRIALS = 10
 LSTM_SIZE = 32
 MAX_NB_COUNTRIES = 20
 
+HYPOTHETICAL_SUBMISSION_DATE = np.datetime64("2020-05-06")
 
 class Positive(Constraint):
 
@@ -91,6 +93,8 @@ class XPrizePredictor(object):
                 urllib.request.urlretrieve(DATA_URL, DATA_FILE_PATH)
 
         self.df = self._prepare_dataframe(data_url)
+        self.df = self.df[self.df.Date <= HYPOTHETICAL_SUBMISSION_DATE]
+
         geos = self.df.GeoID.unique()
         self.country_samples = self._create_country_samples(self.df, geos)
 
