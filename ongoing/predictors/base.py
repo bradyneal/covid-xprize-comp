@@ -6,6 +6,7 @@ from datetime import datetime, date, timedelta
 
 SEED = 0
 TEST_CONFIGS = [
+    ('Paper', {'start_month': 1, 'end_month': 4, 'n_test_days': 21}),
     ('Nov', {'end_month': 11, 'n_test_months': 1}),
     ('Oct-Nov', {'end_month': 11, 'n_test_months': 2}),
     ('Sep-Nov', {'end_month': 11, 'n_test_months': 3}),
@@ -90,6 +91,9 @@ def load_train_test(n_test_months=1, end_month=11, n_test_days=None,
     # Merge the two dataframes
     df = df.merge(context_df, on=['GeoID'], how='left', suffixes=('', '_y'))
 
+    # Drop countries with no population data
+    df.dropna(subset=['Population'], inplace=True)
+
     # Fill in missing values
     fill_missing_values(df, dropifnocases=dropifnocases, dropifnodeaths=dropifnodeaths)
 
@@ -166,16 +170,20 @@ def load_additional_context_df():
 def fill_missing_values(df, dropifnocases=True, dropifnodeaths=False):
     df.update(df.groupby('GeoID').ConfirmedCases.apply(
         lambda group: group.interpolate(limit_area='inside')))
+
+    df.update(df.groupby('GeoID').ConfirmedDeaths.apply(
+            lambda group: group.interpolate(limit_area='inside')))
+
     if dropifnocases:
         # Drop country / regions for which no number of cases is available
         df.dropna(subset=['ConfirmedCases'], inplace=True)
-        df.update(df.groupby('GeoID').ConfirmedDeaths.apply(
-            lambda group: group.interpolate(limit_area='inside')))
     if dropifnodeaths:
         # Drop country / regions for which no number of deaths is available
         df.dropna(subset=['ConfirmedDeaths'], inplace=True)
-        for npi_column in NPI_COLUMNS:
-            df.update(df.groupby('GeoID')[npi_column].ffill().fillna(0))
+
+    # if NPI value is not available, set it to 0
+    for npi_column in NPI_COLUMNS:
+        df.update(df.groupby('GeoID')[npi_column].ffill().fillna(0))
 
 
 def convert_ratio_to_new_cases(ratio,
@@ -192,7 +200,7 @@ def convert_ratios_to_total_cases(ratios,
                                   prev_new_cases,
                                   initial_total_cases,
                                   pop_size):
-    new_new_cases = []
+    total_cases_list, new_cases_list = [], []
     prev_new_cases_list = list(prev_new_cases)
     curr_total_cases = initial_total_cases
     for ratio in ratios:
@@ -204,10 +212,11 @@ def convert_ratios_to_total_cases(ratios,
         new_cases = max(0, new_cases)
         # Which means total cases can't go down
         curr_total_cases += new_cases
+        total_cases_list.append(curr_total_cases)
         # Update prev_new_cases_list for next iteration of the loop
         prev_new_cases_list.append(new_cases)
-        new_new_cases.append(new_cases)
-    return new_new_cases
+        new_cases_list.append(new_cases)
+    return total_cases_list, new_cases_list
 
 
 class BasePredictorMeta(ABCMeta):
