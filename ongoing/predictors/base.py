@@ -187,8 +187,7 @@ def convert_ratio_to_new_cases(ratio,
                + prev_new_cases_list[-window_size]
 
 
-def convert_ratios_to_total_cases(self,
-                                  ratios,
+def convert_ratios_to_total_cases(ratios,
                                   window_size,
                                   prev_new_cases,
                                   initial_total_cases,
@@ -197,10 +196,10 @@ def convert_ratios_to_total_cases(self,
     prev_new_cases_list = list(prev_new_cases)
     curr_total_cases = initial_total_cases
     for ratio in ratios:
-        new_cases = self._convert_ratio_to_new_cases(ratio,
-                                                     window_size,
-                                                     prev_new_cases_list,
-                                                     curr_total_cases / pop_size)
+        new_cases = convert_ratio_to_new_cases(ratio,
+                                               window_size,
+                                               prev_new_cases_list,
+                                               curr_total_cases / pop_size)
         # new_cases can't be negative!
         new_cases = max(0, new_cases)
         # Which means total cases can't go down
@@ -269,11 +268,13 @@ class BasePredictor(object, metaclass=BasePredictorMeta):
 
     def choose_train_test_split(self, n_test_months=1, end_month=11,
                                 n_test_days=None, start_month=None,
-                                window_size=7, update_data=False):
+                                window_size=7, dropifnocases=True,
+                                dropifnodeaths=False, update_data=False):
         self.train_df, self.test_df = \
             load_train_test(n_test_months=n_test_months, end_month=end_month,
                             n_test_days=n_test_days, start_month=start_month,
-                            window_size=window_size, update_data=update_data)
+                            window_size=window_size, dropifnocases=dropifnocases,
+                            dropifnodeaths=dropifnodeaths, update_data=update_data)
 
     def train_df(self):
         return self.train_df
