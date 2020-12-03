@@ -6,7 +6,6 @@ from datetime import datetime, date, timedelta
 
 SEED = 0
 TEST_CONFIGS = [
-    ('Paper', {'start_month': 1, 'end_month': 4, 'n_test_days': 21}),
     ('Nov', {'end_month': 11, 'n_test_months': 1}),
     ('Oct-Nov', {'end_month': 11, 'n_test_months': 2}),
     ('Sep-Nov', {'end_month': 11, 'n_test_months': 3}),
