@@ -5,8 +5,6 @@
 import os
 import urllib.request
 
-from keras.layers.core import RepeatVector
-
 # Suppress noisy Tensorflow debug logging
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -25,49 +23,17 @@ from keras.layers import Reshape
 from keras.layers import Lambda
 from keras.models import Model
 
-# See https://github.com/OxCGRT/covid-policy-tracker
-DATA_URL = "https://raw.githubusercontent.com/OxCGRT/covid-policy-tracker/master/data/OxCGRT_latest.csv"
+import ongoing.predictors.base as base
+from ongoing.predictors.base import BasePredictor
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(ROOT_DIR, os.pardir, os.pardir, 'data')
-DATA_FILE_PATH = os.path.join(DATA_PATH, 'OxCGRT_latest.csv')
-ADDITIONAL_CONTEXT_FILE = os.path.join(DATA_PATH, "Additional_Context_Data_Global.csv")
-ADDITIONAL_US_STATES_CONTEXT = os.path.join(DATA_PATH, "US_states_populations.csv")
-ADDITIONAL_UK_CONTEXT = os.path.join(DATA_PATH, "uk_populations.csv")
-
-NPI_COLUMNS = ['C1_School closing',
-               'C2_Workplace closing',
-               'C3_Cancel public events',
-               'C4_Restrictions on gatherings',
-               'C5_Close public transport',
-               'C6_Stay at home requirements',
-               'C7_Restrictions on internal movement',
-               'C8_International travel controls',
-               'H1_Public information campaigns',
-               'H2_Testing policy',
-               'H3_Contact tracing',
-               'H6_Facial Coverings']
-
-CONTEXT_COLUMNS = ['CountryName',
-                   'RegionName',
-                   'GeoID',
-                   'Date',
-                   'ConfirmedCases',
-                   'ConfirmedDeaths',
-                   'Population']
 NB_LOOKBACK_DAYS = 21
 NB_TEST_DAYS = 14
 WINDOW_SIZE = 7
-US_PREFIX = "United States / "
-# NUM_TRIALS = 1
-NUM_TRIALS = 10
 NUM_EPOCHS = 1000
 LSTM_SIZE = 32
 EMBED_SIZE = 4
-# MAX_NB_COUNTRIES = 20
 NPI_DELAY = 0
 
-HYPOTHETICAL_SUBMISSION_DATE = np.datetime64("2020-05-06")
 
 class Positive(Constraint):
 
@@ -81,30 +47,30 @@ def _combine_r_and_d(x):
     return r * (1. - d)
 
 
-class geoLSTMPredictor(object):
+class geoLSTMPredictor(BasePredictor):
     """
     A class that computes a fitness for Prescriptor candidates.
     """
 
-    def __init__(self, path_to_model_weights, path_to_geos, data_url,
+    def __init__(self, path_to_model_weights=None, path_to_geos=None,
                  embed_size=EMBED_SIZE, lstm_size=LSTM_SIZE, nb_lookback_days=NB_LOOKBACK_DAYS,
                  nb_test_days=NB_TEST_DAYS, window_size=WINDOW_SIZE, npi_delay=NPI_DELAY,
-                 num_trials=NUM_TRIALS, num_epochs=NUM_EPOCHS):
+                 num_epochs=NUM_EPOCHS, n_test_months=1, end_month=11, n_test_days=None,
+                 start_month=None, update_data=False, seed=base.SEED):
 
+        super().__init__(seed=seed)
         self.embed_size = embed_size
         self.lstm_size = lstm_size
         self.nb_lookback_days = nb_lookback_days
         self.nb_test_days = nb_test_days
         self.window_size = window_size
         self.npi_delay = npi_delay
-        self.num_trials = num_trials
         self.num_epochs = num_epochs
 
         if path_to_model_weights and path_to_geos:
-
             # Load model weights
             nb_context = 1  # Only time series of new cases rate is used as context
-            nb_action = len(NPI_COLUMNS)
+            nb_action = len(base.NPI_COLUMNS)
             with open(path_to_geos, 'r') as f:
                 self.geos = [g.rstrip() for g in f.readlines()]
             self.predictor, _ = self._construct_model(nb_context=nb_context,
@@ -114,74 +80,74 @@ class geoLSTMPredictor(object):
                                                       nb_lookback_days=self.nb_lookback_days)
             self.predictor.load_weights(path_to_model_weights)
 
-            # Make sure data is available to make predictions
-            if not os.path.exists(DATA_FILE_PATH):
-                urllib.request.urlretrieve(DATA_URL, DATA_FILE_PATH)
+        self.choose_train_test_split(n_test_months=n_test_months, end_month=end_month,
+                                     n_test_days=n_test_days, start_month=start_month,
+                                     window_size=self.window_size, update_data=update_data)
 
-        self.df = self._prepare_dataframe(data_url)
-        self.df = self.df[self.df.Date <= HYPOTHETICAL_SUBMISSION_DATE]
+        self.country_samples = None  # will be set when fit() or predict() are called
 
-        self.country_samples = self._create_country_samples(self.df,
-                                                            list(self.df.GeoID.unique()),
-                                                            self.nb_lookback_days,
-                                                            self.npi_delay,
-                                                            self.nb_test_days)
-        if not hasattr(self, 'geos'):
+    def predict(self, data=None):
+        if data is None:
+            data = self.test_df
+
+        if self.country_samples is None:
+            self.country_samples = self._create_country_samples(self.train_df,
+                                                                list(self.train_df.GeoID.unique()),
+                                                                self.nb_lookback_days,
+                                                                self.npi_delay,
+                                                                self.nb_test_days)
             self.geos = list(self.country_samples.keys())
 
-    def predict(self,
-                start_date_str: str,
-                end_date_str: str,
-                path_to_ips_file: str) -> pd.DataFrame:
-        start_date = pd.to_datetime(start_date_str, format='%Y-%m-%d')
-        end_date = pd.to_datetime(end_date_str, format='%Y-%m-%d')
+        start_date = pd.to_datetime(data.Date.min(), format='%Y-%m-%d')
+        end_date = pd.to_datetime(data.Date.max(), format='%Y-%m-%d')
         nb_days = (end_date - start_date).days + 1
-
-        # Load the npis into a DataFrame, handling regions
-        npis_df = self._load_original_data(path_to_ips_file)
 
         # Prepare the output
         forecast = {"CountryName": [],
                     "RegionName": [],
                     "Date": [],
+                    "PredictedDailyTotalCases": [],
                     "PredictedDailyNewCases": []}
 
         # For each requested geo
-        geos = npis_df.GeoID.unique()
+        geos = data.GeoID.unique()
         for g in geos:
             if g not in self.geos:
                 # the model was not trained for this geo: return zeroes
                 print("WARNING: The model was not trained for {}".format(g))
+                pred_total_cases = [0] * nb_days
                 pred_new_cases = [0] * nb_days
                 geo_start_date = start_date
             else:
-                cdf = self.df[self.df.GeoID == g]
+                cdf = self.train_df[self.train_df.GeoID == g]
 
                 if len(cdf) == 0:
                     # we don't have historical data for this geo: return zeroes
+                    pred_total_cases = [0] * nb_days
                     pred_new_cases = [0] * nb_days
                     geo_start_date = start_date
                 else:
                     last_known_date = cdf.Date.max()
                     # Start predicting from start_date, unless there's a gap since last known date
                     geo_start_date = min(last_known_date + np.timedelta64(1, 'D'), start_date)
-                    npis_gdf = npis_df[(npis_df.Date >= geo_start_date - pd.Timedelta(days=self.npi_delay)) & (npis_df.Date <= end_date - pd.Timedelta(days=self.npi_delay))]
+                    npis_gdf = data[(data.Date >= geo_start_date - pd.Timedelta(days=self.npi_delay)) & (data.Date <= end_date - pd.Timedelta(days=self.npi_delay))]
 
-                    pred_new_cases = self._get_new_cases_preds(cdf, g, npis_gdf)
+                    pred_total_cases, pred_new_cases = self._get_new_cases_preds(cdf, g, npis_gdf)
 
             # Append forecast data to results to return
-            country = npis_df[npis_df.GeoID == g].iloc[0].CountryName
-            region = npis_df[npis_df.GeoID == g].iloc[0].RegionName
-            for i, pred in enumerate(pred_new_cases):
+            country = data[data.GeoID == g].iloc[0].CountryName
+            region = data[data.GeoID == g].iloc[0].RegionName
+            for i, (pred_total, pred_new) in enumerate(zip(pred_total_cases, pred_new_cases)):
                 forecast["CountryName"].append(country)
                 forecast["RegionName"].append(region)
                 current_date = geo_start_date + pd.offsets.Day(i)
                 forecast["Date"].append(current_date)
-                forecast["PredictedDailyNewCases"].append(pred)
+                forecast["PredictedDailyTotalCases"].append(pred_total)
+                forecast["PredictedDailyNewCases"].append(pred_new)
 
         forecast_df = pd.DataFrame.from_dict(forecast)
-        # Return only the requested predictions
-        return forecast_df[(forecast_df.Date >= start_date) & (forecast_df.Date <= end_date)]
+        # Return only the requested predictions (PredictedDailyTotalCases)
+        return forecast_df[(forecast_df.Date >= start_date) & (forecast_df.Date <= end_date)].PredictedDailyTotalCases
 
     def _get_new_cases_preds(self, c_df, g, npis_df):
         cdf = c_df[c_df.ConfirmedCases.notnull()]
@@ -190,7 +156,7 @@ class geoLSTMPredictor(object):
         country_id = np.array([self.geos.index(g)])
         # Predictions with passed npis
         cnpis_df = npis_df[npis_df.GeoID == g]
-        npis_sequence = np.array(cnpis_df[NPI_COLUMNS])
+        npis_sequence = np.array(cnpis_df[base.NPI_COLUMNS])
         # Get the predictions with the passed NPIs
         preds = self._roll_out_predictions(self.predictor,
                                            initial_context_input,
@@ -203,126 +169,14 @@ class geoLSTMPredictor(object):
         initial_total_cases = prev_confirmed_cases[-1]
         pop_size = np.array(cdf.Population)[-1]  # Population size doesn't change over time
         # Compute predictor's forecast
-        pred_new_cases = self._convert_ratios_to_total_cases(
+        pred_total_cases, pred_new_cases = base.convert_ratios_to_total_cases(
             preds,
             self.window_size,
             prev_new_cases,
             initial_total_cases,
             pop_size)
 
-        return pred_new_cases
-
-    def _prepare_dataframe(self, data_url: str) -> pd.DataFrame:
-        """
-        Loads the Oxford dataset, cleans it up and prepares the necessary columns. Depending on options, also
-        loads the Johns Hopkins dataset and merges that in.
-        :param data_url: the url containing the original data
-        :return: a Pandas DataFrame with the historical data
-        """
-        # Original df from Oxford
-        df1 = self._load_original_data(data_url)
-
-        # Additional context df (e.g Population for each country)
-        df2 = self._load_additional_context_df()
-
-        # Merge the 2 DataFrames
-        df = df1.merge(df2, on=['GeoID'], how='left', suffixes=('', '_y'))
-
-        # Drop countries with no population data
-        df.dropna(subset=['Population'], inplace=True)
-
-        #  Keep only needed columns
-        columns = CONTEXT_COLUMNS + NPI_COLUMNS
-        df = df[columns]
-
-        # Fill in missing values
-        self._fill_missing_values(df)
-
-        # Compute number of new cases and deaths each day
-        df['NewCases'] = df.groupby('GeoID').ConfirmedCases.diff().fillna(0)
-        df['NewDeaths'] = df.groupby('GeoID').ConfirmedDeaths.diff().fillna(0)
-
-        # Replace negative values (which do not make sense for these columns) with 0
-        df['NewCases'] = df['NewCases'].clip(lower=0)
-        df['NewDeaths'] = df['NewDeaths'].clip(lower=0)
-
-        # Compute smoothed versions of new cases and deaths each day
-        df['SmoothNewCases'] = df.groupby('GeoID')['NewCases'].rolling(
-            self.window_size, center=False).mean().fillna(0).reset_index(0, drop=True)
-        df['SmoothNewDeaths'] = df.groupby('GeoID')['NewDeaths'].rolling(
-            self.window_size, center=False).mean().fillna(0).reset_index(0, drop=True)
-
-        # Compute percent change in new cases and deaths each day
-        df['CaseRatio'] = df.groupby('GeoID').SmoothNewCases.pct_change(
-        ).fillna(0).replace(np.inf, 0) + 1
-        df['DeathRatio'] = df.groupby('GeoID').SmoothNewDeaths.pct_change(
-        ).fillna(0).replace(np.inf, 0) + 1
-
-        # Add column for proportion of population infected
-        df['ProportionInfected'] = df['ConfirmedCases'] / df['Population']
-
-        # Create column of value to predict
-        df['PredictionRatio'] = df['CaseRatio'] / (1 - df['ProportionInfected'])
-
-        return df
-
-    @staticmethod
-    def _load_original_data(data_url):
-        latest_df = pd.read_csv(data_url,
-                                parse_dates=['Date'],
-                                encoding="ISO-8859-1",
-                                dtype={"RegionName": str,
-                                       "RegionCode": str},
-                                error_bad_lines=False)
-        # GeoID is CountryName / RegionName
-        # np.where usage: if A then B else C
-        latest_df["GeoID"] = np.where(latest_df["RegionName"].isnull(),
-                                      latest_df["CountryName"],
-                                      latest_df["CountryName"] + ' / ' + latest_df["RegionName"])
-        return latest_df
-
-    @staticmethod
-    def _fill_missing_values(df):
-        """
-        # Fill missing values by interpolation, ffill, and filling NaNs
-        :param df: Dataframe to be filled
-        """
-        df.update(df.groupby('GeoID').ConfirmedCases.apply(
-            lambda group: group.interpolate(limit_area='inside')))
-        # Drop country / regions for which no number of cases is available
-        df.dropna(subset=['ConfirmedCases'], inplace=True)
-        df.update(df.groupby('GeoID').ConfirmedDeaths.apply(
-            lambda group: group.interpolate(limit_area='inside')))
-        # Drop country / regions for which no number of deaths is available
-        df.dropna(subset=['ConfirmedDeaths'], inplace=True)
-        for npi_column in NPI_COLUMNS:
-            df.update(df.groupby('GeoID')[npi_column].ffill().fillna(0))
-
-    @staticmethod
-    def _load_additional_context_df():
-        # File containing the population for each country
-        # Note: this file contains only countries population, not regions
-        additional_context_df = pd.read_csv(ADDITIONAL_CONTEXT_FILE,
-                                            usecols=['CountryName', 'Population'])
-        additional_context_df['GeoID'] = additional_context_df['CountryName']
-
-        # US states population
-        additional_us_states_df = pd.read_csv(ADDITIONAL_US_STATES_CONTEXT,
-                                              usecols=['NAME', 'POPESTIMATE2019'])
-        # Rename the columns to match measures_df ones
-        additional_us_states_df.rename(columns={'POPESTIMATE2019': 'Population'}, inplace=True)
-        # Prefix with country name to match measures_df
-        additional_us_states_df['GeoID'] = US_PREFIX + additional_us_states_df['NAME']
-
-        # Append the new data to additional_df
-        additional_context_df = additional_context_df.append(additional_us_states_df)
-
-        # UK population
-        additional_uk_df = pd.read_csv(ADDITIONAL_UK_CONTEXT)
-        # Append the new data to additional_df
-        additional_context_df = additional_context_df.append(additional_uk_df)
-
-        return additional_context_df
+        return pred_total_cases, pred_new_cases
 
     @staticmethod
     def _create_country_samples(df: pd.DataFrame, geos: list, nb_lookback_days: int, npi_delay: int, nb_test_days: int) -> dict:
@@ -333,7 +187,7 @@ class geoLSTMPredictor(object):
         :return: a dictionary of train and test sets, for each specified country
         """
         context_column = 'PredictionRatio'
-        action_columns = NPI_COLUMNS
+        action_columns = base.NPI_COLUMNS
         outcome_column = 'PredictionRatio'
         country_samples = {}
         for i, g in enumerate(geos):
@@ -360,10 +214,6 @@ class geoLSTMPredictor(object):
                     'X_action': X_action,
                     'X_country': X_country,
                     'y': y,
-                    'X_train_context': X_context[:-nb_test_days],
-                    'X_train_action': X_action[:-nb_test_days],
-                    'X_train_country': X_country[:-nb_test_days],
-                    'y_train': y[:-nb_test_days],
                     'X_test_context': X_context[-nb_test_days:],
                     'X_test_action': X_action[-nb_test_days:],
                     'X_test_country': X_country[-nb_test_days:],
@@ -390,57 +240,23 @@ class geoLSTMPredictor(object):
             context_input[:, -1] = pred[-1]
         return pred_output
 
-    # Functions for converting predictions back to number of cases
-    @staticmethod
-    def _convert_ratio_to_new_cases(ratio,
-                                    window_size,
-                                    prev_new_cases_list,
-                                    prev_pct_infected):
-        return (ratio * (1 - prev_pct_infected) - 1) * \
-               (window_size * np.mean(prev_new_cases_list[-window_size:])) \
-               + prev_new_cases_list[-window_size]
-
-    def _convert_ratios_to_total_cases(self,
-                                       ratios,
-                                       window_size,
-                                       prev_new_cases,
-                                       initial_total_cases,
-                                       pop_size):
-        new_new_cases = []
-        prev_new_cases_list = list(prev_new_cases)
-        curr_total_cases = initial_total_cases
-        for ratio in ratios:
-            new_cases = self._convert_ratio_to_new_cases(ratio,
-                                                         window_size,
-                                                         prev_new_cases_list,
-                                                         curr_total_cases / pop_size)
-            # new_cases can't be negative!
-            new_cases = max(0, new_cases)
-            # Which means total cases can't go down
-            curr_total_cases += new_cases
-            # Update prev_new_cases_list for next iteration of the loop
-            prev_new_cases_list.append(new_cases)
-            new_new_cases.append(new_cases)
-        return new_new_cases
-
-    @staticmethod
-    def _smooth_case_list(case_list, window):
-        return pd.Series(case_list).rolling(window).mean().to_numpy()
-
-    def train(self):
-        print("Creating numpy arrays for Keras for each country...")
-        country_samples = self._create_country_samples(self.df, self.geos, self.nb_lookback_days, self.npi_delay, self.nb_test_days)
-        print("Numpy arrays created")
+    def fit(self):
+        self.country_samples = self._create_country_samples(self.train_df,
+                                                            list(self.train_df.GeoID.unique()),
+                                                            self.nb_lookback_days,
+                                                            self.npi_delay,
+                                                            self.nb_test_days)
+        self.geos = list(self.country_samples.keys())
 
         # Aggregate data for training
-        all_X_context_list = [country_samples[c]['X_train_context']
-                              for c in country_samples]
-        all_X_action_list = [country_samples[c]['X_train_action']
-                             for c in country_samples]
-        all_X_country_list = [country_samples[c]['X_train_country']
-                              for c in country_samples]
-        all_y_list = [country_samples[c]['y_train']
-                      for c in country_samples]
+        all_X_context_list = [self.country_samples[c]['X_context']
+                              for c in self.country_samples]
+        all_X_action_list = [self.country_samples[c]['X_action']
+                             for c in self.country_samples]
+        all_X_country_list = [self.country_samples[c]['X_country']
+                              for c in self.country_samples]
+        all_y_list = [self.country_samples[c]['y']
+                      for c in self.country_samples]
         X_context = np.concatenate(all_X_context_list)
         X_action = np.concatenate(all_X_action_list)
         X_country = np.concatenate(all_X_country_list)
@@ -452,98 +268,21 @@ class geoLSTMPredictor(object):
         X_context = np.clip(X_context, MIN_VALUE, MAX_VALUE)
         y = np.clip(y, MIN_VALUE, MAX_VALUE)
 
-        # Aggregate data for testing only on top countries
-        test_all_X_context_list = [country_samples[g]['X_train_context']
-                                   for g in self.geos]
-        test_all_X_action_list = [country_samples[g]['X_train_action']
-                                  for g in self.geos]
-        test_all_X_country_list = [country_samples[g]['X_train_country']
-                                  for g in self.geos]
-        test_all_y_list = [country_samples[g]['y_train']
-                           for g in self.geos]
-        test_X_context = np.concatenate(test_all_X_context_list)
-        test_X_action = np.concatenate(test_all_X_action_list)
-        test_X_country = np.concatenate(test_all_X_country_list)
-        test_y = np.concatenate(test_all_y_list)
-
-        test_X_context = np.clip(test_X_context, MIN_VALUE, MAX_VALUE)
-        test_y = np.clip(test_y, MIN_VALUE, MAX_VALUE)
-
-        # Run full training several times to find best model
-        # and gather data for setting acceptance threshold
-        models = []
-        train_losses = []
-        val_losses = []
-        test_losses = []
-        for t in range(NUM_TRIALS):
-            print('Trial', t)
-            X_context, X_action, X_country, y = self._permute_data(X_context, X_action, X_country, y, seed=t)
-            model, training_model = self._construct_model(nb_context=X_context.shape[-1],
-                                                          nb_action=X_action.shape[-1],
-                                                          embed_size=self.embed_size,
-                                                          lstm_size=self.lstm_size,
-                                                          nb_lookback_days=self.nb_lookback_days)
-            history = self._train_model(training_model, X_context, X_action, X_country, y, epochs=self.num_epochs, verbose=0)
-            top_epoch = np.argmin(history.history['val_loss'])
-            train_loss = history.history['loss'][top_epoch]
-            val_loss = history.history['val_loss'][top_epoch]
-            test_loss = training_model.evaluate([test_X_context, test_X_action, test_X_country], [test_y])
-            train_losses.append(train_loss)
-            val_losses.append(val_loss)
-            test_losses.append(test_loss)
-            models.append(model)
-            print('Train Loss:', train_loss)
-            print('Val Loss:', val_loss)
-            print('Test Loss:', test_loss)
-
-        # Gather test info
-        country_indeps = []
-        country_predss = []
-        country_casess = []
-        for model in models:
-            country_indep, country_preds, country_cases = self._lstm_get_test_rollouts(model,
-                                                                                       self.df,
-                                                                                       self.geos,
-                                                                                       country_samples)
-            country_indeps.append(country_indep)
-            country_predss.append(country_preds)
-            country_casess.append(country_cases)
-
-        # Compute cases mae
-        test_case_maes = []
-        for m in range(len(models)):
-            total_loss = 0
-            for g in self.geos:
-                true_cases = np.sum(np.array(self.df[self.df.GeoID == g].NewCases)[-self.nb_test_days])
-                pred_cases = np.sum(country_casess[m][g][-self.nb_test_days:])
-                total_loss += np.abs(true_cases - pred_cases)
-            test_case_maes.append(total_loss)
-
-        # Select best model
-        best_model = models[np.argmin(test_case_maes)]
-        self.predictor = best_model
-        print("Done")
-        return best_model
-
-    @staticmethod
-    def _most_affected_geos(df, nb_geos, min_historical_days):
-        """
-        Returns the list of most affected countries, in terms of confirmed deaths.
-        :param df: the data frame containing the historical data
-        :param nb_geos: the number of geos to return
-        :param min_historical_days: the minimum days of historical data the countries must have
-        :return: a list of country names of size nb_countries if there were enough, and otherwise a list of all the
-        country names that have at least min_look_back_days data points.
-        """
-        # By default use most affected geos with enough history
-        gdf = df.groupby('GeoID')['ConfirmedDeaths'].agg(['max', 'count']).sort_values(by='max', ascending=False)
-        filtered_gdf = gdf[gdf["count"] > min_historical_days]
-        geos = list(filtered_gdf.head(nb_geos).index)
-        return geos
+        X_context, X_action, X_country, y = self._permute_data(X_context, X_action, X_country, y)
+        self.predictor, training_model = self._construct_model(nb_context=X_context.shape[-1],
+                                                               nb_action=X_action.shape[-1],
+                                                               embed_size=self.embed_size,
+                                                               lstm_size=self.lstm_size,
+                                                               nb_lookback_days=self.nb_lookback_days)
+        history = self._train_model(training_model, X_context, X_action, X_country, y, epochs=self.num_epochs, verbose=0)
+        top_epoch = np.argmin(history.history['val_loss'])
+        train_loss = history.history['loss'][top_epoch]
+        val_loss = history.history['val_loss'][top_epoch]
+        print('Train Loss:', train_loss)
+        print('Val Loss:', val_loss)
 
     # Shuffling data prior to train/val split
-    def _permute_data(self, X_context, X_action, X_country, y, seed=301):
-        np.random.seed(seed)
+    def _permute_data(self, X_context, X_action, X_country, y):
         p = np.random.permutation(y.shape[0])
         X_context = X_context[p]
         X_action = X_action[p]
@@ -583,7 +322,6 @@ class geoLSTMPredictor(object):
         x = Concatenate(axis=1)([x, emb])  # concatenate the output of the LSTM with the country embedding prior to the dense layer
         action_output = Dense(units=1,
                               activation='sigmoid',
-                              # kernel_constraint=Positive(),
                               name='action_dense')(x)
 
         # Create prediction model
@@ -666,7 +404,7 @@ class geoLSTMPredictor(object):
             initial_total_cases = prev_confirmed_cases[-1]
             pop_size = np.array(df[df.GeoID == g].Population)[0]
 
-            pred_new_cases = self._convert_ratios_to_total_cases(
+            pred_new_cases = base.convert_ratios_to_total_cases(
                 preds, self.window_size, prev_new_cases, initial_total_cases, pop_size)
             country_cases[g] = pred_new_cases
 
@@ -676,3 +414,9 @@ class geoLSTMPredictor(object):
         self.predictor.save_weights(path_to_weights)
         with open(path_to_country_list, 'w') as f:
             f.writelines("{}\n".format(g) for g in self.geos)
+
+
+if __name__ == '__main__':
+    # Run all test cases
+    model = geoLSTMPredictor()
+    model.evaluate()
