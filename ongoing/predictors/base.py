@@ -299,10 +299,10 @@ class BasePredictor(object, metaclass=BasePredictorMeta):
         results = {}
         for test_name, test_config in TEST_CONFIGS:
             print('Running test:', test_name)
-            train_df, test_df = load_train_test(**test_config)
-            self.fit(train_df)
-            train_mae = np.abs(self.predict(train_df) - train_df['ConfirmedCases']).mean()
-            test_mae = np.abs(self.predict(test_df) - train_df['ConfirmedCases']).mean()
+            self.choose_train_test_split(**test_config)
+            self.fit()
+            train_mae = np.abs(self.predict(self.train_df) - self.train_df['ConfirmedCases']).mean()
+            test_mae = np.abs(self.predict(self.test_df) - self.test_df['ConfirmedCases']).mean()
             results[test_name + ' Train MAE'] = train_mae
             results[test_name + ' Test MAE'] = test_mae
         print(results)
