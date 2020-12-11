@@ -69,7 +69,7 @@ class geoLSTMPredictor(BasePredictor):
 
         if path_to_model_weights and path_to_geos:
             # Load model weights
-            nb_context = 1  # Only time series of new cases rate is used as context
+            nb_context = 2  # New cases rate and new deaths rate are used as context
             nb_action = len(base.NPI_COLUMNS)
             with open(path_to_geos, 'r') as f:
                 self.geos = [g.rstrip() for g in f.readlines()]
@@ -107,7 +107,9 @@ class geoLSTMPredictor(BasePredictor):
                     "RegionName": [],
                     "Date": [],
                     "PredictedDailyTotalCases": [],
-                    "PredictedDailyNewCases": []}
+                    "PredictedDailyNewCases": [],
+                    "PredictedDailyTotalDeaths": [],
+                    "PredictedDailyNewDeaths": []}
 
         # For each requested geo
         geos = data.GeoID.unique()
@@ -117,6 +119,8 @@ class geoLSTMPredictor(BasePredictor):
                 print("WARNING: The model was not trained for {}".format(g))
                 pred_total_cases = [0] * nb_days
                 pred_new_cases = [0] * nb_days
+                pred_total_deaths = [0] * nb_days
+                pred_new_deaths = [0] * nb_days
                 geo_start_date = start_date
             else:
                 cdf = self.train_df[self.train_df.GeoID == g]
@@ -125,6 +129,8 @@ class geoLSTMPredictor(BasePredictor):
                     # we don't have historical data for this geo: return zeroes
                     pred_total_cases = [0] * nb_days
                     pred_new_cases = [0] * nb_days
+                    pred_total_deaths = [0] * nb_days
+                    pred_new_deaths = [0] * nb_days
                     geo_start_date = start_date
                 else:
                     last_known_date = cdf.Date.max()
@@ -132,22 +138,24 @@ class geoLSTMPredictor(BasePredictor):
                     geo_start_date = min(last_known_date + np.timedelta64(1, 'D'), start_date)
                     npis_gdf = data[(data.Date >= geo_start_date - pd.Timedelta(days=self.npi_delay)) & (data.Date <= end_date - pd.Timedelta(days=self.npi_delay))]
 
-                    pred_total_cases, pred_new_cases = self._get_new_cases_preds(cdf, g, npis_gdf)
+                    pred_total_cases, pred_new_cases, pred_total_deaths, pred_new_deaths = self._get_new_cases_preds(cdf, g, npis_gdf)
 
             # Append forecast data to results to return
             country = data[data.GeoID == g].iloc[0].CountryName
             region = data[data.GeoID == g].iloc[0].RegionName
-            for i, (pred_total, pred_new) in enumerate(zip(pred_total_cases, pred_new_cases)):
+            for i, (ptot_cases, pnew_cases, ptot_deaths, pnew_deaths) in enumerate(zip(pred_total_cases, pred_new_cases, pred_total_deaths, pred_new_deaths)):
                 forecast["CountryName"].append(country)
                 forecast["RegionName"].append(region)
                 current_date = geo_start_date + pd.offsets.Day(i)
                 forecast["Date"].append(current_date)
-                forecast["PredictedDailyTotalCases"].append(pred_total)
-                forecast["PredictedDailyNewCases"].append(pred_new)
+                forecast["PredictedDailyTotalCases"].append(ptot_cases)
+                forecast["PredictedDailyNewCases"].append(pnew_cases)
+                forecast["PredictedDailyTotalDeaths"].append(ptot_deaths)
+                forecast["PredictedDailyNewDeaths"].append(pnew_deaths)
 
         forecast_df = pd.DataFrame.from_dict(forecast)
         # Return only the requested predictions (PredictedDailyTotalCases)
-        return forecast_df[(forecast_df.Date >= start_date) & (forecast_df.Date <= end_date)].PredictedDailyTotalCases
+        return forecast_df[(forecast_df.Date >= start_date) & (forecast_df.Date <= end_date)]
 
     def _get_new_cases_preds(self, c_df, g, npis_df):
         cdf = c_df[c_df.ConfirmedCases.notnull()]
@@ -163,20 +171,33 @@ class geoLSTMPredictor(BasePredictor):
                                            initial_action_input,
                                            country_id,
                                            npis_sequence)
+        preds_cases = preds[:,0]
+        preds_deaths = preds[:,1]
         # Gather info to convert to total cases
         prev_confirmed_cases = np.array(cdf.ConfirmedCases)
         prev_new_cases = np.array(cdf.NewCases)
         initial_total_cases = prev_confirmed_cases[-1]
         pop_size = np.array(cdf.Population)[-1]  # Population size doesn't change over time
-        # Compute predictor's forecast
+        prev_confirmed_deaths = np.array(cdf.ConfirmedDeaths)
+        prev_new_deaths = np.array(cdf.NewDeaths)
+        initial_total_deaths = prev_confirmed_deaths[-1]
+
+        # Compute predictor's cases forecast
         pred_total_cases, pred_new_cases = base.convert_ratios_to_total_cases(
-            preds,
+            preds_cases,
             self.window_size,
             prev_new_cases,
             initial_total_cases,
             pop_size)
 
-        return pred_total_cases, pred_new_cases
+        # Compute predictor's deaths forecast
+        pred_total_deaths, pred_new_deaths = base.convert_ratios_to_total_deaths(
+            preds_deaths,
+            self.window_size,
+            prev_new_deaths,
+            initial_total_deaths)
+
+        return pred_total_cases, pred_new_cases, pred_total_deaths, pred_new_deaths
 
     @staticmethod
     def _create_country_samples(df: pd.DataFrame, geos: list, nb_lookback_days: int, npi_delay: int, nb_test_days: int) -> dict:
@@ -186,16 +207,16 @@ class geoLSTMPredictor(BasePredictor):
         :param geos: a list of geo names
         :return: a dictionary of train and test sets, for each specified country
         """
-        context_column = 'PredictionRatio'
+        context_columns = ['PredictionRatio', 'DeathRatio']
         action_columns = base.NPI_COLUMNS
-        outcome_column = 'PredictionRatio'
+        outcome_columns = ['PredictionRatio', 'DeathRatio']
         country_samples = {}
         for i, g in enumerate(geos):
             cdf = df[df.GeoID == g]
             cdf = cdf[cdf.ConfirmedCases.notnull()]
-            context_data = np.array(cdf[context_column])
+            context_data = np.array(cdf[context_columns])
             action_data = np.array(cdf[action_columns])
-            outcome_data = np.array(cdf[outcome_column])
+            outcome_data = np.array(cdf[outcome_columns])
             context_samples = []
             action_samples = []
             outcome_samples = []
@@ -205,7 +226,7 @@ class geoLSTMPredictor(BasePredictor):
                 action_samples.append(action_data[d-npi_delay - nb_lookback_days: d-npi_delay])
                 outcome_samples.append(outcome_data[d])
             if len(outcome_samples) > 0:
-                X_context = np.expand_dims(np.stack(context_samples, axis=0), axis=2)
+                X_context = np.stack(context_samples, axis=0)
                 X_action = np.stack(action_samples, axis=0)
                 X_country = i*np.ones(X_context.shape[0])
                 y = np.stack(outcome_samples, axis=0)
@@ -225,7 +246,7 @@ class geoLSTMPredictor(BasePredictor):
     @staticmethod
     def _roll_out_predictions(predictor, initial_context_input, initial_action_input, country_id, future_action_sequence):
         nb_roll_out_days = future_action_sequence.shape[0]
-        pred_output = np.zeros(nb_roll_out_days)
+        pred_output = np.zeros((nb_roll_out_days, 2))
         context_input = np.expand_dims(np.copy(initial_context_input), axis=0)
         action_input = np.expand_dims(np.copy(initial_action_input), axis=0)
         country_input = np.expand_dims(np.copy(country_id), axis=0)
@@ -305,7 +326,7 @@ class geoLSTMPredictor(BasePredictor):
                  return_sequences=False,
                  name='context_lstm')(context_input)
         x = Concatenate(axis=1)([x, emb])  # concatenate the output of the LSTM with the country embedding prior to the dense layer
-        context_output = Dense(units=1,
+        context_output = Dense(units=2,
                                activation='softplus',
                                name='context_dense')(x)
 
@@ -320,7 +341,7 @@ class geoLSTMPredictor(BasePredictor):
                  return_sequences=False,
                  name='action_lstm')(action_input)
         x = Concatenate(axis=1)([x, emb])  # concatenate the output of the LSTM with the country embedding prior to the dense layer
-        action_output = Dense(units=1,
+        action_output = Dense(units=2,
                               activation='sigmoid',
                               name='action_dense')(x)
 
@@ -355,7 +376,7 @@ class geoLSTMPredictor(BasePredictor):
     # Functions for computing test metrics
     def _lstm_roll_out_predictions(self, model, initial_context_input, initial_action_input, country_id, future_action_sequence):
         nb_test_days = future_action_sequence.shape[0]
-        pred_output = np.zeros(nb_test_days)
+        pred_output = np.zeros((nb_test_days, 2))
         context_input = np.expand_dims(np.copy(initial_context_input), axis=0)
         action_input = np.expand_dims(np.copy(initial_action_input), axis=0)
         country_input = np.expand_dims(np.copy(country_id), axis=0)
