@@ -218,6 +218,30 @@ def convert_ratios_to_total_cases(ratios,
     return total_cases_list, new_cases_list
 
 
+def convert_ratios_to_total_deaths(ratios,
+                                   window_size,
+                                   prev_new_deaths,
+                                   initial_total_deaths):
+    total_deaths_list, new_deaths_list = [], []
+    prev_new_deaths_list = list(prev_new_deaths)
+    curr_total_deaths = initial_total_deaths
+    for ratio in ratios:
+        new_deaths = convert_ratio_to_new_cases(ratio,
+                                                window_size,
+                                                prev_new_deaths_list,
+                                                0.)
+        # new_deaths can't be negative!
+        new_deaths = max(0, new_deaths)
+        # Which means total deaths can't go down
+        curr_total_deaths += new_deaths
+        total_deaths_list.append(curr_total_deaths)
+        # Update prev_new_deaths_list for next iteration of the loop
+        prev_new_deaths_list.append(new_deaths)
+        new_deaths_list.append(new_deaths)
+    return total_deaths_list, new_deaths_list
+
+
+
 class BasePredictorMeta(ABCMeta):
     """
     Forces subclasses to implement abstract_attributes
@@ -296,17 +320,34 @@ class BasePredictor(object, metaclass=BasePredictorMeta):
         pass
 
     def evaluate(self):
-        results = {}
+        results_cases, results_deaths = {}, {}
         for test_name, test_config in TEST_CONFIGS:
             print('Running test:', test_name)
             self.choose_train_test_split(**test_config)
             self.fit()
-            train_mae = np.abs(self.predict(self.train_df) - self.train_df['ConfirmedCases']).mean()
-            test_mae = np.abs(self.predict(self.test_df) - self.test_df['ConfirmedCases']).mean()
-            results[test_name + ' Train MAE'] = train_mae
-            results[test_name + ' Test MAE'] = test_mae
-        print(results)
-        return results
+
+            train_preds = self.predict(self.train_df)
+            test_preds = self.predict(self.test_df)
+
+            train_mae_cases = np.abs(train_preds['PredictedDailyTotalCases'] - self.train_df['ConfirmedCases']).mean()
+            test_mae_cases = np.abs(test_preds['PredictedDailyTotalCases'] - self.test_df['ConfirmedCases']).mean()
+            results_cases[test_name + ' Train MAE'] = train_mae_cases
+            results_cases[test_name + ' Test MAE'] = test_mae_cases
+
+            if 'PredictedDailyTotalDeaths' in test_preds:
+                train_mae_deaths = np.abs(train_preds['PredictedDailyTotalDeaths'] - self.train_df['ConfirmedDeaths']).mean()
+                test_mae_deaths = np.abs(test_preds['PredictedDailyTotalDeaths'] - self.test_df['ConfirmedDeaths']).mean()
+                results_deaths[test_name + ' Train MAE'] = train_mae_deaths
+                results_deaths[test_name + ' Test MAE'] = test_mae_deaths
+
+        print()
+        print('Prediction of number of cases:')
+        print(results_cases)
+        print()
+        print('Prediction of number of deaths:')
+        print(results_deaths)
+
+        return results_cases, results_deaths
 
     def set_seed(self, seed=SEED):
         np.random.seed(seed)
