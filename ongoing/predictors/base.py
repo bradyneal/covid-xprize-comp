@@ -320,6 +320,8 @@ class BasePredictor(object, metaclass=BasePredictorMeta):
         pass
 
     def evaluate(self):
+        window_size = 7
+
         results_cases, results_deaths = {}, {}
         for test_name, test_config in TEST_CONFIGS:
             print('Running test:', test_name)
@@ -329,14 +331,30 @@ class BasePredictor(object, metaclass=BasePredictorMeta):
             train_preds = self.predict(self.train_df)
             test_preds = self.predict(self.test_df)
 
-            train_mae_cases = np.abs(train_preds['PredictedDailyTotalCases'] - self.train_df['ConfirmedCases']).mean()
-            test_mae_cases = np.abs(test_preds['PredictedDailyTotalCases'] - self.test_df['ConfirmedCases']).mean()
+            # Smoothing evaluation metrics
+            # New Cases
+            train_preds['PredictedDailyNewCases7DMA'] = smoothing(eval_metric='PredictedDailyNewCases',
+                                                                  dataset=train_preds)
+            test_preds['PredictedDailyNewCases7DMA'] = smoothing(eval_metric='PredictedDailyNewCases',
+                                                                 dataset=test_preds)
+
+            # New Deaths
+            train_preds['PredictedDailyNewDeaths7DMA'] = smoothing(eval_metric='PredictedDailyNewDeaths',
+                                                                   dataset=train_preds)
+            test_preds['PredictedDailyNewDeaths7DMA'] = smoothing(eval_metric='PredictedDailyNewDeaths',
+                                                                  dataset=test_preds)
+
+            # TODO: Add new evaluation metrics to smooth
+            # e.g proportion population under quarantine, ICU admissions, hospital admissions
+
+            train_mae_cases = np.abs(train_preds['PredictedDailyNewCases7DMA'] - self.train_df['SmoothNewCases']).mean()
+            test_mae_cases = np.abs(test_preds['PredictedDailyNewCases7DMA'] - self.test_df['SmoothNewCases']).mean()
             results_cases[test_name + ' Train MAE'] = train_mae_cases
             results_cases[test_name + ' Test MAE'] = test_mae_cases
 
-            if 'PredictedDailyTotalDeaths' in test_preds:
-                train_mae_deaths = np.abs(train_preds['PredictedDailyTotalDeaths'] - self.train_df['ConfirmedDeaths']).mean()
-                test_mae_deaths = np.abs(test_preds['PredictedDailyTotalDeaths'] - self.test_df['ConfirmedDeaths']).mean()
+            if 'PredictedDailyNewDeaths' in test_preds:
+                train_mae_deaths = np.abs(train_preds['PredictedDailyNewDeaths7DMA'] - self.train_df['SmoothNewDeaths']).mean()
+                test_mae_deaths = np.abs(test_preds['PredictedDailyNewDeaths7DMA'] - self.test_df['SmoothNewDeaths']).mean()
                 results_deaths[test_name + ' Train MAE'] = train_mae_deaths
                 results_deaths[test_name + ' Test MAE'] = test_mae_deaths
 
@@ -349,7 +367,30 @@ class BasePredictor(object, metaclass=BasePredictorMeta):
 
         return results_cases, results_deaths
 
-    def set_seed(self, seed=SEED):
+    @staticmethod
+    def smoothing(eval_metric, dataset, window_size=7):
+        """
+        Auxiliary class for applying a "win_size" day simple moving average to smooth the evaluation metric.
+
+        eval_metric (str): string representing the metric to be smoothed
+        dataset (data frame): pandas data frame representing the dataset
+        window_size (int): window size for smoothing function. Default = 7 day smoothing
+
+        return: pandas data frame containing smoothed values
+        """
+        col_names = list(dataset.columns)  # get all column names of the dataset
+
+        if eval_metric in col_names:  # check if evaluation metric is valid
+
+            # Compute the 7 day moving average for the evaluation metric
+            return dataset.groupby(
+                "GeoID")[eval_metric].rolling(
+                window_size, center=False).mean().reset_index(0, drop=True)
+        else:
+            raise NameError("The evaluation metric {} is not present in the dataset".format(eval_metric))
+
+    @staticmethod
+    def set_seed(seed=SEED):
         np.random.seed(seed)
 
 
