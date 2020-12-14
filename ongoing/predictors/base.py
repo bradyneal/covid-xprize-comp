@@ -333,15 +333,15 @@ class BasePredictor(object, metaclass=BasePredictorMeta):
 
             # Smoothing evaluation metrics
             # New Cases
-            train_preds['PredictedDailyNewCases7DMA'] = smoothing(eval_metric='PredictedDailyNewCases',
+            train_preds['PredictedDailyNewCases7DMA'] = self.smoothing(eval_metric='PredictedDailyNewCases',
                                                                   dataset=train_preds)
-            test_preds['PredictedDailyNewCases7DMA'] = smoothing(eval_metric='PredictedDailyNewCases',
+            test_preds['PredictedDailyNewCases7DMA'] = self.smoothing(eval_metric='PredictedDailyNewCases',
                                                                  dataset=test_preds)
 
             # New Deaths
-            train_preds['PredictedDailyNewDeaths7DMA'] = smoothing(eval_metric='PredictedDailyNewDeaths',
+            train_preds['PredictedDailyNewDeaths7DMA'] = self.smoothing(eval_metric='PredictedDailyNewDeaths',
                                                                    dataset=train_preds)
-            test_preds['PredictedDailyNewDeaths7DMA'] = smoothing(eval_metric='PredictedDailyNewDeaths',
+            test_preds['PredictedDailyNewDeaths7DMA'] = self.smoothing(eval_metric='PredictedDailyNewDeaths',
                                                                   dataset=test_preds)
 
             # TODO: Add new evaluation metrics to smooth
