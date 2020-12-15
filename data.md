@@ -67,3 +67,8 @@ Data updated daily latest by 9:30 AM EST.
 
 ## Additional Context Global Data and Age Structure by Country Combined File
 * Link: [Click here](https://drive.google.com/file/d/1GNAQKT0LPRSpQsfSIc-ET6IhS-9TbXQK/view?usp=sharing)
+
+## Pollution Data - 2020
+* **Link**: [Click here](https://drive.google.com/file/d/1EJsDDnfSxQI4rtExDDypjoQFrewzTd6h/view?usp=sharing)
+* **Source**: [Click here](https://aqicn.org/data-platform/covid19/)
+* **Countries**: 85
