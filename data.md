@@ -36,8 +36,8 @@ Data updated daily latest by 9:30 AM EST.
 * **Source**: [Kaggle](https://www.kaggle.com/hansukyang/temperature-history-of-1000-cities-1980-to-2020)
 * Countries: 170
 
-## Temperature Data (per day per country for 2020 inc. feature for holiday)
-* Link: [Click here](https://drive.google.com/file/d/1bcd2iiW-IzMAjynMWq0FMyU3y3B1luZz/view?usp=sharing)
+## Temperature Data (per day per country for 2020 inc. feature for holiday) [Update: Now includes 50 states of US and D.C.]
+* Link: [Click here](https://drive.google.com/file/d/1QBbygW9HdVCFpI5lZYL1uM0lhD0q6605/view?usp=sharing)
 
 ## OWID COVID-19 Data
 * **Link**: [Click here](https://drive.google.com/file/d/1-DMeDljCAiYEMI0F7BCLVc7ixWADUlmS/view?usp=sharing)
