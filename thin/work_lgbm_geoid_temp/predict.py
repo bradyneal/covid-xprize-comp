@@ -3,12 +3,16 @@
 import argparse
 import os
 import pickle
+import os.path
 
 import numpy as np
 import pandas as pd
 
-train_geo_ids = [ e.strip() for e in open('train_geo_ids.txt')]
-temp = pd.read_csv('temperature_data.csv')
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+train_geo_ids = [ e.strip() for e in open(os.path.join(ROOT_DIR, "train_geo_ids.txt") )]
+temp = pd.read_csv( os.path.join(ROOT_DIR, "temperature_data.csv"))
 temp['date_st'] = temp['Date'].apply(lambda e: e[5:])
 temp['id'] = temp['GeoID'] + '_' + temp['date_st']
 id_temp = dict(zip( temp['id'], temp['temp'] ))
@@ -21,8 +25,7 @@ tf = tf.groupby(['date_st'])['Holiday'].agg(pd.Series.mode).reset_index()
 date_holiday_avg = dict(zip( tf['date_st'], tf['Holiday'] ))
 
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_FILE = os.path.join(ROOT_DIR, "models", "model.pkl")
+# MODEL_FILE = os.path.join(ROOT_DIR, "models", "model.pkl")
 DATA_FILE = os.path.join(ROOT_DIR, 'data', "OxCGRT_latest.csv")
 ID_COLS = ['CountryName',
            'RegionName',
@@ -119,12 +122,18 @@ def predict_df(start_date_str: str, end_date_str: str, path_to_ips_file: str, ve
     hist_cases_df = hist_cases_df[ID_COLS + CASES_COL]
 
     # Load model
-    with open(MODEL_FILE, 'rb') as model_file:
-        model = pickle.load(model_file)
+    # with open(MODEL_FILE, 'rb') as model_file:
+        # model = pickle.load(model_file)
 
     # Make predictions for each country,region pair
     geo_pred_dfs = []
     for g in ips_df.GeoID.unique():
+        MODEL_FILE = os.path.join(ROOT_DIR, 'models', 'lgb_' + g + '.pkl') 
+        if not(os.path.exists(MODEL_FILE)):
+            MODEL_FILE = os.path.join(ROOT_DIR, 'models', 'lgb_United States__nan.pkl')  
+        with open(MODEL_FILE, 'rb') as model_file:
+            model = pickle.load(model_file)  
+        
         if verbose:
             print('\nPredicting for', g)
 
@@ -154,12 +163,15 @@ def predict_df(start_date_str: str, end_date_str: str, path_to_ips_file: str, ve
                 temperature = id_temp[id_]
                 holiday = id_holiday[id_]                  
             
-            geoid_arr = np.zeros(len(train_geo_ids)+1)
-            if g in train_geo_ids:
-                geoid_arr[ train_geo_ids.index(g) ] = 1   
-            else:
-                geoid_arr[ -1 ] = 1  
-            X = np.concatenate([geoid_arr, [temperature,holiday], X_cases.flatten(),X_npis.flatten()])
+#             geoid_arr = np.zeros(len(train_geo_ids)+1)
+#             if g in train_geo_ids:
+#                 geoid_arr[ train_geo_ids.index(g) ] = 1   
+#             else:
+#                 geoid_arr[ -1 ] = 1  
+                
+            X = np.concatenate([[temperature,holiday], X_cases.flatten(),X_npis.flatten()])
+        
+        
 
             # Make the prediction (reshape so that sklearn is happy)
             pred = model.predict(X.reshape(1, -1))[0]
