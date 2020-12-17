@@ -7,8 +7,10 @@ import pickle
 import numpy as np
 import pandas as pd
 
-train_geo_ids = [ e.strip() for e in open('train_geo_ids.txt')]
-temp = pd.read_csv('temperature_data.csv')
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+train_geo_ids = [ e.strip() for e in open(os.path.join(ROOT_DIR, "train_geo_ids.txt") )]
+temp = pd.read_csv( os.path.join(ROOT_DIR, "temperature_data.csv"))
+
 temp['date_st'] = temp['Date'].apply(lambda e: e[5:])
 temp['id'] = temp['GeoID'] + '_' + temp['date_st']
 id_temp = dict(zip( temp['id'], temp['temp'] ))
