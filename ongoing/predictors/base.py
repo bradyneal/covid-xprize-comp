@@ -13,6 +13,7 @@ TEST_CONFIGS = [
     ('Feb', {'start_month': 2, 'end_month': 2}),
     ('Jan-Feb', {'start_month': 1, 'end_month': 2}),
     ('180-day', {'end_month': 11, 'n_test_days': 180}),
+    ('last month', {'start_date': pd.to_datetime('2020-11-14', format='%Y-%m-%d'), 'end_date': pd.to_datetime('2020-12-14', format='%Y-%m-%d')})
 ]
 
 OUR_FOLDER = 'ongoing'
@@ -45,18 +46,23 @@ CONTEXT_COLUMNS = ['CountryName',
                    'ConfirmedDeaths',
                    'Population']
 
-def load_train_test(n_test_months=1, end_month=11, n_test_days=None,
+def load_train_test(start_date=None, end_date=None, n_test_months=1, end_month=11, n_test_days=None,
                     start_month=None, window_size=7, dropifnocases=True,
                     dropifnodeaths=False, update_data=False):
     """
     Loads the data and splits it into train and test sets
 
     Args:
+        start_date: First date in the test set (type: datetime)
+        end_date: Last date in the test set (type: datetime)
         n_test_months: Number of months in the test set
         end_month: Last month in the test set
         n_test_days: Number of days in the test set
         start_month: First month in the test set
         update_data: Boolean for whether to re-download the Oxford data
+
+        *** If start_date and end_date are given, n_test_months, enf_month,
+        n_test_days, and start_month are ignored ***
 
     Returns: (train_df, test_df)
     """
@@ -117,25 +123,29 @@ def load_train_test(n_test_months=1, end_month=11, n_test_days=None,
     # Create column of value to predict
     df['PredictionRatio'] = df['CaseRatio'] / (1 - df['ProportionInfected'])
 
-    assert 1 <= end_month <= 11
-    end_test = datetime(2020, end_month + 1, 1)
-    if start_month is not None:
-        start_test = datetime(2020, start_month, 1)
-        test = (start_test <= df['Date']) & (df['Date'] < end_test)
-        test_df = df[test]
-        train_df = df[~test & (df['Date'] < datetime(2020, 12, 1))]   # Hard-coded end date
-    else:
-        if n_test_days is not None:
-            start_test = end_test - timedelta(n_test_days)
-            end_train = start_test
-        elif n_test_months is not None:
-            assert 0 < n_test_months < 11
-            start_test = datetime(2020, end_month - n_test_months + 1, 1)
-            end_train = start_test
+    if (start_date is None) or (end_date is None):
+        assert 1 <= end_month <= 11
+        end_test = datetime(2020, end_month + 1, 1)
+        if start_month is not None:
+            start_test = datetime(2020, start_month, 1)
+            test = (start_test <= df['Date']) & (df['Date'] < end_test)
+            test_df = df[test]
+            train_df = df[~test & (df['Date'] < datetime(2020, 12, 1))]   # Hard-coded end date
         else:
-            raise ValueError('Either n_test_months, n_test_days, or start_month must not be None')
-        test_df = df[(start_test <= df['Date']) & (df['Date'] < end_test)]
-        train_df = df[df['Date'] < start_test]
+            if n_test_days is not None:
+                start_test = end_test - timedelta(n_test_days)
+                end_train = start_test
+            elif n_test_months is not None:
+                assert 0 < n_test_months < 11
+                start_test = datetime(2020, end_month - n_test_months + 1, 1)
+                end_train = start_test
+            else:
+                raise ValueError('Either n_test_months, n_test_days, or start_month must not be None')
+            test_df = df[(start_test <= df['Date']) & (df['Date'] < end_test)]
+            train_df = df[df['Date'] < start_test]
+    else:
+        test_df = df[(start_date <= df['Date']) & (df['Date'] <= end_date)]
+        train_df = df[df['Date'] < start_date]
 
     return train_df, test_df
 
@@ -298,12 +308,14 @@ class BasePredictor(object, metaclass=BasePredictorMeta):
         self.train_df = None
         self.test_df = None
 
-    def choose_train_test_split(self, n_test_months=1, end_month=11,
+    def choose_train_test_split(self, start_date=None, end_date=None,
+                                n_test_months=1, end_month=11,
                                 n_test_days=None, start_month=None,
                                 window_size=7, dropifnocases=True,
                                 dropifnodeaths=False, update_data=False):
         self.train_df, self.test_df = \
-            load_train_test(n_test_months=n_test_months, end_month=end_month,
+            load_train_test(start_date=start_date, end_date=end_date,
+                            n_test_months=n_test_months, end_month=end_month,
                             n_test_days=n_test_days, start_month=start_month,
                             window_size=window_size, dropifnocases=dropifnocases,
                             dropifnodeaths=dropifnodeaths, update_data=update_data)
@@ -320,29 +332,34 @@ class BasePredictor(object, metaclass=BasePredictorMeta):
         pass
 
     def evaluate(self):
-        window_size = 7
-
         results_cases, results_deaths = {}, {}
         for test_name, test_config in TEST_CONFIGS:
             print('Running test:', test_name)
-            self.choose_train_test_split(**test_config)
+            self.choose_train_test_split(**test_config, update_data=False)
+
+            start_date = pd.to_datetime(self.train_df.Date.min(), format='%Y-%m-%d')
+            end_date = pd.to_datetime(self.train_df.Date.max(), format='%Y-%m-%d')
+            print('Training on data from {} up to {}'.format(start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")))
             self.fit()
 
+            start_date = pd.to_datetime(self.test_df.Date.min(), format='%Y-%m-%d')
+            end_date = pd.to_datetime(self.test_df.Date.max(), format='%Y-%m-%d')
+            print('Testing on data from {} up to {}'.format(start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")))
             train_preds = self.predict(self.train_df)
             test_preds = self.predict(self.test_df)
 
             # Smoothing evaluation metrics
             # New Cases
             train_preds['PredictedDailyNewCases7DMA'] = self.smoothing(eval_metric='PredictedDailyNewCases',
-                                                                  dataset=train_preds)
+                                                                       dataset=train_preds)
             test_preds['PredictedDailyNewCases7DMA'] = self.smoothing(eval_metric='PredictedDailyNewCases',
-                                                                 dataset=test_preds)
+                                                                      dataset=test_preds)
 
             # New Deaths
             train_preds['PredictedDailyNewDeaths7DMA'] = self.smoothing(eval_metric='PredictedDailyNewDeaths',
-                                                                   dataset=train_preds)
+                                                                        dataset=train_preds)
             test_preds['PredictedDailyNewDeaths7DMA'] = self.smoothing(eval_metric='PredictedDailyNewDeaths',
-                                                                  dataset=test_preds)
+                                                                       dataset=test_preds)
 
             # TODO: Add new evaluation metrics to smooth
             # e.g proportion population under quarantine, ICU admissions, hospital admissions
