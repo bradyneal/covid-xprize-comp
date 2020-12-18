@@ -2,6 +2,8 @@
 
 import argparse
 import os
+import pandas as pd
+import numpy as np
 
 from tempgeolstm_predictor import tempGeoLSTMPredictor
 
@@ -32,9 +34,28 @@ def predict(start_date: str,
     with columns "CountryName,RegionName,Date,PredictedDailyNewCases"
     """
     # !!! YOUR CODE HERE !!!
-    predictor = tempGeoLSTMPredictor(MODEL_WEIGHTS_FILE, COUNTRIES_FILE, DATA_FILE, TEMPERATURE_DATA_FILE)
+    # predictor = tempGeoLSTMPredictor(path_to_model_weights=MODEL_WEIGHTS_FILE, path_to_geos=COUNTRIES_FILE)
+    predictor = tempGeoLSTMPredictor(path_to_model_weights=MODEL_WEIGHTS_FILE, use_embedding=False)
     # Generate the predictions
-    preds_df = predictor.predict(start_date, end_date, path_to_ips_file)
+    start_date_dt = pd.to_datetime(start_date, format='%Y-%m-%d')
+    end_date_dt = pd.to_datetime(end_date, format='%Y-%m-%d')
+
+    predictor.choose_train_test_split(start_date=start_date_dt,
+                                      end_date=end_date_dt)
+
+    npis_df = pd.read_csv(path_to_ips_file,
+                          parse_dates=['Date'],
+                          encoding="ISO-8859-1",
+                          dtype={"RegionName": str,
+                                 "RegionCode": str},
+                          error_bad_lines=False)
+    # GeoID is CountryName / RegionName
+    # np.where usage: if A then B else C
+    npis_df["GeoID"] = np.where(npis_df["RegionName"].isnull(),
+                                npis_df["CountryName"],
+                                npis_df["CountryName"] + ' / ' + npis_df["RegionName"])
+
+    preds_df = predictor.predict(npis_df, start_date=start_date_dt, end_date=end_date_dt)
     # Create the output path
     os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
     # Save to a csv file
