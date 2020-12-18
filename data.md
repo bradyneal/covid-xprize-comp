@@ -65,7 +65,7 @@ Data updated daily latest by 9:30 AM EST.
 * **Source**: [CIA Factbook](https://www.cia.gov/library/publications/the-world-factbook/fields/341.html#AL)
 * **Countries**: 178
 
-## Additional Context Global Data and Age Structure by Country Combined File
+## Additional Context Global Data and Age Structure by Country Combined File (No missing values of population density except for states of Brazil)
 * Link: [Click here](https://drive.google.com/file/d/1GNAQKT0LPRSpQsfSIc-ET6IhS-9TbXQK/view?usp=sharing)
 
 ## Pollution Data - 2020
