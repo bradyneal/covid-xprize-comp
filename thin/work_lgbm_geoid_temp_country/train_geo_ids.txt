@@ -1,0 +1,280 @@
+Aruba__nan
+Afghanistan__nan
+Angola__nan
+Albania__nan
+Andorra__nan
+United Arab Emirates__nan
+Argentina__nan
+Australia__nan
+Austria__nan
+Azerbaijan__nan
+Burundi__nan
+Belgium__nan
+Benin__nan
+Burkina Faso__nan
+Bangladesh__nan
+Bulgaria__nan
+Bahrain__nan
+Bahamas__nan
+Bosnia and Herzegovina__nan
+Belarus__nan
+Belize__nan
+Bermuda__nan
+Bolivia__nan
+Brazil__Acre
+Brazil__Alagoas
+Brazil__Amazonas
+Brazil__Amapa
+Brazil__Bahia
+Brazil__Ceara
+Brazil__Distrito Federal
+Brazil__Espirito Santo
+Brazil__Goias
+Brazil__Maranhao
+Brazil__Minas Gerais
+Brazil__Mato Grosso do Sul
+Brazil__Mato Grosso
+Brazil__Para
+Brazil__Paraiba
+Brazil__Pernambuco
+Brazil__Piaui
+Brazil__Parana
+Brazil__Rio de Janeiro
+Brazil__Rio Grande do Norte
+Brazil__Rondonia
+Brazil__Roraima
+Brazil__Rio Grande do Sul
+Brazil__Santa Catarina
+Brazil__Sergipe
+Brazil__Sao Paulo
+Brazil__Tocantins
+Brazil__nan
+Barbados__nan
+Brunei__nan
+Bhutan__nan
+Botswana__nan
+Central African Republic__nan
+Canada__Alberta
+Canada__British Columbia
+Canada__Manitoba
+Canada__New Brunswick
+Canada__Newfoundland and Labrador
+Canada__Nova Scotia
+Canada__Northwest Territories
+Canada__Nunavut
+Canada__Ontario
+Canada__Prince Edward Island
+Canada__Quebec
+Canada__Saskatchewan
+Canada__Yukon
+Canada__nan
+Switzerland__nan
+Chile__nan
+China__nan
+Cote d'Ivoire__nan
+Cameroon__nan
+Democratic Republic of Congo__nan
+Congo__nan
+Colombia__nan
+Comoros__nan
+Cape Verde__nan
+Costa Rica__nan
+Cuba__nan
+Cyprus__nan
+Czech Republic__nan
+Germany__nan
+Djibouti__nan
+Dominica__nan
+Denmark__nan
+Dominican Republic__nan
+Algeria__nan
+Ecuador__nan
+Egypt__nan
+Eritrea__nan
+Spain__nan
+Estonia__nan
+Ethiopia__nan
+Finland__nan
+Fiji__nan
+France__nan
+Faeroe Islands__nan
+Gabon__nan
+United Kingdom__nan
+United Kingdom__England
+United Kingdom__Northern Ireland
+United Kingdom__Scotland
+United Kingdom__Wales
+Georgia__nan
+Ghana__nan
+Guinea__nan
+Gambia__nan
+Greece__nan
+Greenland__nan
+Guatemala__nan
+Guam__nan
+Guyana__nan
+Hong Kong__nan
+Honduras__nan
+Croatia__nan
+Haiti__nan
+Hungary__nan
+Indonesia__nan
+India__nan
+Ireland__nan
+Iran__nan
+Iraq__nan
+Iceland__nan
+Israel__nan
+Italy__nan
+Jamaica__nan
+Jordan__nan
+Japan__nan
+Kazakhstan__nan
+Kenya__nan
+Kyrgyz Republic__nan
+Cambodia__nan
+South Korea__nan
+Kuwait__nan
+Laos__nan
+Lebanon__nan
+Liberia__nan
+Libya__nan
+Sri Lanka__nan
+Lesotho__nan
+Lithuania__nan
+Luxembourg__nan
+Latvia__nan
+Macao__nan
+Morocco__nan
+Monaco__nan
+Moldova__nan
+Madagascar__nan
+Mexico__nan
+Mali__nan
+Malta__nan
+Myanmar__nan
+Mongolia__nan
+Mozambique__nan
+Mauritania__nan
+Mauritius__nan
+Malawi__nan
+Malaysia__nan
+Namibia__nan
+Niger__nan
+Nigeria__nan
+Nicaragua__nan
+Netherlands__nan
+Norway__nan
+Nepal__nan
+New Zealand__nan
+Oman__nan
+Pakistan__nan
+Panama__nan
+Peru__nan
+Philippines__nan
+Papua New Guinea__nan
+Poland__nan
+Puerto Rico__nan
+Portugal__nan
+Paraguay__nan
+Palestine__nan
+Qatar__nan
+Kosovo__nan
+Romania__nan
+Russia__nan
+Rwanda__nan
+Saudi Arabia__nan
+Sudan__nan
+Senegal__nan
+Singapore__nan
+Solomon Islands__nan
+Sierra Leone__nan
+El Salvador__nan
+San Marino__nan
+Somalia__nan
+Serbia__nan
+South Sudan__nan
+Suriname__nan
+Slovak Republic__nan
+Slovenia__nan
+Sweden__nan
+Eswatini__nan
+Seychelles__nan
+Syria__nan
+Chad__nan
+Togo__nan
+Thailand__nan
+Tajikistan__nan
+Turkmenistan__nan
+Timor-Leste__nan
+Tonga__nan
+Trinidad and Tobago__nan
+Tunisia__nan
+Turkey__nan
+Taiwan__nan
+Tanzania__nan
+Uganda__nan
+Ukraine__nan
+Uruguay__nan
+United States__nan
+United States__Alaska
+United States__Alabama
+United States__Arkansas
+United States__Arizona
+United States__California
+United States__Colorado
+United States__Connecticut
+United States__Washington DC
+United States__Delaware
+United States__Florida
+United States__Georgia
+United States__Hawaii
+United States__Iowa
+United States__Idaho
+United States__Illinois
+United States__Indiana
+United States__Kansas
+United States__Kentucky
+United States__Louisiana
+United States__Massachusetts
+United States__Maryland
+United States__Maine
+United States__Michigan
+United States__Minnesota
+United States__Missouri
+United States__Mississippi
+United States__Montana
+United States__North Carolina
+United States__North Dakota
+United States__Nebraska
+United States__New Hampshire
+United States__New Jersey
+United States__New Mexico
+United States__Nevada
+United States__New York
+United States__Ohio
+United States__Oklahoma
+United States__Oregon
+United States__Pennsylvania
+United States__Rhode Island
+United States__South Carolina
+United States__South Dakota
+United States__Tennessee
+United States__Texas
+United States__Utah
+United States__Virginia
+United States__Virgin Islands
+United States__Vermont
+United States__Washington
+United States__Wisconsin
+United States__West Virginia
+United States__Wyoming
+Uzbekistan__nan
+Venezuela__nan
+United States Virgin Islands__nan
+Vietnam__nan
+Vanuatu__nan
+Yemen__nan
+South Africa__nan
+Zambia__nan
+Zimbabwe__nan
