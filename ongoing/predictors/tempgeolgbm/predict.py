@@ -4,19 +4,16 @@ import argparse
 import os
 import pandas as pd
 import numpy as np
+import pickle
 
-from tempgeolstm_predictor import tempGeoLSTMPredictor
+from tempgeolgbm_predictor import tempGeoLGBMPredictor
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# If you'd like to use a model, copy it to "trained_model_weights.h5"
-# or change this MODEL_FILE path to point to your model.
-MODEL_WEIGHTS_FILE = os.path.join(ROOT_DIR, "models", "trained_model_weights.h5")
-COUNTRIES_FILE = os.path.join(ROOT_DIR, "models", "countries.txt")
-
+MODEL_FILE = os.path.join(ROOT_DIR, "models", "trained_model_weights.h5")
 DATA_DIR = os.path.join(ROOT_DIR, os.pardir, os.pardir, 'data')
 DATA_FILE = os.path.join(DATA_DIR, "OxCGRT_latest.csv")
 TEMPERATURE_DATA_FILE = os.path.join(DATA_DIR, "temperature_data.csv")
+COUNTRY_LIST = os.path.join(DATA_DIR, 'countries_regions.txt')
 
 def predict(start_date: str,
             end_date: str,
@@ -34,8 +31,10 @@ def predict(start_date: str,
     with columns "CountryName,RegionName,Date,PredictedDailyNewCases"
     """
     # !!! YOUR CODE HERE !!!
-    # predictor = tempGeoLSTMPredictor(path_to_model_weights=MODEL_WEIGHTS_FILE, path_to_geos=COUNTRIES_FILE)
-    predictor = tempGeoLSTMPredictor(path_to_model_weights=MODEL_WEIGHTS_FILE, use_embedding=False)
+    # Load model
+    predictor = tempGeoLGBMPredictor()
+    with open(MODEL_FILE, 'rb') as model_file:
+        predictor.predictor = pickle.load(model_file)
     # Generate the predictions
     start_date_dt = pd.to_datetime(start_date, format='%Y-%m-%d')
     end_date_dt = pd.to_datetime(end_date, format='%Y-%m-%d')
@@ -54,6 +53,13 @@ def predict(start_date: str,
     npis_df["GeoID"] = np.where(npis_df["RegionName"].isnull(),
                                 npis_df["CountryName"],
                                 npis_df["CountryName"] + ' / ' + npis_df["RegionName"])
+
+    # Discard countries that will not be evaluated
+    country_df = pd.read_csv(COUNTRY_LIST,
+                             encoding="ISO-8859-1",
+                             dtype={"RegionName": str},
+                             error_bad_lines=False)
+    npis_df = npis_df.merge(country_df, on=['RegionName','CountryName'], how='right', suffixes=('', '_y'))
 
     preds_df = predictor.predict(npis_df, start_date=start_date_dt, end_date=end_date_dt)
     # Create the output path
