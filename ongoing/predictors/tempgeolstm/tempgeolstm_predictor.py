@@ -48,8 +48,7 @@ EMBED_SIZE = 4
 NPI_DELAY = 0
 TEMP_SCALE = 20.  # divide temperature values by 20 so they're roughly in the range 0-2
 AVG_EARTH_TEMP = 16./TEMP_SCALE  # average temperature on earth (used to predict for locations where temperature data is missing)
-
-HYPOTHETICAL_SUBMISSION_DATE = np.datetime64("2020-05-06")
+DISCARD_DATA_BFR = np.datetime64("2020-02-01")
 
 class Positive(Constraint):
 
@@ -125,14 +124,6 @@ class tempGeoLSTMPredictor(BasePredictor):
         if end_date is None:
             end_date = pd.to_datetime(data.Date.max(), format='%Y-%m-%d')
 
-        # if self.country_samples is None:
-        #     # merge the two dataframes (keep only rows where new cases rate and temperature are available)
-        #     # self.train_df = pd.merge(self.train_df, self.temp_df, on=['CountryName', 'RegionName', 'GeoID', 'Date'], how='inner')
-        #     self.country_samples = self._create_country_samples(self.train_df,
-        #                                                         list(self.train_df.GeoID.unique()),
-        #                                                         self.nb_lookback_days,
-        #                                                         self.npi_delay,
-        #                                                         self.nb_test_days)
         train_df = pd.merge(self.train_df, self.temp_df, on=['CountryName', 'RegionName', 'GeoID', 'Date'], how='left')
         train_df[TEMPERATURE_COLUMN] = train_df[TEMPERATURE_COLUMN].fillna(AVG_EARTH_TEMP)
         train_df[HOLIDAY_COLUMN] = train_df[HOLIDAY_COLUMN].fillna(0)
@@ -181,11 +172,13 @@ class tempGeoLSTMPredictor(BasePredictor):
                     # Start predicting from start_date, unless there's a gap since last known date
                     geo_start_date = min(last_known_date + np.timedelta64(1, 'D'), start_date)
                     npis_gdf = data[(data.Date >= geo_start_date - pd.Timedelta(days=self.npi_delay)) & (data.Date <= end_date - pd.Timedelta(days=self.npi_delay))]
-                    temp_gdf = self.temp_df[(self.temp_df.Date >= geo_start_date.replace(year=2020)) & (self.temp_df.Date <= end_date.replace(year=2020))]
-                    # if temp_gdf.empty:
-                    #     print("WARNING: No temperature data available for {} ({} - {})".format(g, geo_start_date.replace(year=2020).strftime("%Y/%m/%d"), end_date.replace(year=2020).strftime("%Y/%m/%d")))
-                    #     temp_gdf = pd.DataFrame.from_dict({TEMPERATURE_COLUMN: AVG_EARTH_TEMP*np.ones((end_date-geo_start_date).days),
-                    #                                        HOLIDAY_COLUMN: np.zeros(((end_date-geo_start_date).days))})
+                    if geo_start_date.year == end_date.year:
+                        temp_gdf = self.temp_df[(self.temp_df.Date >= geo_start_date.replace(year=2020)) & (self.temp_df.Date <= end_date.replace(year=2020))]
+                    else:
+                        temp_gdf1 = self.temp_df[(self.temp_df.Date >= geo_start_date.replace(year=2020)) & (self.temp_df.Date <= pd.to_datetime('2020-12-31', format='%Y-%m-%d'))]
+                        temp_gdf2 = self.temp_df[(self.temp_df.Date >= pd.to_datetime('2020-01-01', format='%Y-%m-%d')) & (self.temp_df.Date <= end_date.replace(year=2020))]
+                        temp_gdf = pd.concat([temp_gdf1, temp_gdf2])
+
                     pred_total_cases, pred_new_cases, pred_total_deaths, pred_new_deaths = self._get_new_cases_preds(cdf, g, npis_gdf, temp_gdf)
 
             # Append forecast data to results to return
@@ -335,6 +328,7 @@ class tempGeoLSTMPredictor(BasePredictor):
 
         # merge the two dataframes (keep only rows where new cases rate and temperature are available)
         train_df = pd.merge(self.train_df, self.temp_df, on=['CountryName', 'RegionName', 'GeoID', 'Date'], how='inner')
+        train_df = train_df[train_df.Date >= DISCARD_DATA_BFR]
         self.country_samples = self._create_country_samples(train_df,
                                                             list(train_df.GeoID.unique()),
                                                             self.nb_lookback_days,
@@ -471,4 +465,8 @@ if __name__ == '__main__':
     # model = tempGeoLSTMPredictor('./ongoing/predictors/tempgeolstm/models/model.h5', './ongoing/predictors/tempgeolstm/models/countries.txt')
     model = tempGeoLSTMPredictor(use_embedding=False)
     model.evaluate()
-    model.save_model('./ongoing/predictors/tempgeolstm/models/model_no_embed.h5', './ongoing/predictors/tempgeolstm/models/countries.txt')
+    # model.choose_train_test_split(start_date=pd.to_datetime('2021-01-01', format='%Y-%m-%d'),
+    #                               end_date=pd.to_datetime('2021-01-01', format='%Y-%m-%d'),
+    #                               update_data=True)
+    # model.fit()
+    model.save_model('./ongoing/predictors/tempgeolstm/models/model.h5', './ongoing/predictors/tempgeolstm/models/countries.txt')
