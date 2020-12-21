@@ -469,4 +469,4 @@ if __name__ == '__main__':
     #                               end_date=pd.to_datetime('2021-01-01', format='%Y-%m-%d'),
     #                               update_data=True)
     # model.fit()
-    model.save_model('./ongoing/predictors/tempgeolstm/models/model.h5', './ongoing/predictors/tempgeolstm/models/countries.txt')
+    # model.save_model('./ongoing/predictors/tempgeolstm/models/model.h5', './ongoing/predictors/tempgeolstm/models/countries.txt')
