@@ -17,7 +17,7 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # ..../covid-xprize-comp/
 lstm_predictions = os.path.join(ROOT_DIR, "tempgeolstm", "predictions", "predictions_future_lstm.csv")
 lgbm_predictions = os.path.join(ROOT_DIR, "tempgeolgbm", "predictions", "predictions_future_lgbm.csv")
 
-lstm_predictions_df = pd.read_csv(lstm_pdredictions,
+lstm_predictions_df = pd.read_csv(lstm_predictions,
                       parse_dates=['Date'],
                       encoding="ISO-8859-1",
                       dtype={"RegionName": str,
