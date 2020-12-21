@@ -19,6 +19,8 @@ from tempgeolgbm.tempgeolgbm_predictor import tempGeoLGBMPredictor
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # ..../covid-xprize-comp/ongoing/predictors
 print(ROOT_DIR)
 
+ALPHA = 0.5  # to set after determining best ensemble
+
 # LSTM weights
 # If you'd like to use a model, copy it to "trained_model_weights.h5"
 # or change this MODEL_FILE path to point to your model.
@@ -50,7 +52,7 @@ def predict(start_date: str,
     with columns "CountryName,RegionName,Date,PredictedDailyNewCases"
     """
     # !!! YOUR CODE HERE !!!
-    predictions = True  # predictions from models already present
+    predictions = True  # predictions from models already present as csv files
 
     if not predictions:  # if predictions from models not present then generate them
 
@@ -89,6 +91,47 @@ def predict(start_date: str,
                 get_predictions(predictor, model, npis_df, start_date_dt, end_date_dt, output_file_path)
 
     # TODO: Generate predictions file after picking alpha value
+
+    # Load predictions
+    lstm_predictions = os.path.join(ROOT_DIR, "tempgeolstm", "predictions", "predictions_future_lstm.csv")
+    lgbm_predictions = os.path.join(ROOT_DIR, "tempgeolgbm", "predictions", "predictions_future_lgbm.csv")
+
+    lstm_predictions_df = pd.read_csv(lstm_predictions,
+                                      parse_dates=['Date'],
+                                      encoding="ISO-8859-1",
+                                      dtype={"RegionName": str,
+                                             "RegionCode": str},
+                                      error_bad_lines=False)
+
+    lgbm_predictions_df = pd.read_csv(lgbm_predictions,
+                                      parse_dates=['Date'],
+                                      encoding="ISO-8859-1",
+                                      dtype={"RegionName": str,
+                                             "RegionCode": str},
+                                      error_bad_lines=False)
+
+    ensemble_predictions = get_ensemble_pred(ALPHA, lstm_predictions_df, lgbm_predictions_df)
+    # Create the output path
+    os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+    # Save to a csv file
+    ensemble_predictions.to_csv(output_file_path, index=False)
+    print(f"Saved final model predictions to {output_file_path}")
+
+
+def get_ensemble_pred(alpha, lstm_predictions_df, lgbm_predictions_df):
+    lstm_pred = lstm_predictions_df['PredictedDailyTotalCases']
+    lgbm_pred = lgbm_predictions_df['PredictedDailyTotalCases']
+
+    ensemble_data = pd.DataFrame()
+    ensemble_data['GeoID'] = lstm_predictions_df['GeoID']
+    ensemble_data['Date'] = lstm_predictions_df['Date']
+
+    ensemble_data['PredictedDailyTotalCases'] = alpha * lstm_predictions_df['PredictedDailyTotalCases'] + (1 - alpha) * lgbm_predictions_df['PredictedDailyTotalCases']
+    ensemble_data['PredictedDailyNewCases'] = alpha * lstm_predictions_df['PredictedDailyNewCases'] + (1 - alpha) * lgbm_predictions_df['PredictedDailyTNewCases']
+    ensemble_data['PredictedDailyTotalDeaths'] = alpha * lstm_predictions_df['PredictedDailyTotalDeaths'] + (1 - alpha) * lgbm_predictions_df['PredictedDailyTotalDeaths']
+    ensemble_data['PredictedDailyNewDeaths'] = alpha * lstm_predictions_df['PredictedDailyNewDeaths'] + (1 - alpha) * lgbm_predictions_df['PredictedDailyNewDeaths']
+
+    return ensemble_data
 
 
 def get_predictions(predictor, model, npis_df, start_date_dt, end_date_dt, output_file_path):
