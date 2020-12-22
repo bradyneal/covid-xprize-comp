@@ -19,21 +19,36 @@ from tempgeolgbm.tempgeolgbm_predictor import tempGeoLGBMPredictor
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # ..../covid-xprize-comp/ongoing/predictors
 print(ROOT_DIR)
 
-ALPHA = 0.5  # to set after determining best ensemble
+ALPHA = 0.60  # to set after determining best ensemble
 
 # LSTM weights
 # If you'd like to use a model, copy it to "trained_model_weights.h5"
 # or change this MODEL_FILE path to point to your model.
-MODEL_WEIGHTS_FILE = os.path.join(ROOT_DIR, "tempgeolstm", "models", "model_alldata.h5")
+# MODEL_WEIGHTS_FILE = os.path.join(ROOT_DIR, "tempgeolstm", "models", "model_alldata.h5")
+MODEL_WEIGHTS_FILE = os.path.join(ROOT_DIR, "tempgeolstm", "models", "model.h5")
 
 # LGBM weights
-MODEL_FILE = os.path.join(ROOT_DIR, "tempgeolgbm", "models", "model_alldata.pkl")
+# MODEL_FILE = os.path.join(ROOT_DIR, "tempgeolgbm", "models", "model_alldata.pkl")
+MODEL_FILE = os.path.join(ROOT_DIR, "tempgeolgbm", "models", "model.pkl")
 
 COUNTRIES_FILE = os.path.join(ROOT_DIR, "models", "countries.txt")
 DATA_DIR = os.path.join(ROOT_DIR, os.pardir, 'data')
 DATA_FILE = os.path.join(DATA_DIR, "OxCGRT_latest.csv")
 # print(os.path.abspath(DATA_FILE))  # sanity check
 TEMPERATURE_DATA_FILE = os.path.join(DATA_DIR, "temperature_data.csv")
+
+NPI_COLUMNS = ['C1_School closing',
+               'C2_Workplace closing',
+               'C3_Cancel public events',
+               'C4_Restrictions on gatherings',
+               'C5_Close public transport',
+               'C6_Stay at home requirements',
+               'C7_Restrictions on internal movement',
+               'C8_International travel controls',
+               'H1_Public information campaigns',
+               'H2_Testing policy',
+               'H3_Contact tracing',
+               'H6_Facial Coverings']
 
 # --start_date 2020-12-01 --end_date 2020-12-31 --interventions_plan data/future_ip.csv --output_file 2020-12-01_2020_12_31.csv
 def predict(start_date: str,
@@ -67,6 +82,10 @@ def predict(start_date: str,
     npis_df["GeoID"] = np.where(npis_df["RegionName"].isnull(),
                                 npis_df["CountryName"],
                                 npis_df["CountryName"] + ' / ' + npis_df["RegionName"])
+
+    # Fill any missing NPIs by assuming they are the same as previous day
+    for npi_col in NPI_COLUMNS:
+        npis_df.update(npis_df.groupby(['CountryName', 'RegionName'])[npi_col].ffill().fillna(0))
 
     predictors = ["LSTM", "LGBM"]
     for model in predictors:
