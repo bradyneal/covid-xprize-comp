@@ -159,7 +159,7 @@ class tempGeoLSTMPredictor(BasePredictor):
             else:
                 cdf = self.train_df[self.train_df.GeoID == g]
 
-                if len(cdf) == 0:
+                if (len(cdf) == 0) or (g not in self.country_samples.keys()):
                     # we don't have historical data for this geo: return zeroes
                     print("WARNING: No historical data for {}".format(g))
                     pred_total_cases = [0] * nb_days
