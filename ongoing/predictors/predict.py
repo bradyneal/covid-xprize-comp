@@ -19,17 +19,15 @@ from tempgeolgbm.tempgeolgbm_predictor import tempGeoLGBMPredictor
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # ..../covid-xprize-comp/ongoing/predictors
 print(ROOT_DIR)
 
-ALPHA = 0.50  # 0.50 seems the optimal value
+ALPHA = 0.50  # 0.50 seems to be the optimal value
 
 # LSTM weights
 # If you'd like to use a model, copy it to "trained_model_weights.h5"
 # or change this MODEL_FILE path to point to your model.
-# MODEL_WEIGHTS_FILE = os.path.join(ROOT_DIR, "tempgeolstm", "models", "model_alldata.h5")
-MODEL_WEIGHTS_FILE = os.path.join(ROOT_DIR, "tempgeolstm", "models", "model.h5")
+MODEL_WEIGHTS_FILE = os.path.join(ROOT_DIR, "tempgeolstm", "models", "model_alldata.h5")
 
 # LGBM weights
-# MODEL_FILE = os.path.join(ROOT_DIR, "tempgeolgbm", "models", "model_alldata.pkl")
-MODEL_FILE = os.path.join(ROOT_DIR, "tempgeolgbm", "models", "model.pkl")
+MODEL_FILE = os.path.join(ROOT_DIR, "tempgeolgbm", "models", "model_alldata.pkl")
 
 COUNTRIES_FILE = os.path.join(ROOT_DIR, "models", "countries.txt")
 DATA_DIR = os.path.join(ROOT_DIR, os.pardir, 'data')
