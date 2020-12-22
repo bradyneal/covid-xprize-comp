@@ -19,7 +19,7 @@ from tempgeolgbm.tempgeolgbm_predictor import tempGeoLGBMPredictor
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # ..../covid-xprize-comp/ongoing/predictors
 print(ROOT_DIR)
 
-ALPHA = 0.60  # to set after determining best ensemble
+ALPHA = 0.50  # 0.50 seems the optimal value
 
 # LSTM weights
 # If you'd like to use a model, copy it to "trained_model_weights.h5"
