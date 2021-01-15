@@ -59,9 +59,10 @@ class CCTSB(Agent):
                 sample_mu[k,i] = np.random.multivariate_normal(self.mu_k[k], self.alpha**2 * np.inv(self.A_k[k]))
                 sample_theta[k,i] = np.random.multivariate_normal(self.theta_i[i], self.alpha**2 * np.inv(self.B_i[i]))
             sample_to_sort.append( self.c.T.dot(sample_mu[k]) / self.c.T.dot(sample_theta[k]) )
-        
+        # TODO clarify step 9 and 10   
     
     def update(self, r=None, s=None):
+        # TODO clarify step 14
         self.A_k[self.k] += self.c.dot(self.c.T)
         self.g_k[self.k] += self.c * r
         self.mu_k[self.k] = np.inv(self.A_k[self.k]).dot(self.g_k[self.k])
