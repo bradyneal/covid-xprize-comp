@@ -294,19 +294,6 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
 
         self.predictor = XPrizePredictor(PREDICTOR_PATH, OXFORD_FILEPATH)
 
-
-    def choose_train_test_split(self, start_date=None, end_date=None,
-                                n_test_months=1, end_month=11,
-                                n_test_days=None, start_month=None,
-                                window_size=7, dropifnocases=True,
-                                dropifnodeaths=False, update_data=True):
-        self.train_df, self.test_df = \
-            gen_test_config(start_date=start_date, end_date=end_date,
-                            n_test_months=n_test_months, end_month=end_month,
-                            n_test_days=n_test_days, start_month=start_month,
-                            window_size=window_size, dropifnocases=dropifnocases,
-                            dropifnodeaths=dropifnodeaths, update_data=update_data)
-
     @abstractmethod
     def fit(self, data):
         pass
