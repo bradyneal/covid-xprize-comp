@@ -323,6 +323,7 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
         pass
 
     def evaluate(self, output_file_path=None):
+        all_tests_df = []
         for test_name, test_config in TEST_CONFIGS:
             print('Running test:', test_name)
             train_df, test_df, cost_df = gen_test_config(predictor=self.predictor, **test_config)
@@ -390,13 +391,17 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
                      'PrescriptionIndex',
                      'PredictedDailyNewCases',
                      'Stringency']]
-
-            # maybe save the results to a csv
-            if output_file_path is not None:
-                df.to_csv(output_file_path)
+            df['TestName'] = test_name
+            all_tests_df.append(df)
 
             # show average (stringency, new_cases) values for each PrescriptionIndex
             print(df.groupby('PrescriptionIndex').mean().reset_index())
+
+        # save test results in a csv
+        if output_file_path is not None:
+            all_tests_df = pd.concat(all_tests_df)
+            all_tests_df.to_csv(output_file_path)
+
 
     @staticmethod
     def set_seed(seed=SEED):
