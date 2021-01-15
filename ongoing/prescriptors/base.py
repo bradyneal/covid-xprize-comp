@@ -6,7 +6,9 @@ from datetime import datetime, date, timedelta
 from covid_xprize.standard_predictor.xprize_predictor import XPrizePredictor
 
 SEED = 0
+DEFAULT_TEST_COST = 'covid_xprize/validation/data/uniform_random_costs.csv'
 TEST_CONFIGS = [
+    ('Default', {'start_date': '2020-08-01', 'end_date': '2020-08-05', 'costs': DEFAULT_TEST_COST}),
     ('Jan2021_EC', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'equal'}),
     ('Jan2021_RC', {'start_date': '2021-01-01', 'end_date': '2021-01-31'}),
     ('Jan2021_EC_NoDec', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'equal', 'train_end_date': '2020-11-30'}),
@@ -46,7 +48,7 @@ CONTEXT_COLUMNS = ['CountryName',
                    'ConfirmedDeaths',
                    'Population']
 
-def gen_test_config(predictor=None, start_date=None, end_date=None, costs=None, train_start_date=None, train_end_date=None, update_data=True):
+def gen_test_config(predictor=None, start_date=None, end_date=None, costs='random', train_start_date=None, train_end_date=None, update_data=True):
     """
     Loads the data and splits it into train and test sets
 
@@ -117,7 +119,7 @@ def gen_test_config(predictor=None, start_date=None, end_date=None, costs=None, 
     if (costs is not None) and (costs not in ['equal', 'random']):
         cost_df = pd.read_csv(costs)
     else:
-        cost_df = gen_cost_df(test_df, mode=costs)
+        cost_df = generate_costs(test_df, mode=costs)
 
     cost_df["GeoID"] = np.where(cost_df["RegionName"].isnull(),
                                 cost_df["CountryName"],
@@ -213,20 +215,38 @@ def fill_missing_values(df, dropifnocases=True, dropifnodeaths=False):
         df.update(df.groupby('GeoID')[npi_column].ffill().fillna(0))
 
 
-def gen_cost_df(df, mode=None):
-    n_geos = len(np.unique(df['GeoID']))
-    n_npis = len(NPI_COLUMNS)
-    if mode == 'equal':  # equal weights for all NPIs
-        costs = np.ones((n_geos, n_npis))/n_npis
-    else:  # defaults to random weights
-        costs = np.random.rand(n_geos, n_npis)
-        costs /= np.sum(costs, axis=1, keepdims=True)
+def generate_costs(df, mode='random'):
+    """
+    Returns df of costs for each IP for each geo according to distribution.
 
-    cost_df = df[['CountryName', 'RegionName']].drop_duplicates(ignore_index=True)
-    for i, npi in enumerate(NPI_COLUMNS):
-        cost_df[npi] = costs[:,i]
+    Costs always sum to #IPS (i.e., len(NPI_COLUMNS)).
 
-    return cost_df
+    Available distributions:
+        - 'ones': cost is 1 for each IP.
+        - 'uniform': costs are sampled uniformly across IPs independently
+                     for each geo.
+    """
+    assert mode in ['equal', 'random'], \
+           f'Unsupported mode {mode}'
+
+    # reduce df to one row per geo
+    df = df.groupby(['CountryName', 'RegionName'], dropna=False).mean().reset_index()
+
+    # reduce to geo id info
+    df = df[['CountryName', 'RegionName']]
+
+    if mode == 'equal':
+        df[NPI_COLUMNS] = 1
+
+    elif mode == 'random':
+        # generate weights uniformly for each geo independently.
+        nb_geos = len(df)
+        nb_ips = len(NPI_COLUMNS)
+        samples = np.random.uniform(size=(nb_ips, nb_geos))
+        weights = nb_ips * samples / samples.sum(axis=0)
+        df[NPI_COLUMNS] = weights.T
+
+    return df
 
 def weight_prescriptions_by_cost(presc_df, cost_df):
     """
@@ -393,9 +413,9 @@ if __name__ == '__main__':
         print('train dates')
         print(train_df.Date.unique)
         sample_geoID = 'Canada'
-        sample_costs = cost_df[cost_df['GeoID'] == sample_geoID][NPI_COLUMNS].iloc[[0]]
+        sample_costs = cost_df[cost_df['GeoID'] == sample_geoID][NPI_COLUMNS].head(1)
         print('NPI costs for', sample_geoID)
         for npi_col in NPI_COLUMNS:
-            print(npi_col, float(sample_costs[npi_col]))
-        print('Sum', float(sample_costs.sum(axis=1)))
+            print(npi_col, round(float(sample_costs[npi_col]), 2))
+        print('Sum', round(float(sample_costs.sum(axis=1)), 2))
         print()
