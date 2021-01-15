@@ -291,19 +291,16 @@ class BasePrescriptorMeta(ABCMeta):
 
 class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
     """
-    Abstract class for predictors. Currently provides train/test data splits and
-    evaluation for classes that inherit from this class. In the future, this
-    class will hold common code for preprocessing, plotting, other evaluations,
-    etc. Requires that subclasses implement 2 methods and 2 attributes:
+    Abstract class for prescriptors. Currently provides evaluation for classes that inherit from this class.
 
-    2 methods:
+    Requires that subclasses implement 2 methods:
         fit(data: pd.DataFrame) - train the model using the standard predictor and some historical real data
         prescribe(start_date_str: str,
                   end_date_str: str,
                   prior_ips: pd.DataFrame
                   costs: pd.DataFrame) -> pd.DataFrame - make prescriptions for the given period
 
-    1 attribute:
+    The following attribute is set on the initialization of this class and should NOT be modified:
         predictor - standard predictor model
     """
 
