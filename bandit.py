@@ -3,6 +3,12 @@
 # -*- coding: utf-8 -*-
 """
 Bandit/RL Class
+
+usage:
+
+from bandit import CCTSB
+bandit = CCTSB(N=10, K=5, C=None, alpha_p=None, lambda_p=None)
+
 """
 
 import numpy as np
@@ -24,11 +30,12 @@ class Agent(object):
             
 
 class CCTSB(Agent):
-    def __init__(self, N=None, K=None, C=None, alpha=None):
+    def __init__(self, N=None, K=None, C=None, alpha_p=None, lambda_p=None):
         self.N = N
         self.K = K
         self.C = C
-        self.alpha = alpha
+        self.alpha = alpha_p
+        self.lambda = lambda_p
         
         self.A_k = self.K * [np.eye(N+1)]
         self.g_k = self.K * [np.zeros((N+1,N+1))]
@@ -38,18 +45,30 @@ class CCTSB(Agent):
         self.theta_i = self.N * [np.zeros((N+1,N+1))]
         
         self.c = None
+        self.k = None
         
-    def observe(self,c):
+    def observe(self, c):
         self.c = c
 
     def act(self):
         sample_mu = np.zeros((self.K,self.N))
         sample_theta = np.zeros((self.K,self.N))
+        sample_to_sort = []
         for k in range(self.K):
             for i in range(self.N):
                 sample_mu[k,i] = np.random.multivariate_normal(self.mu_k[k], self.alpha**2 * np.inv(self.A_k[k]))
                 sample_theta[k,i] = np.random.multivariate_normal(self.theta_i[i], self.alpha**2 * np.inv(self.B_i[i]))
+            sample_to_sort.append( self.c.T.dot(sample_mu[k]) / self.c.T.dot(sample_theta[k]) )
+        
     
-    def update(self):
-        raise NotImplementedError
+    def update(self, r=None, s=None):
+        self.A_k[self.k] += self.c.dot(self.c.T)
+        self.g_k[self.k] += self.c * r
+        self.mu_k[self.k] = np.inv(self.A_k[self.k]).dot(self.g_k[self.k])
+        for i in range(self.N):
+            self.B_i[i] = self.lambda * self.B_i[i] + self.c.dot(self.c.T)
+            self.z_i[i] += self.c * s
+            self.theta_i[i] = np.inv(self.B_i[i]).dot(self.z_i[i])
+            
+        
             
