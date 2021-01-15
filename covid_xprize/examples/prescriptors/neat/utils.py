@@ -12,7 +12,7 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(ROOT_DIR, 'data')
 HIST_DATA_FILE_PATH = os.path.join(DATA_PATH, 'OxCGRT_latest.csv')
 
-PREDICT_MODULE = 'covid_xprize/examples/predictors/lstm/predict.py'
+PREDICT_MODULE = 'covid_xprize/standard_predictor/predict.py'
 TMP_PRED_FILE_NAME = 'tmp_predictions_for_prescriptions/preds.csv'
 TMP_PRESCRIPTION_FILE = 'tmp_prescription.csv'
 
@@ -86,6 +86,16 @@ def prepare_historical_df():
 
     return df
 
+
+# Function to load an IPs file, e.g., passed to prescribe.py
+def load_ips_file(path_to_ips_file):
+    df = pd.read_csv(path_to_ips_file,
+                     parse_dates=['Date'],
+                     encoding="ISO-8859-1",
+                     error_bad_lines=False)
+    df['RegionName'] = df['RegionName'].fillna("")
+    df = add_geo_id(df)
+    return df
 
 # Function that wraps predictor in order to query
 # predictor when prescribing.
