@@ -4,6 +4,7 @@ import os
 import pandas as pd
 from datetime import datetime, date, timedelta
 from covid_xprize.standard_predictor.xprize_predictor import XPrizePredictor
+import time
 
 SEED = 0
 DEFAULT_TEST_COST = 'covid_xprize/validation/data/uniform_random_costs.csv'
@@ -330,14 +331,17 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
             start_date, end_date = test_config['start_date'], test_config['end_date']
 
             # train the model
+            print('...training the prescriptor model')
             self.fit(train_df)
 
             # generate prescriptions
             print('...generating prescriptions')
-            presc_df = self.prescribe(start_date_str=test_config['start_date'],
-                                      end_date_str=test_config['end_date'],
+            start_time = time.time()
+            presc_df = self.prescribe(start_date_str=start_date,
+                                      end_date_str=end_date,
                                       prior_ips=test_df,
                                       costs=cost_df)
+            print('...prescriptions took {} seconds to be generated'.format(round(time.time() - start_time, 2)))
 
             # check if all required columns are in the returned dataframe
             assert 'Date' in presc_df.columns()
@@ -402,7 +406,6 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
             all_tests_df = pd.concat(all_tests_df)
             all_tests_df.to_csv(output_file_path)
 
-
     @staticmethod
     def set_seed(seed=SEED):
         np.random.seed(seed)
@@ -417,9 +420,9 @@ if __name__ == '__main__':
         print(test_df.Date.unique)
         print('train dates')
         print(train_df.Date.unique)
-        sample_geoID = 'Canada'
-        sample_costs = cost_df[cost_df['GeoID'] == sample_geoID][NPI_COLUMNS].head(1)
-        print('NPI costs for', sample_geoID)
+        sample_geo = 'Canada'
+        sample_costs = cost_df[cost_df['GeoID'] == sample_geo][NPI_COLUMNS].head(1)
+        print('NPI costs for', sample_geo)
         for npi_col in NPI_COLUMNS:
             print(npi_col, round(float(sample_costs[npi_col]), 2))
         print('Sum', round(float(sample_costs.sum(axis=1)), 2))
