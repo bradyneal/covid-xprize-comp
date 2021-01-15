@@ -10,9 +10,9 @@ DEFAULT_TEST_COST = 'covid_xprize/validation/data/uniform_random_costs.csv'
 TEST_CONFIGS = [
     ('Default', {'start_date': '2020-08-01', 'end_date': '2020-08-05', 'costs': DEFAULT_TEST_COST}),
     ('Jan2021_EC', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'equal'}),
-    ('Jan2021_RC', {'start_date': '2021-01-01', 'end_date': '2021-01-31'}),
-    ('Jan2021_EC_NoDec', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'equal', 'train_end_date': '2020-11-30'}),
-    ('Jan2021_RC_NoDec', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'train_end_date': '2020-11-30'}),
+    ('Jan2021_RC', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'random'}),
+    ('Jan2021_EC_NoDec', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'train_end_date': '2020-11-30', 'costs': 'equal'}),
+    ('Jan2021_RC_NoDec', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'train_end_date': '2020-11-30', 'costs': 'random'}),
 ]
 
 
