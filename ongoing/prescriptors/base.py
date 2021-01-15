@@ -116,7 +116,7 @@ def gen_test_config(predictor=None, start_date=None, end_date=None, costs='rando
                              error_bad_lines=False)
     test_df = test_df.merge(country_df, on=['RegionName','CountryName'], how='right', suffixes=('', '_y'))
 
-    if (costs is not None) and (costs not in ['equal', 'random']):
+    if costs not in ['equal', 'random']:
         cost_df = pd.read_csv(costs)
     else:
         cost_df = generate_costs(test_df, mode=costs)
