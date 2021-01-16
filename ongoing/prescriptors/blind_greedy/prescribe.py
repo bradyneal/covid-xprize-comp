@@ -55,20 +55,18 @@ def prescribe(start_date_str: str,
     hist_df = pd.read_csv(path_to_hist_file,
                           parse_dates=['Date'],
                           encoding="ISO-8859-1",
-                          keep_default_na=False,
                           error_bad_lines=True)
-    hist_df["RegionName"] = hist_df["RegionName"].fillna('')
-    hist_df["GeoID"] = np.where(hist_df["RegionName"] == '',
-                                hist_df["CountryName"],
-                                hist_df["CountryName"] + ' / ' + hist_df["RegionName"])
+    hist_df['GeoID'] = np.where(hist_df['RegionName'].isnull(),
+                                hist_df['CountryName'],
+                                hist_df['CountryName'] + ' / ' + hist_df['RegionName'])
 
     # Load the IP weights, so that we can use them
     # greedily for each geo.
-    weights_df = pd.read_csv(path_to_cost_file, keep_default_na=False)
-    weights_df["RegionName"] = weights_df["RegionName"].fillna('')
-    weights_df["GeoID"] = np.where(weights_df["RegionName"] == '',
-                                   weights_df["CountryName"],
-                                   weights_df["CountryName"] + ' / ' + weights_df["RegionName"])
+    weights_df = pd.read_csv(path_to_cost_file)
+    weights_df['RegionName'] = weights_df['RegionName'].replace('', np.nan)
+    weights_df['GeoID'] = np.where(weights_df['RegionName'].isnull(),
+                                   weights_df['CountryName'],
+                                   weights_df['CountryName'] + ' / ' + weights_df['RegionName'])
 
     # instantiate the prescriptor and generate the prescriptions
     prescriptor = BlindGreedy()

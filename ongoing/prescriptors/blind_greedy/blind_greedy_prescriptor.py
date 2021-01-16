@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import os
+
 from ongoing.prescriptors.base import BasePrescriptor
 import ongoing.prescriptors.base as base
 
@@ -28,6 +30,7 @@ class BlindGreedy(BasePrescriptor):
         super().__init__(seed=seed)
 
     def fit(self, data):
+        # there's nothing to be learned in this model, so just return
         return
 
     def prescribe(self,
@@ -51,7 +54,7 @@ class BlindGreedy(BasePrescriptor):
         for country_name in prior_ips['CountryName'].unique():
             country_df = prior_ips[prior_ips['CountryName'] == country_name]
             for region_name in country_df['RegionName'].unique():
-                geoid = (country_name if region_name == ''
+                geoid = (country_name if isinstance(region_name, float)  # if region_name is Nan, it is float; otherwise it's str
                          else country_name + ' / ' + region_name)
 
                 # Sort IPs for this geo by weight
@@ -86,4 +89,4 @@ class BlindGreedy(BasePrescriptor):
 
 if __name__ == '__main__':
     prescriptor = BlindGreedy()
-    prescriptor.evaluate()
+    prescriptor.evaluate(output_file_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'greedy_prescriptor_evaluate.csv'))
