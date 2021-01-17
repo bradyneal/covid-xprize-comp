@@ -4,28 +4,29 @@ import os
 import pandas as pd
 from datetime import datetime, date, timedelta
 from covid_xprize.standard_predictor.xprize_predictor import XPrizePredictor
+import time
 
 SEED = 0
 DEFAULT_TEST_COST = 'covid_xprize/validation/data/uniform_random_costs.csv'
 TEST_CONFIGS = [
     ('Default', {'start_date': '2020-08-01', 'end_date': '2020-08-05', 'costs': DEFAULT_TEST_COST}),
+    ('Jan2021_EC_fast', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'equal', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
+    ('Jan2021_RC_fast', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
     ('Jan2021_EC', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'equal'}),
-    ('Jan2021_RC', {'start_date': '2021-01-01', 'end_date': '2021-01-31'}),
-    ('Jan2021_EC_NoDec', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'equal', 'train_end_date': '2020-11-30'}),
-    ('Jan2021_RC_NoDec', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'train_end_date': '2020-11-30'}),
+    ('Jan2021_RC', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'random'}),
+    ('Jan2021_RC_NoDec_fast', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'train_end_date': '2020-11-30', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
 ]
 
-
-OUR_FOLDER = 'ongoing'
-DATA_FOLDER = 'data'
-OXFORD_FILEPATH = os.path.join(OUR_FOLDER, DATA_FOLDER, 'OxCGRT_latest.csv')
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(ROOT_DIR, os.pardir, 'data')
+OXFORD_FILEPATH = os.path.join(DATA_DIR, 'OxCGRT_latest.csv')
 OXFORD_URL = 'https://raw.githubusercontent.com/OxCGRT/covid-policy-tracker/master/data/OxCGRT_latest.csv'
-ADDITIONAL_CONTEXT_FILE = os.path.join(OUR_FOLDER, DATA_FOLDER, "Additional_Context_Data_Global.csv")
-ADDITIONAL_US_STATES_CONTEXT = os.path.join(OUR_FOLDER, DATA_FOLDER, "US_states_populations.csv")
-ADDITIONAL_UK_CONTEXT = os.path.join(OUR_FOLDER, DATA_FOLDER, "uk_populations.csv")
+ADDITIONAL_CONTEXT_FILE = os.path.join(DATA_DIR, "Additional_Context_Data_Global.csv")
+ADDITIONAL_US_STATES_CONTEXT = os.path.join(DATA_DIR, "US_states_populations.csv")
+ADDITIONAL_UK_CONTEXT = os.path.join(DATA_DIR, "uk_populations.csv")
 US_PREFIX = "United States / "
-COUNTRY_LIST = os.path.join(OUR_FOLDER, DATA_FOLDER, 'countries_regions.txt')
-PREDICTOR_PATH = 'covid_xprize/standard_predictor/xprize_predictor/models/trained_model_weights.h5'
+COUNTRY_LIST = os.path.join(DATA_DIR, 'countries_regions.txt')
+PREDICTOR_PATH = 'covid_xprize/standard_predictor/models/trained_model_weights.h5'
 
 NPI_COLUMNS = ['C1_School closing',
                'C2_Workplace closing',
@@ -48,32 +49,39 @@ CONTEXT_COLUMNS = ['CountryName',
                    'ConfirmedDeaths',
                    'Population']
 
-def gen_test_config(predictor=None, start_date=None, end_date=None, costs='random', train_start_date=None, train_end_date=None, update_data=True):
+def gen_test_config(start_date=None,
+                    end_date=None,
+                    train_start_date=None,
+                    train_end_date=None,
+                    costs='random',
+                    selected_geos=COUNTRY_LIST,
+                    predictor=None,
+                    update_data=False):
     """
     Loads the data and splits it into train and test sets
 
     Args:
-        start_date: First date in the test set (type: datetime)
-        end_date: Last date in the test set (type: datetime)
-        n_test_months: Number of months in the test set
-        end_month: Last month in the test set
-        n_test_days: Number of days in the test set
-        start_month: First month in the test set
-        update_data: Boolean for whether to re-download the Oxford data
+        start_date: first date to prescribe for
+        end_date: last date to prescribe for
+        train_start_date: first date in the returned train_df
+        train_end_date: last date in the returned train_df
+        costs: 'random' / 'equal' / path to csv file with costs
+        selected_geos: geos to prescribe for (list / path to csv file)
+        predictor: the predictor model used by the prescriptor
+        update_data: boolean for whether to re-download the Oxford data
 
-        *** If start_date and end_date are given, n_test_months, enf_month,
-        n_test_days, and start_month are ignored ***
-
-    Returns: (train_df, test_df)
+    Returns: (train_df, test_df, cost_df)
     """
-    assert start_date is not None and end_date is not None
+    assert (start_date is not None) and (end_date is not None)
+    assert isinstance(selected_geos, str) or isinstance(selected_geos, list)
+
     if update_data:
         print('Updating Oxford data...', end=' ')
         df = pd.read_csv(OXFORD_URL,
                          parse_dates=['Date'],
                          encoding="ISO-8859-1",
-                         dtype={"RegionName": str,
-                                "RegionCode": str},
+                         dtype={'RegionName': str,
+                                'RegionCode': str},
                          error_bad_lines=False)
         df.to_csv(OXFORD_FILEPATH)
         print('DONE')
@@ -81,15 +89,14 @@ def gen_test_config(predictor=None, start_date=None, end_date=None, costs='rando
         df = pd.read_csv(OXFORD_FILEPATH,
                          parse_dates=['Date'],
                          encoding="ISO-8859-1",
-                         dtype={"RegionName": str,
-                                "RegionCode": str},
+                         dtype={'RegionName': str,
+                                'RegionCode': str},
                          error_bad_lines=False)
         print('Using existing data up to date {}'.format(str(df.Date[len(df) - 1]).split()[0]))
 
-    # Add unique identifier for each location (region + country)
-    df["GeoID"] = np.where(df["RegionName"].isnull(),
-                           df["CountryName"],
-                           df["CountryName"] + ' / ' + df["RegionName"])
+    df['GeoID'] = np.where(df['RegionName'].isnull(),
+                           df['CountryName'],
+                           df['CountryName'] + ' / ' + df['RegionName'])
 
     # Load dataframe with demographics about each country
     context_df = load_additional_context_df()
@@ -109,21 +116,31 @@ def gen_test_config(predictor=None, start_date=None, end_date=None, costs='rando
     test_columns = ['GeoID', 'CountryName', 'RegionName', 'Date'] + NPI_COLUMNS
     test_df = test_df[test_columns]
 
-    # Discard countries that will not be evaluated
-    country_df = pd.read_csv(COUNTRY_LIST,
-                             encoding="ISO-8859-1",
-                             dtype={"RegionName": str},
-                             error_bad_lines=False)
-    test_df = test_df.merge(country_df, on=['RegionName','CountryName'], how='right', suffixes=('', '_y'))
-
-    if (costs is not None) and (costs not in ['equal', 'random']):
+    if costs not in ['equal', 'random']:
         cost_df = pd.read_csv(costs)
+        cost_df['RegionName'] = cost_df['RegionName'].replace('', np.nan)
     else:
         cost_df = generate_costs(test_df, mode=costs)
 
-    cost_df["GeoID"] = np.where(cost_df["RegionName"].isnull(),
-                                cost_df["CountryName"],
-                                cost_df["CountryName"] + ' / ' + cost_df["RegionName"])
+    cost_df['GeoID'] = np.where(cost_df['RegionName'] == '',
+                                cost_df['CountryName'],
+                                cost_df['CountryName'] + ' / ' + cost_df['RegionName'])
+
+    # Discard countries that will not be evaluated
+    if isinstance(selected_geos, str):  # selected_geos be a path to a csv
+        country_df = pd.read_csv(selected_geos,
+                                 encoding="ISO-8859-1",
+                                 dtype={'RegionName': str},
+                                 error_bad_lines=False)
+        country_df['RegionName'] = country_df['RegionName'].replace('', np.nan)
+        country_df['GeoID'] = np.where(country_df['RegionName'].isnull(),
+                                       country_df['CountryName'],
+                                       country_df['CountryName'] + ' / ' + country_df['RegionName'])
+    else:  # selected_geos can also be a list of GeoIDs
+        country_df = pd.DataFrame.from_dict({'GeoID': selected_geos})
+
+    test_df = test_df.merge(country_df, on=['GeoID'], how='right', suffixes=('', '_y'))
+    cost_df = cost_df.merge(country_df, on=['GeoID'], how='right', suffixes=('', '_y'))
 
     # Compute number of new cases and deaths each day
     df['NewCases'] = df.groupby('GeoID').ConfirmedCases.diff().fillna(0)
@@ -252,7 +269,7 @@ def weight_prescriptions_by_cost(presc_df, cost_df):
     """
     Weight prescriptions by their costs.
     """
-    weighted_df = presc_df.merge(cost_df, how='outer', on=['CountryName', 'RegionName'], suffixes=('_pres', '_cost'))
+    weighted_df = presc_df.merge(cost_df, how='outer', on=['CountryName', 'RegionName'], suffixes=('_presc', '_cost'))
     for npi_col in NPI_COLUMNS:
         weighted_df[npi_col] = weighted_df[npi_col + '_presc'] * weighted_df[npi_col + '_cost']
     return weighted_df
@@ -290,19 +307,16 @@ class BasePrescriptorMeta(ABCMeta):
 
 class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
     """
-    Abstract class for predictors. Currently provides train/test data splits and
-    evaluation for classes that inherit from this class. In the future, this
-    class will hold common code for preprocessing, plotting, other evaluations,
-    etc. Requires that subclasses implement 2 methods and 2 attributes:
+    Abstract class for prescriptors. Currently provides evaluation for classes that inherit from this class.
 
-    2 methods:
+    Requires that subclasses implement 2 methods:
         fit(data: pd.DataFrame) - train the model using the standard predictor and some historical real data
         prescribe(start_date_str: str,
                   end_date_str: str,
                   prior_ips: pd.DataFrame
                   costs: pd.DataFrame) -> pd.DataFrame - make prescriptions for the given period
 
-    1 attribute:
+    The following attribute is set on the initialization of this class and should NOT be modified:
         predictor - standard predictor model
     """
 
@@ -322,40 +336,59 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
     def prescribe(self, start_date_str, end_date_str, prior_ips, costs):
         pass
 
-    def evaluate(self, output_file_path=None):
+    def evaluate(self, output_file_path=None, verbose=True):
+        all_tests_df = []
         for test_name, test_config in TEST_CONFIGS:
-            print('Running test:', test_name)
+            if verbose:
+                print('Running test:', test_name)
+
+            # reinitialize the predictor because it is modified inside the loop by gen_test_config
+            self.predictor = XPrizePredictor(PREDICTOR_PATH, OXFORD_FILEPATH)
+
+            # generate the test config
             train_df, test_df, cost_df = gen_test_config(predictor=self.predictor, **test_config)
             start_date, end_date = test_config['start_date'], test_config['end_date']
 
             # train the model
+            if verbose:
+                print('...training the prescriptor model')
             self.fit(train_df)
 
             # generate prescriptions
-            print('...generating prescriptions')
-            presc_df = self.prescribe(start_date_str=test_config['start_date'],
-                                      end_date_str=test_config['end_date'],
+            if verbose:
+                print('...generating prescriptions')
+            start_time = time.time()
+            presc_df = self.prescribe(start_date_str=start_date,
+                                      end_date_str=end_date,
                                       prior_ips=test_df,
                                       costs=cost_df)
+            if verbose:
+                print('...prescriptions took {} seconds to be generated'.format(round(time.time() - start_time, 2)))
 
             # check if all required columns are in the returned dataframe
-            assert 'Date' in presc_df.columns()
-            assert 'CountryName' in presc_df.columns()
-            assert 'RegionName' in presc_df.columns()
-            assert 'PrescriptionIndex' in presc_df.columns()
+            assert 'Date' in presc_df.columns
+            assert 'CountryName' in presc_df.columns
+            assert 'RegionName' in presc_df.columns
+            assert 'PrescriptionIndex' in presc_df.columns
             for npi_col in NPI_COLUMNS:
-                assert npi_col in presc_df.columns()
+                assert npi_col in presc_df.columns
 
             # generate predictions with the given prescriptions
-            print('...generating predictions for all prescriptions')
+            if verbose:
+                print('...generating predictions for all prescriptions')
             pred_dfs = []
             for idx in presc_df['PrescriptionIndex'].unique():
                 idx_df = presc_df[presc_df['PrescriptionIndex'] == idx]
-                idx_df = idx_df.drop(columns='PrescriptionIndex') # Predictor doesn't need this
+                idx_df = idx_df.drop(columns='PrescriptionIndex') # predictor doesn't need this
+                last_known_date = self.predictor.df['Date'].max()
+                if last_known_date < pd.to_datetime(idx_df['Date'].min()) - np.timedelta64(1, 'D'):
+                    # append prior NPIs to the prescripted ones because the predictor will need them
+                    idx_df = idx_df.append(test_df[test_df['Date'] > last_known_date].drop(columns='GeoID'))
                 ip_file_path = 'prescriptions/prescription_{}.csv'.format(idx)
                 os.makedirs(os.path.dirname(ip_file_path), exist_ok=True)
                 idx_df.to_csv(ip_file_path)
                 pred_df = self.predictor.predict(start_date, end_date, ip_file_path)
+                pred_df['PrescriptionIndex'] = idx
                 pred_dfs.append(pred_df)
             pred_df = pd.concat(pred_dfs)
 
@@ -376,8 +409,8 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
 
             # aggregate stringency by prescription index and geo
             agg_presc_df = presc_df.groupby(['CountryName',
-                                            'RegionName',
-                                            'PrescriptionIndex'], dropna=False).mean().reset_index()
+                                             'RegionName',
+                                             'PrescriptionIndex'], dropna=False).mean().reset_index()
 
             # combine stringency and cases into a single df
             df = agg_presc_df.merge(agg_pred_df, how='outer', on=['CountryName',
@@ -390,13 +423,17 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
                      'PrescriptionIndex',
                      'PredictedDailyNewCases',
                      'Stringency']]
-
-            # maybe save the results to a csv
-            if output_file_path is not None:
-                df.to_csv(output_file_path)
+            df['TestName'] = test_name
+            all_tests_df.append(df)
 
             # show average (stringency, new_cases) values for each PrescriptionIndex
-            print(df.groupby('PrescriptionIndex').mean().reset_index())
+            if verbose:
+                print(df.groupby('PrescriptionIndex').mean().reset_index())
+
+        # save test results in a csv
+        if output_file_path is not None:
+            all_tests_df = pd.concat(all_tests_df)
+            all_tests_df.to_csv(output_file_path)
 
     @staticmethod
     def set_seed(seed=SEED):
@@ -412,9 +449,9 @@ if __name__ == '__main__':
         print(test_df.Date.unique)
         print('train dates')
         print(train_df.Date.unique)
-        sample_geoID = 'Canada'
-        sample_costs = cost_df[cost_df['GeoID'] == sample_geoID][NPI_COLUMNS].head(1)
-        print('NPI costs for', sample_geoID)
+        sample_geo = 'Canada'
+        sample_costs = cost_df[cost_df['GeoID'] == sample_geo][NPI_COLUMNS].head(1)
+        print('NPI costs for', sample_geo)
         for npi_col in NPI_COLUMNS:
             print(npi_col, round(float(sample_costs[npi_col]), 2))
         print('Sum', round(float(sample_costs.sum(axis=1)), 2))
