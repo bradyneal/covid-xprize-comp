@@ -88,5 +88,9 @@ class BlindGreedy(BasePrescriptor):
 
 
 if __name__ == '__main__':
-    prescriptor = BlindGreedy()
-    prescriptor.evaluate(output_file_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'greedy_prescriptor_evaluate.csv'))
+    prescriptor = BlindGreedy(seed=42)
+    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir, os.pardir, 'prescriptions')
+    ofile_path = os.path.abspath(os.path.join(output_dir, 'blind_greedy_evaluate2.csv'))
+    print(ofile_path)
+    print()
+    prescriptor.evaluate(output_file_path=ofile_path)

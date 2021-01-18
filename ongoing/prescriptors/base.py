@@ -10,11 +10,11 @@ SEED = 0
 DEFAULT_TEST_COST = 'covid_xprize/validation/data/uniform_random_costs.csv'
 TEST_CONFIGS = [
     ('Default', {'start_date': '2020-08-01', 'end_date': '2020-08-05', 'costs': DEFAULT_TEST_COST}),
-    ('Jan2021_EC_fast', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'equal', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
-    ('Jan2021_RC_fast', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
-    ('Jan2021_EC', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'equal'}),
-    ('Jan2021_RC', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'costs': 'random'}),
-    ('Jan2021_RC_NoDec_fast', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'train_end_date': '2020-11-30', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
+    ('Jan_Mar_EC_fast', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'equal', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
+    ('Jan_Mar_RC_fast', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
+    # ('Jan_Mar_EC_full', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'equal'}),
+    # ('Jan_Mar_RC_full', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'random'}),
+    # ('Jan_RC_NoDec_fast', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'train_end_date': '2020-11-30', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
 ]
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -118,11 +118,11 @@ def gen_test_config(start_date=None,
 
     if costs not in ['equal', 'random']:
         cost_df = pd.read_csv(costs)
-        cost_df['RegionName'] = cost_df['RegionName'].replace('', np.nan)
     else:
         cost_df = generate_costs(test_df, mode=costs)
 
-    cost_df['GeoID'] = np.where(cost_df['RegionName'] == '',
+    cost_df['RegionName'] = cost_df['RegionName'].replace('', np.nan)
+    cost_df['GeoID'] = np.where(cost_df['RegionName'].isnull(),
                                 cost_df['CountryName'],
                                 cost_df['CountryName'] + ' / ' + cost_df['RegionName'])
 
@@ -398,8 +398,8 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
                                            'PrescriptionIndex'], dropna=False).mean().reset_index()
 
             # only use costs of geos we've predicted for
-            cost_df = cost_df[cost_df.CountryName.isin(agg_pred_df.CountryName) &
-                      cost_df.RegionName.isin(agg_pred_df.RegionName)]
+            cost_df = cost_df[cost_df['CountryName'].isin(agg_pred_df['CountryName']) &
+                      cost_df['RegionName'].isin(agg_pred_df['RegionName'])]
 
             # apply weights to prescriptions
             presc_df = weight_prescriptions_by_cost(presc_df, cost_df)
