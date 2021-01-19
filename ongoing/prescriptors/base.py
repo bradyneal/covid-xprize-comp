@@ -9,7 +9,7 @@ import time
 SEED = 0
 DEFAULT_TEST_COST = 'covid_xprize/validation/data/uniform_random_costs.csv'
 TEST_CONFIGS = [
-    # ('Default', {'start_date': '2020-08-01', 'end_date': '2020-08-05', 'costs': DEFAULT_TEST_COST}),
+    ('Default', {'start_date': '2020-08-01', 'end_date': '2020-08-05', 'costs': DEFAULT_TEST_COST}),
     ('Jan_Mar_EC_fast', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'equal', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
     ('Jan_Mar_RC_fast', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
     # ('Jan_Mar_EC_full', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'equal'}),
