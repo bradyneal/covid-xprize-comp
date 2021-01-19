@@ -3,9 +3,11 @@ import argparse
 import numpy as np
 import pandas as pd
 
-from ongoing.prescriptors.neat.neat_presciptor import Neat
+from ongoing.prescriptors.neat.neat_prescriptor import Neat
 import ongoing.prescriptors.base as base
 
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, 'neat-checkpoint-0')
 
 def prescribe(start_date_str: str,
               end_date_str: str,
@@ -26,8 +28,8 @@ def prescribe(start_date_str: str,
     weights_df = pd.read_csv(path_to_cost_file)
     weights_df = base.add_geo_id(weights_df)
 
-    # instantiate the prescriptor and generate the prescriptions
-    prescriptor = Neat()
+    # Load the trained prescriptor and generate the prescriptions
+    prescriptor = Neat(prescriptors_file=PRESCRIPTORS_FILE)
     prescription_df = prescriptor.prescribe(start_date_str, end_date_str, hist_df, weights_df)
 
     # Create the directory for writing the output file, if necessary.
