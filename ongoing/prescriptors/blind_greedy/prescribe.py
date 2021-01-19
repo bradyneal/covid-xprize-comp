@@ -1,47 +1,10 @@
-# Copyright 2020 (c) Cognizant Digital Business, Evolutionary AI. All rights reserved. Issued under the Apache 2.0 License.
-
-"""
-This is the prescribe.py script for a simple example prescriptor that
-generates IP schedules that trade off between IP cost and cases.
-
-The prescriptor is "blind" in that it does not consider any historical
-data when making its prescriptions.
-
-The prescriptor is "greedy" in that it starts with all IPs turned off,
-and then iteratively turns on the unused IP that has the least cost.
-
-Since each subsequent prescription is stricter, the resulting set
-of prescriptions should produce a Pareto front that highlights the
-trade-off space between total IP cost and cases.
-
-Note this file has significant overlap with ../random/prescribe.py.
-"""
-
 import os
 import argparse
 import numpy as np
 import pandas as pd
 
 from ongoing.prescriptors.blind_greedy.blind_greedy_prescriptor import BlindGreedy
-
-NUM_PRESCRIPTIONS = 10
-
-IP_MAX_VALUES = {
-    'C1_School closing': 3,
-    'C2_Workplace closing': 3,
-    'C3_Cancel public events': 2,
-    'C4_Restrictions on gatherings': 4,
-    'C5_Close public transport': 2,
-    'C6_Stay at home requirements': 3,
-    'C7_Restrictions on internal movement': 2,
-    'C8_International travel controls': 4,
-    'H1_Public information campaigns': 2,
-    'H2_Testing policy': 3,
-    'H3_Contact tracing': 2,
-    'H6_Facial Coverings': 4
-}
-
-IP_COLS = list(IP_MAX_VALUES.keys())
+import ongoing.prescriptors.base as base
 
 
 def prescribe(start_date_str: str,
@@ -56,17 +19,12 @@ def prescribe(start_date_str: str,
                           parse_dates=['Date'],
                           encoding="ISO-8859-1",
                           error_bad_lines=True)
-    hist_df['GeoID'] = np.where(hist_df['RegionName'].isnull(),
-                                hist_df['CountryName'],
-                                hist_df['CountryName'] + ' / ' + hist_df['RegionName'])
+    hist_df = base.add_geo_id(hist_df)
 
     # Load the IP weights, so that we can use them
     # greedily for each geo.
     weights_df = pd.read_csv(path_to_cost_file)
-    weights_df['RegionName'] = weights_df['RegionName'].replace('', np.nan)
-    weights_df['GeoID'] = np.where(weights_df['RegionName'].isnull(),
-                                   weights_df['CountryName'],
-                                   weights_df['CountryName'] + ' / ' + weights_df['RegionName'])
+    weights_df = base.add_geo_id(weights_df)
 
     # instantiate the prescriptor and generate the prescriptions
     prescriptor = BlindGreedy()
