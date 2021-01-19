@@ -9,7 +9,7 @@ import time
 SEED = 0
 DEFAULT_TEST_COST = 'covid_xprize/validation/data/uniform_random_costs.csv'
 TEST_CONFIGS = [
-    ('Default', {'start_date': '2020-08-01', 'end_date': '2020-08-05', 'costs': DEFAULT_TEST_COST}),
+    # ('Default', {'start_date': '2020-08-01', 'end_date': '2020-08-05', 'costs': DEFAULT_TEST_COST}),
     ('Jan_Mar_EC_fast', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'equal', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
     ('Jan_Mar_RC_fast', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
     # ('Jan_Mar_EC_full', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'equal'}),
@@ -93,10 +93,7 @@ def gen_test_config(start_date=None,
                                 'RegionCode': str},
                          error_bad_lines=False)
         print('Using existing data up to date {}'.format(str(df.Date[len(df) - 1]).split()[0]))
-
-    df['GeoID'] = np.where(df['RegionName'].isnull(),
-                           df['CountryName'],
-                           df['CountryName'] + ' / ' + df['RegionName'])
+    df = add_geo_id(df)
 
     # Load dataframe with demographics about each country
     context_df = load_additional_context_df()
@@ -120,11 +117,7 @@ def gen_test_config(start_date=None,
         cost_df = pd.read_csv(costs)
     else:
         cost_df = generate_costs(test_df, mode=costs)
-
-    cost_df['RegionName'] = cost_df['RegionName'].replace('', np.nan)
-    cost_df['GeoID'] = np.where(cost_df['RegionName'].isnull(),
-                                cost_df['CountryName'],
-                                cost_df['CountryName'] + ' / ' + cost_df['RegionName'])
+    cost_df = add_geo_id(cost_df)
 
     # Discard countries that will not be evaluated
     if isinstance(selected_geos, str):  # selected_geos be a path to a csv
@@ -186,6 +179,13 @@ def gen_test_config(start_date=None,
 
     return train_df, test_df, cost_df
 
+
+def add_geo_id(df):
+    df['RegionName'] = df['RegionName'].replace('', np.nan)
+    df['GeoID'] = np.where(df['RegionName'].isnull(),
+                           df['CountryName'],
+                           df['CountryName'] + ' / ' + df['RegionName'])
+    return df
 
 def load_additional_context_df():
     # File containing the population for each country
@@ -313,8 +313,8 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
         fit(data: pd.DataFrame) - train the model using the standard predictor and some historical real data
         prescribe(start_date_str: str,
                   end_date_str: str,
-                  prior_ips: pd.DataFrame
-                  costs: pd.DataFrame) -> pd.DataFrame - make prescriptions for the given period
+                  prior_ips_df: pd.DataFrame
+                  cost_df: pd.DataFrame) -> pd.DataFrame - make prescriptions for the given period
 
     The following attribute is set on the initialization of this class and should NOT be modified:
         predictor - standard predictor model
@@ -333,7 +333,7 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
         pass
 
     @abstractmethod
-    def prescribe(self, start_date_str, end_date_str, prior_ips, costs):
+    def prescribe(self, start_date_str, end_date_str, prior_ips_df, cost_df):
         pass
 
     def evaluate(self, output_file_path=None, verbose=True):
@@ -360,8 +360,8 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
             start_time = time.time()
             presc_df = self.prescribe(start_date_str=start_date,
                                       end_date_str=end_date,
-                                      prior_ips=test_df,
-                                      costs=cost_df)
+                                      prior_ips_df=test_df,
+                                      cost_df=cost_df)
             if verbose:
                 print('...prescriptions took {} seconds to be generated'.format(round(time.time() - start_time, 2)))
 
