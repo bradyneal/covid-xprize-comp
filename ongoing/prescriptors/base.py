@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 import os
 import pandas as pd
-from datetime import datetime, date, timedelta
 from covid_xprize.standard_predictor.xprize_predictor import XPrizePredictor
 import time
 
@@ -28,19 +27,6 @@ US_PREFIX = "United States / "
 COUNTRY_LIST = os.path.join(DATA_DIR, 'countries_regions.txt')
 PREDICTOR_PATH = 'covid_xprize/standard_predictor/models/trained_model_weights.h5'
 
-NPI_COLUMNS = ['C1_School closing',
-               'C2_Workplace closing',
-               'C3_Cancel public events',
-               'C4_Restrictions on gatherings',
-               'C5_Close public transport',
-               'C6_Stay at home requirements',
-               'C7_Restrictions on internal movement',
-               'C8_International travel controls',
-               'H1_Public information campaigns',
-               'H2_Testing policy',
-               'H3_Contact tracing',
-               'H6_Facial Coverings']
-
 CONTEXT_COLUMNS = ['CountryName',
                    'RegionName',
                    'GeoID',
@@ -49,6 +35,26 @@ CONTEXT_COLUMNS = ['CountryName',
                    'ConfirmedDeaths',
                    'Population']
 
+NPI_MAX_VALUES = {
+    'C1_School closing': 3,
+    'C2_Workplace closing': 3,
+    'C3_Cancel public events': 2,
+    'C4_Restrictions on gatherings': 4,
+    'C5_Close public transport': 2,
+    'C6_Stay at home requirements': 3,
+    'C7_Restrictions on internal movement': 2,
+    'C8_International travel controls': 4,
+    'H1_Public information campaigns': 2,
+    'H2_Testing policy': 3,
+    'H3_Contact tracing': 2,
+    'H6_Facial Coverings': 4
+}
+NPI_COLUMNS = list(NPI_MAX_VALUES.keys())
+
+CASES_COL = ['NewCases']
+
+PRED_CASES_COL = ['PredictedDailyNewCases']
+
 def gen_test_config(start_date=None,
                     end_date=None,
                     train_start_date=None,
@@ -56,7 +62,7 @@ def gen_test_config(start_date=None,
                     costs='random',
                     selected_geos=COUNTRY_LIST,
                     predictor=None,
-                    update_data=False):
+                    update_data=True):
     """
     Loads the data and splits it into train and test sets
 
@@ -75,6 +81,59 @@ def gen_test_config(start_date=None,
     assert (start_date is not None) and (end_date is not None)
     assert isinstance(selected_geos, str) or isinstance(selected_geos, list)
 
+    df = load_historical_data(update_data=update_data)
+
+    # Test dataframe consists of NPI values up to start_date-1
+    pd_start_date = pd.to_datetime(start_date)
+    test_df = df[df['Date'] < pd_start_date].copy()
+    test_columns = ['GeoID', 'CountryName', 'RegionName', 'Date'] + NPI_COLUMNS
+    test_df = test_df[test_columns]
+
+    if costs not in ['equal', 'random']:
+        cost_df = pd.read_csv(costs)
+    else:
+        cost_df = generate_costs(test_df, mode=costs)
+    cost_df = add_geo_id(cost_df)
+
+    # Discard countries that will not be evaluated
+    if isinstance(selected_geos, str):  # selected_geos can be a path to a csv
+        country_df = pd.read_csv(selected_geos,
+                                 encoding="ISO-8859-1",
+                                 dtype={'RegionName': str},
+                                 error_bad_lines=False)
+        country_df['RegionName'] = country_df['RegionName'].replace('', np.nan)
+        country_df['GeoID'] = np.where(country_df['RegionName'].isnull(),
+                                       country_df['CountryName'],
+                                       country_df['CountryName'] + ' / ' + country_df['RegionName'])
+    else:  # selected_geos can also be a list of GeoIDs
+        country_df = pd.DataFrame.from_dict({'GeoID': selected_geos})
+
+    test_df = test_df.merge(country_df, on=['GeoID'], how='right', suffixes=('', '_y'))
+    cost_df = cost_df.merge(country_df, on=['GeoID'], how='right', suffixes=('', '_y'))
+
+    train_df = df
+    # forget all historical data starting from start_date
+    train_df = train_df[df['Date'] < pd_start_date]
+    if predictor is not None:
+        predictor.df = predictor.df[predictor.df['Date'] < pd_start_date]
+
+    if train_start_date is not None:
+        # forget all historical data before train_start_date
+        pd_train_start_date = pd.to_datetime(train_start_date)
+        train_df = train_df[pd_train_start_date <= df['Date']]
+        if predictor is not None:
+            predictor.df = predictor.df[pd_train_start_date <= predictor.df['Date']]
+
+    if train_end_date is not None:
+        # forget all historical data after train_end_date
+        pd_train_end_date = pd.to_datetime(train_end_date)
+        train_df = train_df[train_df['Date'] <= pd_train_end_date]
+        if predictor is not None:
+            predictor.df = predictor.df[predictor.df['Date'] <= pd_train_end_date]
+
+    return train_df, test_df, cost_df
+
+def load_historical_data(update_data=False):
     if update_data:
         print('Updating Oxford data...', end=' ')
         df = pd.read_csv(OXFORD_URL,
@@ -107,34 +166,6 @@ def gen_test_config(start_date=None,
     # Fill in missing values
     fill_missing_values(df, dropifnocases=True, dropifnodeaths=False)
 
-    # Test dataframe consists of NPI values up to start_date-1
-    pd_start_date = pd.to_datetime(start_date)
-    test_df = df[df['Date'] < pd_start_date].copy()
-    test_columns = ['GeoID', 'CountryName', 'RegionName', 'Date'] + NPI_COLUMNS
-    test_df = test_df[test_columns]
-
-    if costs not in ['equal', 'random']:
-        cost_df = pd.read_csv(costs)
-    else:
-        cost_df = generate_costs(test_df, mode=costs)
-    cost_df = add_geo_id(cost_df)
-
-    # Discard countries that will not be evaluated
-    if isinstance(selected_geos, str):  # selected_geos be a path to a csv
-        country_df = pd.read_csv(selected_geos,
-                                 encoding="ISO-8859-1",
-                                 dtype={'RegionName': str},
-                                 error_bad_lines=False)
-        country_df['RegionName'] = country_df['RegionName'].replace('', np.nan)
-        country_df['GeoID'] = np.where(country_df['RegionName'].isnull(),
-                                       country_df['CountryName'],
-                                       country_df['CountryName'] + ' / ' + country_df['RegionName'])
-    else:  # selected_geos can also be a list of GeoIDs
-        country_df = pd.DataFrame.from_dict({'GeoID': selected_geos})
-
-    test_df = test_df.merge(country_df, on=['GeoID'], how='right', suffixes=('', '_y'))
-    cost_df = cost_df.merge(country_df, on=['GeoID'], how='right', suffixes=('', '_y'))
-
     # Compute number of new cases and deaths each day
     df['NewCases'] = df.groupby('GeoID').ConfirmedCases.diff().fillna(0)
     df['NewDeaths'] = df.groupby('GeoID').ConfirmedDeaths.diff().fillna(0)
@@ -157,27 +188,7 @@ def gen_test_config(start_date=None,
     # Create column of value to predict
     df['PredictionRatio'] = df['CaseRatio'] / (1 - df['ProportionInfected'])
 
-    train_df = df
-    # forget all historical data starting from start_date
-    train_df = train_df[df['Date'] < pd_start_date]
-    if predictor is not None:
-        predictor.df = predictor.df[predictor.df['Date'] < pd_start_date]
-
-    if train_start_date is not None:
-        # forget all historical data before train_start_date
-        pd_train_start_date = pd.to_datetime(train_start_date)
-        train_df = train_df[pd_train_start_date <= df['Date']]
-        if predictor is not None:
-            predictor.df = predictor.df[pd_train_start_date <= predictor.df['Date']]
-
-    if train_end_date is not None:
-        # forget all historical data after train_end_date
-        pd_train_end_date = pd.to_datetime(train_end_date)
-        train_df = train_df[train_df['Date'] <= pd_train_end_date]
-        if predictor is not None:
-            predictor.df = predictor.df[predictor.df['Date'] <= pd_train_end_date]
-
-    return train_df, test_df, cost_df
+    return df
 
 
 def add_geo_id(df):
@@ -234,13 +245,13 @@ def fill_missing_values(df, dropifnocases=True, dropifnodeaths=False):
 
 def generate_costs(df, mode='random'):
     """
-    Returns df of costs for each IP for each geo according to distribution.
+    Returns df of costs for each NPI for each geo according to distribution.
 
-    Costs always sum to #IPS (i.e., len(NPI_COLUMNS)).
+    Costs always sum to #NPIs (i.e., len(NPI_COLUMNS)).
 
     Available distributions:
-        - 'ones': cost is 1 for each IP.
-        - 'uniform': costs are sampled uniformly across IPs independently
+        - 'ones': cost is 1 for each NPI.
+        - 'uniform': costs are sampled uniformly across NPIs independently
                      for each geo.
     """
     assert mode in ['equal', 'random'], \
