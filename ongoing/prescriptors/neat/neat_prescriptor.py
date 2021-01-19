@@ -6,16 +6,14 @@ import datetime
 import neat
 from tensorflow.python.framework.ops import default_session
 
-from ongoing.prescriptors.base import BasePrescriptor
+from ongoing.prescriptors.base import BasePrescriptor, PRED_CASES_COL, CASES_COL, NPI_COLUMNS, NPI_MAX_VALUES
 import ongoing.prescriptors.base as base
-
-from covid_xprize.examples.prescriptors.neat.utils import PRED_CASES_COL, CASES_COL, IP_COLS, IP_MAX_VALUES
 
 # Number of days the prescriptors will look at in the past.
 # Larger values here may make convergence slower, but give
 # prescriptors more context. The number of inputs of each neat
-# network will be NB_LOOKBACK_DAYS * (IP_COLS + 1) + IP_COLS.
-# The '1' is for previous case data, and the final IP_COLS
+# network will be NB_LOOKBACK_DAYS * (NPI_COLUMNS + 1) + NPI_COLUMNS.
+# The '1' is for previous case data, and the final NPI_COLUMNS
 # is for IP cost information.
 NB_LOOKBACK_DAYS = 14
 
@@ -32,7 +30,7 @@ EVAL_END_DATE = '2020-08-02'
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CHECKPOINTS_PREFIX = os.path.join(ROOT_DIR, 'neat-checkpoint-')
-PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, 'neat-checkpoint-0')
+PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, 'neat-checkpoint-10')
 CONFIG_FILE = os.path.join(ROOT_DIR, 'config-prescriptor')
 TMP_PRED_FILE_NAME = os.path.join(ROOT_DIR, 'tmp_predictions_for_prescriptions', 'preds.csv')
 TMP_PRESCRIPTION_FILE = os.path.join(ROOT_DIR, 'tmp_prescription.csv')
@@ -41,7 +39,7 @@ TMP_PRESCRIPTION_FILE = os.path.join(ROOT_DIR, 'tmp_prescription.csv')
 class Neat(BasePrescriptor):
     def __init__(self, seed=base.SEED, eval_start_date=EVAL_START_DATE, eval_end_date=EVAL_END_DATE,
                  nb_eval_countries=NB_EVAL_COUNTRIES, nb_lookback_days=NB_LOOKBACK_DAYS,
-                 config_file=CONFIG_FILE, prescriptors_file=PRESCRIPTORS_FILE, verbose=True):
+                 config_file=CONFIG_FILE, prescriptors_file=PRESCRIPTORS_FILE, df=None, verbose=True):
 
         super().__init__(seed=seed)
         self.eval_start_date = pd.to_datetime(eval_start_date, format='%Y-%m-%d')
@@ -50,13 +48,15 @@ class Neat(BasePrescriptor):
         self.nb_lookback_days = nb_lookback_days
         self.config_file = config_file
         self.prescriptors_file = prescriptors_file
+        self.df = df
         self.verbose = verbose
 
-    def fit(self, df):
-        self.df = df
+    def fit(self, df=None):
+        if df is not None:
+            self.df = df
         # As a heuristic, use the top NB_EVAL_COUNTRIES w.r.t. ConfirmedCases
         # so far as the geos for evaluation.
-        eval_geos = list(df.groupby('GeoID').max()['ConfirmedCases'].sort_values(
+        eval_geos = list(self.df.groupby('GeoID').max()['ConfirmedCases'].sort_values(
                          ascending=False).head(self.nb_eval_countries).index)
         if self.verbose:
             print("Nets will be evaluated on the following geos:", eval_geos)
@@ -65,12 +65,12 @@ class Neat(BasePrescriptor):
         past_cases = {}
         past_ips = {}
         for geo in eval_geos:
-            geo_df = df[df['GeoID'] == geo]
+            geo_df = self.df[self.df['GeoID'] == geo]
             past_cases[geo] = np.maximum(0, np.array(geo_df[CASES_COL]))
-            past_ips[geo] = np.array(geo_df[IP_COLS])
+            past_ips[geo] = np.array(geo_df[NPI_COLUMNS])
 
         # Gather values for scaling network output
-        ip_max_values_arr = np.array([IP_MAX_VALUES[ip] for ip in IP_COLS])
+        ip_max_values_arr = np.array([NPI_MAX_VALUES[ip] for ip in NPI_COLUMNS])
 
         # Load configuration.
         config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
@@ -97,13 +97,13 @@ class Neat(BasePrescriptor):
         def eval_genomes(genomes, config):
             # Every generation sample a different set of costs per geo,
             # so that over time solutions become robust to different costs.
-            cost_df = base.generate_costs(df, mode='random')
+            cost_df = base.generate_costs(self.df, mode='random')
             cost_df = base.add_geo_id(cost_df)
 
             geo_costs = {}
             for geo in eval_geos:
                 costs = cost_df[cost_df['GeoID'] == geo]
-                cost_arr = np.array(costs[IP_COLS])[0]
+                cost_arr = np.array(costs[NPI_COLUMNS])[0]
                 geo_costs[geo] = cost_arr
             # Evaluate each individual
             for genome_id, genome in genomes:
@@ -111,7 +111,7 @@ class Neat(BasePrescriptor):
                 net = neat.nn.FeedForwardNetwork.create(genome, config)
                 # Set up dictionary to keep track of prescription
                 df_dict = {'CountryName': [], 'RegionName': [], 'Date': []}
-                for ip_col in IP_COLS:
+                for ip_col in NPI_COLUMNS:
                     df_dict[ip_col] = []
                 # Set initial data
                 eval_past_cases = deepcopy(past_cases)
@@ -141,7 +141,7 @@ class Neat(BasePrescriptor):
                         df_dict['CountryName'].append(country_name)
                         df_dict['RegionName'].append(region_name)
                         df_dict['Date'].append(date_str)
-                        for ip_col, prescribed_ip in zip(IP_COLS, prescribed_ips):
+                        for ip_col, prescribed_ip in zip(NPI_COLUMNS, prescribed_ips):
                             df_dict[ip_col].append(prescribed_ip)
                         # Update stringency. This calculation could include division by
                         # the number of IPs and/or number of geos, but that would have
@@ -160,7 +160,7 @@ class Neat(BasePrescriptor):
                         geo_pres = new_pres_df[new_pres_df['GeoID'] == geo]
                         geo_pred = new_pred_df[new_pred_df['GeoID'] == geo]
                         # Append array of prescriptions
-                        pres_arr = np.array([geo_pres[ip_col].values[0] for ip_col in IP_COLS]).reshape(1,-1)
+                        pres_arr = np.array([geo_pres[ip_col].values[0] for ip_col in NPI_COLUMNS]).reshape(1,-1)
                         eval_past_ips[geo] = np.concatenate([eval_past_ips[geo], pres_arr])
                         # Append predicted cases
                         eval_past_cases[geo] = np.append(eval_past_cases[geo],
@@ -213,7 +213,7 @@ class Neat(BasePrescriptor):
         past_ips = {}
         for geo in geos:
             geo_df = prior_ips_df[prior_ips_df['GeoID'] == geo]
-            past_ips[geo] = np.array(geo_df[IP_COLS])
+            past_ips[geo] = np.array(geo_df[NPI_COLUMNS])
 
         # Fill in any missing case data before start_date
         # using predictor given past_ips_df.
@@ -244,7 +244,7 @@ class Neat(BasePrescriptor):
             print("No missing data.")
 
         # Gather values for scaling network output
-        ip_max_values_arr = np.array([IP_MAX_VALUES[ip] for ip in IP_COLS])
+        ip_max_values_arr = np.array([NPI_MAX_VALUES[ip] for ip in NPI_COLUMNS])
 
         # Load prescriptors
         checkpoint = neat.Checkpointer.restore_checkpoint(self.prescriptors_file)
@@ -257,7 +257,7 @@ class Neat(BasePrescriptor):
         geo_costs = {}
         for geo in geos:
             costs = cost_df[cost_df['GeoID'] == geo]
-            cost_arr = np.array(costs[IP_COLS])[0]
+            cost_arr = np.array(costs[NPI_COLUMNS])[0]
             geo_costs[geo] = cost_arr
 
         # Generate prescriptions
@@ -271,7 +271,7 @@ class Neat(BasePrescriptor):
 
             # Set up dictionary for keeping track of prescription
             df_dict = {'CountryName': [], 'RegionName': [], 'Date': []}
-            for ip_col in sorted(IP_MAX_VALUES.keys()):
+            for ip_col in sorted(NPI_MAX_VALUES.keys()):
                 df_dict[ip_col] = []
 
             # Set initial data
@@ -306,7 +306,7 @@ class Neat(BasePrescriptor):
                     df_dict['CountryName'].append(country_name)
                     df_dict['RegionName'].append(region_name)
                     df_dict['Date'].append(date_str)
-                    for ip_col, prescribed_ip in zip(IP_COLS, prescribed_ips):
+                    for ip_col, prescribed_ip in zip(NPI_COLUMNS, prescribed_ips):
                         df_dict[ip_col].append(prescribed_ip)
 
                 # Create dataframe from prescriptions
@@ -324,7 +324,7 @@ class Neat(BasePrescriptor):
                     geo_pres = new_pres_df[new_pres_df['GeoID'] == geo]
                     geo_pred = new_pred_df[new_pred_df['GeoID'] == geo]
                     # Append array of prescriptions
-                    pres_arr = np.array([geo_pres[ip_col].values[0] for ip_col in IP_COLS]).reshape(1,-1)
+                    pres_arr = np.array([geo_pres[ip_col].values[0] for ip_col in NPI_COLUMNS]).reshape(1,-1)
                     eval_past_ips[geo] = np.concatenate([eval_past_ips[geo], pres_arr])
 
                     # It is possible that the predictor does not return values for some regions.
