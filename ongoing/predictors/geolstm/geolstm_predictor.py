@@ -53,10 +53,8 @@ class geoLSTMPredictor(BasePredictor):
     """
 
     def __init__(self, path_to_model_weights=None, path_to_geos=None,
-                 embed_size=EMBED_SIZE, lstm_size=LSTM_SIZE, nb_lookback_days=NB_LOOKBACK_DAYS,
-                 nb_test_days=NB_TEST_DAYS, window_size=WINDOW_SIZE, npi_delay=NPI_DELAY,
-                 num_epochs=NUM_EPOCHS, n_test_months=1, end_month=11, n_test_days=None,
-                 start_month=None, update_data=False, seed=base.SEED):
+                 embed_size=EMBED_SIZE, lstm_size=LSTM_SIZE, nb_lookback_days=NB_LOOKBACK_DAYS, nb_test_days=NB_TEST_DAYS,
+                 window_size=WINDOW_SIZE, npi_delay=NPI_DELAY, num_epochs=NUM_EPOCHS, seed=base.SEED):
 
         super().__init__(seed=seed)
         self.embed_size = embed_size
@@ -80,13 +78,12 @@ class geoLSTMPredictor(BasePredictor):
                                                       nb_lookback_days=self.nb_lookback_days)
             self.predictor.load_weights(path_to_model_weights)
 
-        self.choose_train_test_split(n_test_months=n_test_months, end_month=end_month,
-                                     n_test_days=n_test_days, start_month=start_month,
-                                     window_size=self.window_size, update_data=update_data)
-
         self.country_samples = None  # will be set when fit() or predict() are called
 
     def predict(self, data=None):
+        if self.train_df is None:
+            raise Exception("train_df must be defined before calling predict()")
+
         if data is None:
             data = self.test_df
 
@@ -144,6 +141,7 @@ class geoLSTMPredictor(BasePredictor):
             country = data[data.GeoID == g].iloc[0].CountryName
             region = data[data.GeoID == g].iloc[0].RegionName
             for i, (ptot_cases, pnew_cases, ptot_deaths, pnew_deaths) in enumerate(zip(pred_total_cases, pred_new_cases, pred_total_deaths, pred_new_deaths)):
+                forecast["GeoID"].append(g)
                 forecast["CountryName"].append(country)
                 forecast["RegionName"].append(region)
                 current_date = geo_start_date + pd.offsets.Day(i)
@@ -262,6 +260,9 @@ class geoLSTMPredictor(BasePredictor):
         return pred_output
 
     def fit(self):
+        if self.train_df is None:
+            raise Exception("train_df must be defined bfr calling predict()")
+
         self.country_samples = self._create_country_samples(self.train_df,
                                                             list(self.train_df.GeoID.unique()),
                                                             self.nb_lookback_days,
@@ -373,64 +374,6 @@ class geoLSTMPredictor(BasePredictor):
                                      verbose=verbose)
         return history
 
-    # Functions for computing test metrics
-    def _lstm_roll_out_predictions(self, model, initial_context_input, initial_action_input, country_id, future_action_sequence):
-        nb_test_days = future_action_sequence.shape[0]
-        pred_output = np.zeros((nb_test_days, 2))
-        context_input = np.expand_dims(np.copy(initial_context_input), axis=0)
-        action_input = np.expand_dims(np.copy(initial_action_input), axis=0)
-        country_input = np.expand_dims(np.copy(country_id), axis=0)
-        for d in range(nb_test_days):
-            action_input[:, :-1] = action_input[:, 1:]
-            action_input[:, -1] = future_action_sequence[d]
-            pred = model.predict([context_input, action_input, country_input])
-            pred_output[d] = pred[-1]
-            context_input[:, :-1] = context_input[:, 1:]
-            context_input[:, -1] = pred[-1]
-        return pred_output
-
-    def _lstm_get_test_rollouts(self, model, df, top_geos, country_samples):
-        country_indep = {}
-        country_preds = {}
-        country_cases = {}
-        for g in top_geos:
-            X_test_context = country_samples[g]['X_test_context']
-            X_test_action = country_samples[g]['X_test_action']
-            X_test_country = country_samples[g]['X_test_country']
-            country_indep[g] = model.predict([X_test_context, X_test_action, X_test_country])
-
-            initial_context_input = country_samples[g]['X_test_context'][0]
-            initial_action_input = country_samples[g]['X_test_action'][0]
-            country_id = country_samples[g]['X_test_country'][0]
-            y_test = country_samples[g]['y_test']
-
-            nb_test_days = y_test.shape[0]
-            nb_actions = initial_action_input.shape[-1]
-
-            future_action_sequence = np.zeros((nb_test_days, nb_actions))
-            future_action_sequence[:nb_test_days] = country_samples[g]['X_test_action'][:, -1, :]
-            current_action = country_samples[g]['X_test_action'][:, -1, :][-1]
-            future_action_sequence[14:] = current_action
-            preds = self._lstm_roll_out_predictions(model,
-                                                    initial_context_input,
-                                                    initial_action_input,
-                                                    country_id,
-                                                    future_action_sequence)
-            country_preds[g] = preds
-
-            prev_confirmed_cases = np.array(
-                df[df.GeoID == g].ConfirmedCases)[:-nb_test_days]
-            prev_new_cases = np.array(
-                df[df.GeoID == g].NewCases)[:-nb_test_days]
-            initial_total_cases = prev_confirmed_cases[-1]
-            pop_size = np.array(df[df.GeoID == g].Population)[0]
-
-            pred_new_cases = base.convert_ratios_to_total_cases(
-                preds, self.window_size, prev_new_cases, initial_total_cases, pop_size)
-            country_cases[g] = pred_new_cases
-
-        return country_indep, country_preds, country_cases
-
     def save_model(self, path_to_weights, path_to_country_list):
         self.predictor.save_weights(path_to_weights)
         with open(path_to_country_list, 'w') as f:
@@ -441,3 +384,4 @@ if __name__ == '__main__':
     # Run all test cases
     model = geoLSTMPredictor()
     model.evaluate()
+    model.save_model('./ongoing/predictors/geolstm/models/model.h5', './ongoing/predictors/geolstm/models/countries.txt')

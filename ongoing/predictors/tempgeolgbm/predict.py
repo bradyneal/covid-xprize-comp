@@ -9,7 +9,7 @@ import pickle
 from tempgeolgbm_predictor import tempGeoLGBMPredictor
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_FILE = os.path.join(ROOT_DIR, "models", "trained_model_weights.h5")
+MODEL_FILE = os.path.join(ROOT_DIR, "models", "model.pkl")
 DATA_DIR = os.path.join(ROOT_DIR, os.pardir, os.pardir, 'data')
 DATA_FILE = os.path.join(DATA_DIR, "OxCGRT_latest.csv")
 TEMPERATURE_DATA_FILE = os.path.join(DATA_DIR, "temperature_data.csv")
@@ -54,12 +54,12 @@ def predict(start_date: str,
                                 npis_df["CountryName"],
                                 npis_df["CountryName"] + ' / ' + npis_df["RegionName"])
 
-    # Discard countries that will not be evaluated
-    country_df = pd.read_csv(COUNTRY_LIST,
-                             encoding="ISO-8859-1",
-                             dtype={"RegionName": str},
-                             error_bad_lines=False)
-    npis_df = npis_df.merge(country_df, on=['RegionName','CountryName'], how='right', suffixes=('', '_y'))
+    # # Discard countries that will not be evaluated
+    # country_df = pd.read_csv(COUNTRY_LIST,
+    #                          encoding="ISO-8859-1",
+    #                          dtype={"RegionName": str},
+    #                          error_bad_lines=False)
+    # npis_df = npis_df.merge(country_df, on=['RegionName','CountryName'], how='right', suffixes=('', '_y'))
 
     preds_df = predictor.predict(npis_df, start_date=start_date_dt, end_date=end_date_dt)
     # Create the output path

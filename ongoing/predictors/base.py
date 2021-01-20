@@ -6,13 +6,13 @@ from datetime import datetime, date, timedelta
 
 SEED = 0
 TEST_CONFIGS = [
-    ('Nov', {'end_month': 11, 'n_test_months': 1}),
-    ('Oct-Nov', {'end_month': 11, 'n_test_months': 2}),
-    ('Sep-Nov', {'end_month': 11, 'n_test_months': 3}),
-    ('Jan', {'start_month': 1, 'end_month': 1}),
-    ('Feb', {'start_month': 2, 'end_month': 2}),
-    ('Jan-Feb', {'start_month': 1, 'end_month': 2}),
-    ('180-day', {'end_month': 11, 'n_test_days': 180}),
+    # ('Nov', {'end_month': 11, 'n_test_months': 1}),
+    # ('Oct-Nov', {'end_month': 11, 'n_test_months': 2}),
+    # ('Sep-Nov', {'end_month': 11, 'n_test_months': 3}),
+    # ('Jan', {'start_month': 1, 'end_month': 1}),
+    # ('Feb', {'start_month': 2, 'end_month': 2}),
+    # ('Jan-Feb', {'start_month': 1, 'end_month': 2}),
+    # ('180-day', {'end_month': 11, 'n_test_days': 180}),
     ('last month', {'start_date': pd.to_datetime('2020-11-14', format='%Y-%m-%d'), 'end_date': pd.to_datetime('2020-12-14', format='%Y-%m-%d')})
 ]
 
@@ -24,6 +24,7 @@ ADDITIONAL_CONTEXT_FILE = os.path.join(OUR_FOLDER, DATA_FOLDER, "Additional_Cont
 ADDITIONAL_US_STATES_CONTEXT = os.path.join(OUR_FOLDER, DATA_FOLDER, "US_states_populations.csv")
 ADDITIONAL_UK_CONTEXT = os.path.join(OUR_FOLDER, DATA_FOLDER, "uk_populations.csv")
 US_PREFIX = "United States / "
+COUNTRY_LIST = os.path.join(OUR_FOLDER, DATA_FOLDER, 'countries_regions.txt')
 
 NPI_COLUMNS = ['C1_School closing',
                'C2_Workplace closing',
@@ -48,7 +49,7 @@ CONTEXT_COLUMNS = ['CountryName',
 
 def load_train_test(start_date=None, end_date=None, n_test_months=1, end_month=11, n_test_days=None,
                     start_month=None, window_size=7, dropifnocases=True,
-                    dropifnodeaths=False, update_data=False):
+                    dropifnodeaths=False, update_data=True):
     """
     Loads the data and splits it into train and test sets
 
@@ -144,8 +145,15 @@ def load_train_test(start_date=None, end_date=None, n_test_months=1, end_month=1
             test_df = df[(start_test <= df['Date']) & (df['Date'] < end_test)]
             train_df = df[df['Date'] < start_test]
     else:
-        test_df = df[(start_date <= df['Date']) & (df['Date'] <= end_date)]
+        test_df = df[(start_date <= df['Date']) & (df['Date'] <= end_date)].copy()
         train_df = df[df['Date'] < start_date]
+
+    # Discard countries that will not be evaluated
+    # country_df = pd.read_csv(COUNTRY_LIST,
+    #                          encoding="ISO-8859-1",
+    #                          dtype={"RegionName": str},
+    #                          error_bad_lines=False)
+    # test_df = test_df.merge(country_df, on=['RegionName','CountryName'], how='right', suffixes=('', '_y'))
 
     return train_df, test_df
 
@@ -312,7 +320,7 @@ class BasePredictor(object, metaclass=BasePredictorMeta):
                                 n_test_months=1, end_month=11,
                                 n_test_days=None, start_month=None,
                                 window_size=7, dropifnocases=True,
-                                dropifnodeaths=False, update_data=False):
+                                dropifnodeaths=False, update_data=True):
         self.train_df, self.test_df = \
             load_train_test(start_date=start_date, end_date=end_date,
                             n_test_months=n_test_months, end_month=end_month,
@@ -331,11 +339,11 @@ class BasePredictor(object, metaclass=BasePredictorMeta):
     def predict(self, data):
         pass
 
-    def evaluate(self):
+    def evaluate(self, report_train=False):
         results_cases, results_deaths = {}, {}
         for test_name, test_config in TEST_CONFIGS:
             print('Running test:', test_name)
-            self.choose_train_test_split(**test_config, update_data=False)
+            self.choose_train_test_split(**test_config, update_data=True)
 
             start_date = pd.to_datetime(self.train_df.Date.min(), format='%Y-%m-%d')
             end_date = pd.to_datetime(self.train_df.Date.max(), format='%Y-%m-%d')
@@ -345,35 +353,30 @@ class BasePredictor(object, metaclass=BasePredictorMeta):
             start_date = pd.to_datetime(self.test_df.Date.min(), format='%Y-%m-%d')
             end_date = pd.to_datetime(self.test_df.Date.max(), format='%Y-%m-%d')
             print('Testing on data from {} up to {}'.format(start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")))
-            train_preds = self.predict(self.train_df)
-            test_preds = self.predict(self.test_df)
 
-            # Smoothing evaluation metrics
-            # New Cases
-            train_preds['PredictedDailyNewCases7DMA'] = self.smoothing(eval_metric='PredictedDailyNewCases',
-                                                                       dataset=train_preds)
+            if report_train:
+                train_preds = self.predict(self.train_df)
+                train_preds['PredictedDailyNewCases7DMA'] = self.smoothing(eval_metric='PredictedDailyNewCases',
+                                                                           dataset=train_preds)
+                train_mae_cases = np.abs(train_preds['PredictedDailyNewCases7DMA'] - self.train_df['SmoothNewCases']).mean()
+                results_cases[test_name + ' Train MAE'] = train_mae_cases
+                if 'PredictedDailyNewDeaths' in train_preds:
+                    train_preds['PredictedDailyNewDeaths7DMA'] = self.smoothing(eval_metric='PredictedDailyNewDeaths',
+                                                                                dataset=train_preds)
+
+            test_preds = self.predict(self.test_df)
             test_preds['PredictedDailyNewCases7DMA'] = self.smoothing(eval_metric='PredictedDailyNewCases',
                                                                       dataset=test_preds)
-
-            # New Deaths
-            train_preds['PredictedDailyNewDeaths7DMA'] = self.smoothing(eval_metric='PredictedDailyNewDeaths',
-                                                                        dataset=train_preds)
-            test_preds['PredictedDailyNewDeaths7DMA'] = self.smoothing(eval_metric='PredictedDailyNewDeaths',
-                                                                       dataset=test_preds)
+            test_mae_cases = np.abs(test_preds['PredictedDailyNewCases7DMA'] - self.test_df['SmoothNewCases']).mean()
+            results_cases[test_name + ' Test MAE'] = test_mae_cases
+            if 'PredictedDailyNewDeaths' in test_preds:
+                test_preds['PredictedDailyNewDeaths7DMA'] = self.smoothing(eval_metric='PredictedDailyNewDeaths',
+                                                                           dataset=test_preds)
+                test_mae_deaths = np.abs(test_preds['PredictedDailyNewDeaths7DMA'] - self.test_df['SmoothNewDeaths']).mean()
+                results_deaths[test_name + ' Test MAE'] = test_mae_deaths
 
             # TODO: Add new evaluation metrics to smooth
             # e.g proportion population under quarantine, ICU admissions, hospital admissions
-
-            train_mae_cases = np.abs(train_preds['PredictedDailyNewCases7DMA'] - self.train_df['SmoothNewCases']).mean()
-            test_mae_cases = np.abs(test_preds['PredictedDailyNewCases7DMA'] - self.test_df['SmoothNewCases']).mean()
-            results_cases[test_name + ' Train MAE'] = train_mae_cases
-            results_cases[test_name + ' Test MAE'] = test_mae_cases
-
-            if 'PredictedDailyNewDeaths' in test_preds:
-                train_mae_deaths = np.abs(train_preds['PredictedDailyNewDeaths7DMA'] - self.train_df['SmoothNewDeaths']).mean()
-                test_mae_deaths = np.abs(test_preds['PredictedDailyNewDeaths7DMA'] - self.test_df['SmoothNewDeaths']).mean()
-                results_deaths[test_name + ' Train MAE'] = train_mae_deaths
-                results_deaths[test_name + ' Test MAE'] = test_mae_deaths
 
         print()
         print('Prediction of number of cases:')
