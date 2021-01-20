@@ -23,12 +23,12 @@ def prescribe(start_date_str: str,
 
     # Load the IP weights, so that we can use them
     # greedily for each geo.
-    weights_df = pd.read_csv(path_to_cost_file)
-    weights_df = base.add_geo_id(weights_df)
+    cost_df = pd.read_csv(path_to_cost_file)
+    cost_df = base.add_geo_id(cost_df)
 
     # instantiate the prescriptor and generate the prescriptions
     prescriptor = BlindGreedy()
-    prescription_df = prescriptor.prescribe(start_date_str, end_date_str, npi_df, weights_df)
+    prescription_df = prescriptor.prescribe(start_date_str, end_date_str, npi_df, cost_df)
 
     # Create the directory for writing the output file, if necessary.
     os.makedirs(os.path.dirname(output_file_path), exist_ok=True)

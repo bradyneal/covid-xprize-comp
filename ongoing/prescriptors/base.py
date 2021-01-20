@@ -276,13 +276,13 @@ def generate_costs(df, mode='random'):
 
     return df
 
-def weight_prescriptions_by_cost(presc_df, cost_df):
+def weight_prescriptions_by_cost(pres_df, cost_df):
     """
     Weight prescriptions by their costs.
     """
-    weighted_df = presc_df.merge(cost_df, how='outer', on=['CountryName', 'RegionName'], suffixes=('_presc', '_cost'))
+    weighted_df = pres_df.merge(cost_df, how='outer', on=['CountryName', 'RegionName'], suffixes=('_pres', '_cost'))
     for npi_col in NPI_COLUMNS:
-        weighted_df[npi_col] = weighted_df[npi_col + '_presc'] * weighted_df[npi_col + '_cost']
+        weighted_df[npi_col] = weighted_df[npi_col + '_pres'] * weighted_df[npi_col + '_cost']
     return weighted_df
 
 class BasePrescriptorMeta(ABCMeta):
@@ -321,7 +321,7 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
     Abstract class for prescriptors. Currently provides evaluation for classes that inherit from this class.
 
     Requires that subclasses implement 2 methods:
-        fit(data: pd.DataFrame) - train the model using the standard predictor and some historical real data
+        fit(hist_df: pd.DataFrame) - train the model using the standard predictor and some historical real data
         prescribe(start_date_str: str,
                   end_date_str: str,
                   prior_ips_df: pd.DataFrame
@@ -340,7 +340,7 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
         self.predictor = XPrizePredictor(PREDICTOR_PATH, OXFORD_FILEPATH)
 
     @abstractmethod
-    def fit(self, data):
+    def fit(self, hist_df):
         pass
 
     @abstractmethod
@@ -369,27 +369,27 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
             if verbose:
                 print('...generating prescriptions')
             start_time = time.time()
-            presc_df = self.prescribe(start_date_str=start_date,
-                                      end_date_str=end_date,
-                                      prior_ips_df=test_df,
-                                      cost_df=cost_df)
+            pres_df = self.prescribe(start_date_str=start_date,
+                                     end_date_str=end_date,
+                                     prior_ips_df=test_df,
+                                     cost_df=cost_df)
             if verbose:
                 print('...prescriptions took {} seconds to be generated'.format(round(time.time() - start_time, 2)))
 
             # check if all required columns are in the returned dataframe
-            assert 'Date' in presc_df.columns
-            assert 'CountryName' in presc_df.columns
-            assert 'RegionName' in presc_df.columns
-            assert 'PrescriptionIndex' in presc_df.columns
+            assert 'Date' in pres_df.columns
+            assert 'CountryName' in pres_df.columns
+            assert 'RegionName' in pres_df.columns
+            assert 'PrescriptionIndex' in pres_df.columns
             for npi_col in NPI_COLUMNS:
-                assert npi_col in presc_df.columns
+                assert npi_col in pres_df.columns
 
             # generate predictions with the given prescriptions
             if verbose:
                 print('...generating predictions for all prescriptions')
             pred_dfs = []
-            for idx in presc_df['PrescriptionIndex'].unique():
-                idx_df = presc_df[presc_df['PrescriptionIndex'] == idx]
+            for idx in pres_df['PrescriptionIndex'].unique():
+                idx_df = pres_df[pres_df['PrescriptionIndex'] == idx]
                 idx_df = idx_df.drop(columns='PrescriptionIndex') # predictor doesn't need this
                 last_known_date = self.predictor.df['Date'].max()
                 if last_known_date < pd.to_datetime(idx_df['Date'].min()) - np.timedelta64(1, 'D'):
@@ -413,18 +413,18 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
                       cost_df['RegionName'].isin(agg_pred_df['RegionName'])]
 
             # apply weights to prescriptions
-            presc_df = weight_prescriptions_by_cost(presc_df, cost_df)
+            pres_df = weight_prescriptions_by_cost(pres_df, cost_df)
 
             # aggregate stringency across npis
-            presc_df['Stringency'] = presc_df[NPI_COLUMNS].sum(axis=1)
+            pres_df['Stringency'] = pres_df[NPI_COLUMNS].sum(axis=1)
 
             # aggregate stringency by prescription index and geo
-            agg_presc_df = presc_df.groupby(['CountryName',
-                                             'RegionName',
-                                             'PrescriptionIndex'], dropna=False).mean().reset_index()
+            agg_pres_df = pres_df.groupby(['CountryName',
+                                           'RegionName',
+                                           'PrescriptionIndex'], dropna=False).mean().reset_index()
 
             # combine stringency and cases into a single df
-            df = agg_presc_df.merge(agg_pred_df, how='outer', on=['CountryName',
+            df = agg_pres_df.merge(agg_pred_df, how='outer', on=['CountryName',
                                                                   'RegionName',
                                                                   'PrescriptionIndex'])
 

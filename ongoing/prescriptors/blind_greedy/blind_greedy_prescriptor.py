@@ -11,7 +11,7 @@ class BlindGreedy(BasePrescriptor):
     def __init__(self, seed=base.SEED):
         super().__init__(seed=seed)
 
-    def fit(self, data):
+    def fit(self, hist_df):
         # there's nothing to be learned in this model, so just return
         return
 
