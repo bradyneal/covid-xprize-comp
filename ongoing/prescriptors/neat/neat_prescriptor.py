@@ -9,6 +9,12 @@ from tensorflow.python.framework.ops import default_session
 from ongoing.prescriptors.base import BasePrescriptor, PRED_CASES_COL, CASES_COL, NPI_COLUMNS, NPI_MAX_VALUES
 import ongoing.prescriptors.base as base
 
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+CHECKPOINTS_PREFIX = os.path.join(ROOT_DIR, 'neat-checkpoint-')
+CONFIG_FILE = os.path.join(ROOT_DIR, 'config-prescriptor')
+TMP_PRED_FILE_NAME = os.path.join(ROOT_DIR, 'tmp_predictions_for_prescriptions', 'preds.csv')
+TMP_PRESCRIPTION_FILE = os.path.join(ROOT_DIR, 'tmp_prescription.csv')
+
 # Number of days the prescriptors will look at in the past.
 # Larger values here may make convergence slower, but give
 # prescriptors more context. The number of inputs of each neat
@@ -22,41 +28,58 @@ NB_LOOKBACK_DAYS = 14
 # input variables, but could potentially miss out on useful info.
 NB_EVAL_COUNTRIES = 10
 
+# Number of prescriptions to make per country.
+# This can be set based on how many solutions in PRESCRIPTORS_FILE
+# we want to run and on time constraints.
+NB_PRESCRIPTIONS = 10
+
+# Number of days to fix prescribed IPs before changing them.
+# This could be a useful toggle for decision makers, who may not
+# want to change policy every day. Increasing this value also
+# can speed up the prescriptor, at the cost of potentially less
+# interesting prescriptions.
+ACTION_DURATION = 15
+
 # Range of days the prescriptors will be evaluated on.
 # To save time during training, this range may be significantly
 # shorter than the maximum days a prescriptor can be evaluated on.
 EVAL_START_DATE = '2020-08-01'
 EVAL_END_DATE = '2020-08-02'
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-CHECKPOINTS_PREFIX = os.path.join(ROOT_DIR, 'neat-checkpoint-')
-PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, 'neat-checkpoint-10')
-CONFIG_FILE = os.path.join(ROOT_DIR, 'config-prescriptor')
-TMP_PRED_FILE_NAME = os.path.join(ROOT_DIR, 'tmp_predictions_for_prescriptions', 'preds.csv')
-TMP_PRESCRIPTION_FILE = os.path.join(ROOT_DIR, 'tmp_prescription.csv')
+# Maximum number of generations to run (unlimited if None)
+NB_GENERATIONS = 30
 
+# Path to file containing neat prescriptors. Here we simply use a
+# recent checkpoint of the population from train_prescriptor.py,
+# but this is likely not the most complementary set of prescriptors.
+# Many approaches can be taken to generate/collect more diverse sets.
+# Note: this set can contain up to 10 prescriptors for evaluation.
+PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, 'neat-checkpoint-5')
 
 class Neat(BasePrescriptor):
     def __init__(self, seed=base.SEED, eval_start_date=EVAL_START_DATE, eval_end_date=EVAL_END_DATE,
-                 nb_eval_countries=NB_EVAL_COUNTRIES, nb_lookback_days=NB_LOOKBACK_DAYS,
-                 config_file=CONFIG_FILE, prescriptors_file=PRESCRIPTORS_FILE, df=None, verbose=True):
+                 nb_eval_countries=NB_EVAL_COUNTRIES, nb_lookback_days=NB_LOOKBACK_DAYS, nb_prescriptions=NB_PRESCRIPTIONS, nb_generations=NB_GENERATIONS,
+                 action_duration=ACTION_DURATION, config_file=CONFIG_FILE, prescriptors_file=PRESCRIPTORS_FILE, hist_df=None, verbose=True):
 
         super().__init__(seed=seed)
         self.eval_start_date = pd.to_datetime(eval_start_date, format='%Y-%m-%d')
         self.eval_end_date = pd.to_datetime(eval_end_date, format='%Y-%m-%d')
         self.nb_eval_countries = nb_eval_countries
         self.nb_lookback_days = nb_lookback_days
+        self.nb_prescriptions = nb_prescriptions
+        self.nb_generations = nb_generations
+        self.action_duration = action_duration
         self.config_file = config_file
         self.prescriptors_file = prescriptors_file
-        self.df = df
+        self.hist_df = hist_df
         self.verbose = verbose
 
-    def fit(self, df=None):
-        if df is not None:
-            self.df = df
+    def fit(self, hist_df=None):
+        if hist_df is not None:
+            self.hist_df = hist_df
         # As a heuristic, use the top NB_EVAL_COUNTRIES w.r.t. ConfirmedCases
         # so far as the geos for evaluation.
-        eval_geos = list(self.df.groupby('GeoID').max()['ConfirmedCases'].sort_values(
+        eval_geos = list(self.hist_df.groupby('GeoID').max()['ConfirmedCases'].sort_values(
                          ascending=False).head(self.nb_eval_countries).index)
         if self.verbose:
             print("Nets will be evaluated on the following geos:", eval_geos)
@@ -65,7 +88,7 @@ class Neat(BasePrescriptor):
         past_cases = {}
         past_ips = {}
         for geo in eval_geos:
-            geo_df = self.df[self.df['GeoID'] == geo]
+            geo_df = self.hist_df[self.hist_df['GeoID'] == geo]
             past_cases[geo] = np.maximum(0, np.array(geo_df[CASES_COL]))
             past_ips[geo] = np.array(geo_df[NPI_COLUMNS])
 
@@ -97,7 +120,7 @@ class Neat(BasePrescriptor):
         def eval_genomes(genomes, config):
             # Every generation sample a different set of costs per geo,
             # so that over time solutions become robust to different costs.
-            cost_df = base.generate_costs(self.df, mode='random')
+            cost_df = base.generate_costs(self.hist_df, mode='random')
             cost_df = base.add_geo_id(cost_df)
 
             geo_costs = {}
@@ -185,7 +208,7 @@ class Neat(BasePrescriptor):
         # would have 0 fitness, this will run indefinitely and require manual stopping,
         # unless evolution finds the solution that uses 0 for all ips. A different
         # value can be placed in the config for automatic stopping at other thresholds.
-        winner = p.run(eval_genomes)
+        winner = p.run(eval_genomes, n=self.nb_generations)
 
         return
 
@@ -201,7 +224,7 @@ class Neat(BasePrescriptor):
         geos = prior_ips_df['GeoID'].unique()
 
         # Restrict it to dates before the start_date
-        df = self.df[self.df['Date'] <= start_date]
+        df = self.hist_df[self.hist_df['Date'] <= start_date]
 
         # Create past case data arrays for all geos
         past_cases = {}
@@ -248,7 +271,7 @@ class Neat(BasePrescriptor):
 
         # Load prescriptors
         checkpoint = neat.Checkpointer.restore_checkpoint(self.prescriptors_file)
-        prescriptors = checkpoint.population.values()
+        prescriptors = list(checkpoint.population.values())[:self.nb_prescriptions]
         config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                              neat.DefaultSpeciesSet, neat.DefaultStagnation,
                              self.config_file)
@@ -278,14 +301,13 @@ class Neat(BasePrescriptor):
             eval_past_cases = deepcopy(past_cases)
             eval_past_ips = deepcopy(past_ips)
 
-            # Generate prescriptions one day at a time, feeding resulting
+            # Generate prescriptions iteratively, feeding resulting
             # predictions from the predictor back into the prescriptor.
-            for date in pd.date_range(start_date, end_date):
-                date_str = date.strftime("%Y-%m-%d")
+            action_start_date = start_date
+            while action_start_date <= end_date:
 
                 # Get prescription for all regions
                 for geo in geos:
-
                     # Prepare input data. Here we use log to place cases
                     # on a reasonable scale; many other approaches are possible.
                     X_cases = np.log(eval_past_cases[geo][-self.nb_lookback_days:] + 1)
@@ -301,13 +323,19 @@ class Neat(BasePrescriptor):
                     # Map prescription to integer outputs
                     prescribed_ips = (prescribed_ips * ip_max_values_arr).round()
 
-                    # Add it to prescription dictionary
+                    # Add it to prescription dictionary for the full ACTION_DURATION
                     country_name, region_name = (geo.split(' / ') + [np.nan])[:2]
-                    df_dict['CountryName'].append(country_name)
-                    df_dict['RegionName'].append(region_name)
-                    df_dict['Date'].append(date_str)
-                    for ip_col, prescribed_ip in zip(NPI_COLUMNS, prescribed_ips):
-                        df_dict[ip_col].append(prescribed_ip)
+                    if region_name == 'nan':
+                        region_name = np.nan
+                    for date in pd.date_range(action_start_date, periods=self.action_duration):
+                        if date > end_date:
+                            break
+                        date_str = date.strftime("%Y-%m-%d")
+                        df_dict['CountryName'].append(country_name)
+                        df_dict['RegionName'].append(region_name)
+                        df_dict['Date'].append(date_str)
+                        for ip_col, prescribed_ip in zip(NPI_COLUMNS, prescribed_ips):
+                            df_dict[ip_col].append(prescribed_ip)
 
                 # Create dataframe from prescriptions
                 pres_df = pd.DataFrame(df_dict)
@@ -315,25 +343,32 @@ class Neat(BasePrescriptor):
                 # Make prediction given prescription for all countries
                 pred_df = self.get_predictions(start_date_str, date_str, pres_df)
 
-                # Update past data with new day of prescriptions and predictions
+                # Update past data with new days of prescriptions and predictions
                 pres_df = base.add_geo_id(pres_df)
                 pred_df = base.add_geo_id(pred_df)
-                new_pres_df = pres_df[pres_df['Date'] == date_str]
-                new_pred_df = pred_df[pred_df['Date'] == date_str]
-                for geo in geos:
-                    geo_pres = new_pres_df[new_pres_df['GeoID'] == geo]
-                    geo_pred = new_pred_df[new_pred_df['GeoID'] == geo]
-                    # Append array of prescriptions
-                    pres_arr = np.array([geo_pres[ip_col].values[0] for ip_col in NPI_COLUMNS]).reshape(1,-1)
-                    eval_past_ips[geo] = np.concatenate([eval_past_ips[geo], pres_arr])
+                for date in pd.date_range(action_start_date, periods=self.action_duration):
+                    if date > end_date:
+                        break
+                    date_str = date.strftime("%Y-%m-%d")
+                    new_pres_df = pres_df[pres_df['Date'] == date_str]
+                    new_pred_df = pred_df[pred_df['Date'] == date_str]
+                    for geo in geos:
+                        geo_pres = new_pres_df[new_pres_df['GeoID'] == geo]
+                        geo_pred = new_pred_df[new_pred_df['GeoID'] == geo]
+                        # Append array of prescriptions
+                        pres_arr = np.array([geo_pres[ip_col].values[0] for
+                                             ip_col in NPI_COLUMNS]).reshape(1,-1)
+                        eval_past_ips[geo] = np.concatenate([eval_past_ips[geo], pres_arr])
 
-                    # It is possible that the predictor does not return values for some regions.
-                    # To make sure we generate full prescriptions, this script continues anyway.
-                    # Geos that are ignored in this way by the predictor, will not be used in
-                    # quantitative evaluation. A list of such geos can be found in unused_geos.txt.
-                    if len(geo_pred) != 0:
-                        eval_past_cases[geo] = np.append(eval_past_cases[geo],
-                                                         geo_pred[PRED_CASES_COL].values[0])
+                        # It is possible that the predictor does not return values for some regions.
+                        # To make sure we generate full prescriptions, this script continues anyway.
+                        # This should not happen, but is included here for robustness.
+                        if len(geo_pred) != 0:
+                            eval_past_cases[geo] = np.append(eval_past_cases[geo],
+                                                             geo_pred[PRED_CASES_COL].values[0])
+
+                # Move on to next action date
+                action_start_date += pd.DateOffset(days=self.action_duration)
 
             # Add prescription df to list of all prescriptions for this submission
             pres_df['PrescriptionIndex'] = prescription_idx
@@ -345,14 +380,16 @@ class Neat(BasePrescriptor):
 
         return prescription_df
 
-    def get_predictions(self, start_date_str, end_date_str, prior_ips_df):
+    def get_predictions(self, start_date_str, end_date_str, pres_df):
         start_date = pd.to_datetime(start_date_str)
         last_known_date = self.predictor.df['Date'].max()
-        if last_known_date < pd.to_datetime(self.df['Date'].min()) - np.timedelta64(1, 'D'):
+        if last_known_date < pd.to_datetime(self.hist_df['Date'].min()) - np.timedelta64(1, 'D'):
             # append prior NPIs to the prescripted ones because the predictor will need them
-            ips_df = prior_ips_df.append(self.df[(self.df['Date'] > last_known_date) & (self.df['Date'] < start_date)].drop(columns='GeoID'))
+            prior_ips_df = self.hist_df[(self.hist_df['Date'] > last_known_date) & (self.hist_df['Date'] < start_date)]
+            prior_ips_df = prior_ips_df[pres_df.columns()]
+            ips_df = pres_df.append(prior_ips_df)
         else:
-            ips_df = prior_ips_df
+            ips_df = pres_df
 
         # write ips_df to file
         ips_df.to_csv(TMP_PRESCRIPTION_FILE)

@@ -7,7 +7,13 @@ from ongoing.prescriptors.neat.neat_prescriptor import Neat
 import ongoing.prescriptors.base as base
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, 'neat-checkpoint-10')
+
+# Path to file containing neat prescriptors. Here we simply use a
+# recent checkpoint of the population from train_prescriptor.py,
+# but this is likely not the most complementary set of prescriptors.
+# Many approaches can be taken to generate/collect more diverse sets.
+# Note: this set can contain up to 10 prescriptors for evaluation.
+PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, 'neat-checkpoint-5')
 
 def prescribe(start_date_str: str,
               end_date_str: str,
@@ -18,9 +24,9 @@ def prescribe(start_date_str: str,
     # Load historical IPs, just to extract the geos
     # we need to prescribe for.
     npi_df = pd.read_csv(path_to_prior_ips_file,
-                          parse_dates=['Date'],
-                          encoding="ISO-8859-1",
-                          error_bad_lines=True)
+                         parse_dates=['Date'],
+                         encoding="ISO-8859-1",
+                         error_bad_lines=True)
     npi_df = base.add_geo_id(npi_df)
 
     # Load historical data
@@ -28,12 +34,12 @@ def prescribe(start_date_str: str,
 
     # Load the IP weights, so that we can use them
     # greedily for each geo.
-    weights_df = pd.read_csv(path_to_cost_file)
-    weights_df = base.add_geo_id(weights_df)
+    cost_df = pd.read_csv(path_to_cost_file)
+    cost_df = base.add_geo_id(cost_df)
 
     # Load the trained prescriptor and generate the prescriptions
-    prescriptor = Neat(prescriptors_file=PRESCRIPTORS_FILE, df=hist_df)
-    prescription_df = prescriptor.prescribe(start_date_str, end_date_str, npi_df, weights_df)
+    prescriptor = Neat(prescriptors_file=PRESCRIPTORS_FILE, hist_df=hist_df)
+    prescription_df = prescriptor.prescribe(start_date_str, end_date_str, npi_df, cost_df)
 
     # Create the directory for writing the output file, if necessary.
     os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
