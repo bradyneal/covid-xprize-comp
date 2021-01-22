@@ -7,7 +7,7 @@ Bandit/RL Class
 usage:
 
 from bandit import CCTSB
-bandit = CCTSB(N=[4,3,3,4,5], K=5, alpha_p=0.5, nabla_p=0.5)
+bandit = CCTSB(N=[4,3,3,4,5], K=5, C=100, alpha_p=0.5, nabla_p=0.5)
 bandit.observe(context)
 actions = bandit.act()
 bandit.update(reward,cost)
@@ -20,6 +20,7 @@ class Agent(object):
     def __init__(self):
         self.N = None
         self.K = None
+        self.C = None
 
     def observe(self):
         raise NotImplementedError
@@ -32,7 +33,7 @@ class Agent(object):
             
 
 class CCTSB(Agent):
-    def __init__(self, N=None, K=None, alpha_p=None, nabla_p=None):
+    def __init__(self, N=None, K=None, C=None, alpha_p=None, nabla_p=None):
         
         # for example: 
         # four possible actions: school closure, diet, vaccine, travel control
@@ -41,13 +42,14 @@ class CCTSB(Agent):
         # needs a fix since there can be half values
         self.N = N # number of possible values in each action, e.g. [4,4,5,3]
         self.K = K # number of possible intervention actions, e.g. 4
+        self.C = C # dimension of the context, e.g. 100
         
         self.alpha = alpha_p
         self.nabla = nabla_p
         
-        self.B_i_k = [ n * [np.eye(N+1)] for n in self.N ]
-        self.z_i_k = [ n * [np.zeros((N+1,N+1))] for n in self.N ]
-        self.theta_i_k = [ n * [np.zeros((N+1,N+1))] for n in self.N ]
+        self.B_i_k = [ n * [np.eye(C)] for n in self.N ]
+        self.z_i_k = [ n * [np.zeros((C,C))] for n in self.N ]
+        self.theta_i_k = [ n * [np.zeros((C,C))] for n in self.N ]
         
         self.c_t = None
         self.i_t = None
