@@ -7,7 +7,7 @@ Bandit/RL Class
 usage:
 
 from bandit import CCTSB
-bandit = CCTSB(N=[4,3,3,4,5], K=5, alpha_p=0.5, lambda_p=0.5)
+bandit = CCTSB(N=[4,3,3,4,5], K=5, alpha_p=0.5, nabla_p=0.5)
 bandit.observe(context)
 actions = bandit.act()
 bandit.update(reward,cost)
@@ -32,17 +32,18 @@ class Agent(object):
             
 
 class CCTSB(Agent):
-    def __init__(self, N=None, K=None, alpha_p=None, lambda_p=None):
+    def __init__(self, N=None, K=None, alpha_p=None, nabla_p=None):
         
         # for example: 
         # four possible actions: school closure, diet, vaccine, travel control
         # they each have different levels of interventions: 0-3, 0-3, 0-4, and 0-2
         
+        # needs a fix since there can be half values
         self.N = N # number of possible values in each action, e.g. [4,4,5,3]
         self.K = K # number of possible intervention actions, e.g. 4
         
         self.alpha = alpha_p
-        self.lambda = lambda_p
+        self.nabla = nabla_p
         
         self.B_i_k = [ n * [np.eye(N+1)] for n in self.N ]
         self.z_i_k = [ n * [np.zeros((N+1,N+1))] for n in self.N ]
@@ -68,7 +69,7 @@ class CCTSB(Agent):
         r_star = r/s
         for k in range(self.K):
             i = self.i_t[k]
-            self.B_i_k[k][i] = self.lambda * self.B_i_k[k][i] + self.c_t.dot(self.c_t.T)
+            self.B_i_k[k][i] = self.nabla * self.B_i_k[k][i] + self.c_t.dot(self.c_t.T)
             self.z_i_k[k][i] += self.c * r_star
             self.theta_i_k[k][i] = np.inv(self.B_i_k[k][i]).dot(self.z_i_k[k][i])
             
