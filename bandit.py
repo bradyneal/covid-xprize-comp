@@ -46,9 +46,9 @@ class CCTSB(Agent):
         self.alpha = alpha_p
         self.lambda = lambda_p
         
-        self.B_i_k = [ n * [np.eye(C+1)] for n in self.N ]
-        self.z_i_k = [ n * [np.zeros((C+1,C+1))] for n in self.N ]
-        self.theta_i_k = [ n * [np.zeros((C+1,C+1))] for n in self.N ]
+        self.B_i_k = [ n * [np.eye(C)] for n in self.N ]
+        self.z_i_k = [ n * [np.zeros((C,C))] for n in self.N ]
+        self.theta_i_k = [ n * [np.zeros((C,C))] for n in self.N ]
         
         self.c_t = None
         self.i_t = None
