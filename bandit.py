@@ -51,6 +51,7 @@ class CCTSB(Agent):
         self.nabla = nabla_p
         self.w = w
         self.obj_func = obj_func
+        self.nabla = nabla_p
         
         self.B_i_k = [ n * [np.eye(C)] for n in self.N ]
         self.z_i_k = [ n * [np.zeros((C))] for n in self.N ]
@@ -75,13 +76,27 @@ class CCTSB(Agent):
         self.i_t = i_t
         return i_t
     
-    def update(self, r=None, s=None):
-        r_star = self.obj_func(r,s,self.w)
-        for k in range(self.K):
-            i = self.i_t[k]
-            self.B_i_k[k][i] = self.nabla * self.B_i_k[k][i] + self.c_t.dot(self.c_t.T)
-            self.z_i_k[k][i] += self.c_t * r_star
-            self.theta_i_k[k][i] = np.linalg.inv(self.B_i_k[k][i]).dot(self.z_i_k[k][i])
+    def update(self, r=None, s=None, w=None):
+        r_star = self.obj_func(r, s, w)
+        for day in range(self.update_range):
+            update_coefficient = self.update_coefficients[-(day+1)]
+            for k in range(self.K):
+                # print("Day : ", day)
+                # print("update history : ", self.update_history)
+                # print("update history specific : ", self.update_history[-(day+1)])
+                try: 
+                    i = self.update_history[-(day+1)][k] # at day 0, we want the most recent actions by the bandit (so -1)
+                except:
+                    # print('update history too short: ', len(self.update_history))
+                    continue
+                norm = np.linalg.norm(self.c_t, ord=1)
+                norm_c_t = self.c_t/norm
+                # print(norm, norm_c_t)
+                print(np.linalg.norm(self.B_i_k[k][i]))
+                self.B_i_k[k][i] = self.nabla * self.B_i_k[k][i] + norm_c_t.dot(norm_c_t.T)
+                print(np.linalg.norm(self.B_i_k[k][i]))
+                self.z_i_k[k][i] += norm_c_t * r_star * update_coefficient
+                self.theta_i_k[k][i] = np.linalg.inv(self.B_i_k[k][i]).dot(self.z_i_k[k][i])
             
         
             
