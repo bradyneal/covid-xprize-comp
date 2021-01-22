@@ -14,6 +14,7 @@ h5py==2.10.0
 # plotting
 plotly==4.11.0
 matplotlib==3.3.2
+seaborn==0.11.1
 
 # tests
 pytest==6.1.1
