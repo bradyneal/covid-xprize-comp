@@ -7,7 +7,7 @@ Bandit/RL Class
 usage:
 
 from bandit import CCTSB
-bandit = CCTSB(N=[4,3,3,4,5], K=5, C=100, alpha_p=0.5, lambda_p=0.5, obj_func=same)
+bandit = CCTSB(N=[4,3,3,4,5], K=5, C=100, alpha_p=0.5, lambda_p=0.5, obj_func=default_obj)
 bandit.observe(context)
 actions = bandit.act()
 bandit.update(reward,cost)
@@ -32,11 +32,11 @@ class Agent(object):
         raise NotImplementedError
             
 
-def same(x):
-    return x
+def default_obj(r,s):
+    return r/s
     
 class CCTSB(Agent):
-    def __init__(self, N=None, K=None, C=None, alpha_p=None, lambda_p=None, obj_func=same):
+    def __init__(self, N=None, K=None, C=None, alpha_p=None, lambda_p=None, obj_func=default_obj):
         
         # for example: 
         # four possible actions: school closure, diet, vaccine, travel control
@@ -71,7 +71,7 @@ class CCTSB(Agent):
         return i_t
     
     def update(self, r=None, s=None):
-        r_star = self.obj_func(r/s)
+        r_star = self.obj_func(r,s)
         for k in range(self.K):
             i = self.i_t[k]
             self.B_i_k[k][i] = self.lambda * self.B_i_k[k][i] + self.c_t.dot(self.c_t.T)
