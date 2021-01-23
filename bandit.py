@@ -48,8 +48,8 @@ class CCTSB(Agent):
         self.nabla = nabla_p
         
         self.B_i_k = [ n * [np.eye(C)] for n in self.N ]
-        self.z_i_k = [ n * [np.zeros((C,C))] for n in self.N ]
-        self.theta_i_k = [ n * [np.zeros((C,C))] for n in self.N ]
+        self.z_i_k = [ n * [np.zeros((C))] for n in self.N ]
+        self.theta_i_k = [ n * [np.zeros((C))] for n in self.N ]
         
         self.c_t = None
         self.i_t = None
@@ -61,9 +61,12 @@ class CCTSB(Agent):
         sample_theta = [ n * [0] for n in self.N ]
         i_t = {}
         for k in range(self.K):
+            
             for i in range(len(sample_theta[k])):
-                sample_theta[k][i] = np.random.multivariate_normal(self.theta_i_k[k][i], self.alpha**2 * np.inv(self.B_i_k[k][i]))
-            i_t[k] = np.argmax( self.c_t.T.dot(sample_theta[k]) ) 
+                sample_theta[k][i] = np.random.multivariate_normal(self.theta_i_k[k][i], self.alpha**2 * np.linalg.inv(self.B_i_k[k][i]))
+            
+            i_t[k] = np.argmax(self.c_t.T.dot(np.array(sample_theta[k]).T))
+        
         self.i_t = i_t
         return i_t
     
@@ -72,8 +75,8 @@ class CCTSB(Agent):
         for k in range(self.K):
             i = self.i_t[k]
             self.B_i_k[k][i] = self.nabla * self.B_i_k[k][i] + self.c_t.dot(self.c_t.T)
-            self.z_i_k[k][i] += self.c * r_star
-            self.theta_i_k[k][i] = np.inv(self.B_i_k[k][i]).dot(self.z_i_k[k][i])
+            self.z_i_k[k][i] += self.c_t * r_star
+            self.theta_i_k[k][i] = np.linalg.inv(self.B_i_k[k][i]).dot(self.z_i_k[k][i])
             
         
             
