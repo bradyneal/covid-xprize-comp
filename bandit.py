@@ -42,7 +42,7 @@ class CCTSB(Agent):
         # four possible actions: school closure, diet, vaccine, travel control
         # they each have different levels of interventions: 0-3, 0-3, 0-4, and 0-2
         
-        # needs a fix since there can be half values
+        # N needs a fix since there can be half values (to be verified)
         self.N = N # number of possible values in each action, e.g. [4,4,5,3]
         self.K = K # number of possible intervention actions, e.g. 4
         self.C = C # dimension of the context, e.g. 100

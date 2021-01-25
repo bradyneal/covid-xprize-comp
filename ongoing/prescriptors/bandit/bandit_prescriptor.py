@@ -81,73 +81,29 @@ class Bandit(BasePrescriptor):
 
         if hist_df is not None:
             self.hist_df = hist_df
-        # As a heuristic, use the top NB_EVAL_COUNTRIES w.r.t. ConfirmedCases
-        # so far as the geos for evaluation.
-        eval_geos = list(self.hist_df.groupby('GeoID').max()['ConfirmedCases'].sort_values(
-                         ascending=False).head(self.nb_eval_countries).index)
-        if self.verbose:
-            print("Bandit will be evaluated on the following geos:", eval_geos)
 
-        # Pull out historical data for all geos
-        past_cases = {}
-        past_ips = {}
-        for geo in eval_geos:
-            geo_df = self.hist_df[self.hist_df['GeoID'] == geo]
-            past_cases[geo] = np.maximum(0, np.array(geo_df[CASES_COL]))
-            past_ips[geo] = np.array(geo_df[NPI_COLUMNS])
+        eval_geos = self.choose_eval_geos()
 
-        # Gather values for scaling network output
-        ip_max_values_arr = np.array([NPI_MAX_VALUES[ip] for ip in NPI_COLUMNS])
+        past_cases, past_ips, \
+            eval_past_cases, eval_past_ips = self.prep_past_ips_cases(eval_geos)
 
-        # Sample a set of costs for all geos
-        cost_df = base.generate_costs(self.hist_df, mode='random')
-        cost_df = base.add_geo_id(cost_df)
+        geo_costs = self.prep_geo_costs(eval_geos)
 
-        geo_costs = {}
-        for geo in eval_geos:
-            costs = cost_df[cost_df['GeoID'] == geo]
-            cost_arr = np.array(costs[NPI_COLUMNS])[0]
-            geo_costs[geo] = cost_arr
-
-        # # make a bandit for each geo
-        # for geo in eval_geos:
-        #     self.bandits[geo] = CCTSB(
-        #         N=[i + 1 for i in NPI_MAX_VALUES.values()], # possible values for each action,
-        #         K=len(NPI_MAX_VALUES), # possible interventions,
-        #         C=len(NPI_MAX_VALUES), # dimension of the context,
-        #         alpha_p=0.5, #default
-        #         nabla_p=0.5 #default
-        #     )
-
-        # Set up dictionary to keep track of prescription
-        df_dict = {'CountryName': [], 'RegionName': [], 'Date': []}
-        for ip_col in NPI_COLUMNS:
-            df_dict[ip_col] = []
-
-        # Set initial data
-        eval_past_cases = deepcopy(past_cases)
-        eval_past_ips = deepcopy(past_ips)
+        df_dict = self.prep_prescription_dict()
 
         # Compute prescribed stringency incrementally
         stringency = {date : {geo: 0. for geo in eval_geos} 
             for date in pd.date_range(self.eval_start_date, self.eval_end_date)}
 
-        # initialize bandit
-        # get context size
-        eval_past_ips_len = len(next(iter(eval_past_ips.values()))[-1])
-        eval_past_cases_len = len(next(iter(eval_past_cases.values()))[-1])
-        geo_costs_len = len(next(iter(geo_costs.values())))
+        context_size = self.get_context_size(eval_past_cases, eval_past_ips, geo_costs)
 
-        context_size = eval_past_ips_len + eval_past_cases_len + geo_costs_len
-
-        # fix N: possible half-values
+        # Initialize bandit
         self.bandit = CCTSB(
-            N=[i + 1 for i in NPI_MAX_VALUES.values()], # possible values for each action,
-            K=geo_costs_len, # possible interventions,
-            C=context_size, # dimension of the context,
-            alpha_p=0.5, #default
-            nabla_p=0.5 #default
-        )
+            N=[i + 1 for i in NPI_MAX_VALUES.values()], #assumed max val + zero
+            K=len(NPI_MAX_VALUES),
+            C=context_size,
+            alpha_p=0.5,
+            nabla_p=0.5)
 
         # Make prescriptions one day at a time, feeding resulting
         # predictions from the predictor back into the prescriptor.
@@ -156,17 +112,11 @@ class Bandit(BasePrescriptor):
 
             # Prescribe for each geo
             for geo in eval_geos:
-                # Prepare input data. Here we use log to place cases
-                # on a reasonable scale; zmany other approaches are possible.
-                X_cases = np.log(eval_past_cases[geo][-1] + 1)
-                X_ips = eval_past_ips[geo][-1]
+
                 X_costs = geo_costs[geo]
-                # print("X_cases : ", X_cases)
-                # print("X_ips : ", X_ips)
-                # print("X_costs : ", X_costs)
-                X = np.concatenate([X_cases.flatten(),
-                                    X_ips.flatten(),
-                                    X_costs])
+                X_cases = np.log(eval_past_cases[geo][-1] + 1).flatten()
+                X_ips = eval_past_ips[geo][-1].flatten()
+                X = np.concatenate([X_cases, X_ips, X_costs])
 
                 # Observe context specific to geo
                 self.bandit.observe(X)
@@ -175,49 +125,39 @@ class Bandit(BasePrescriptor):
                 prescribed_ips = self.bandit.act()
 
                 # Add it to prescription dictionary
-                country_name, region_name = (geo.split(' / ') + [np.nan])[:2]
-                df_dict['CountryName'].append(country_name)
-                df_dict['RegionName'].append(region_name)
-                df_dict['Date'].append(date_str)
-                for ip_col, prescribed_ip in zip(NPI_COLUMNS, prescribed_ips):
-                    df_dict[ip_col].append(prescribed_ip)
+                self.add_pres_to_dict(df_dict, date_str, geo, prescribed_ips)
+                
+                # Calculate stringency
+                stringency[date][geo] = self.calc_stringency(X_costs,
+                                                             prescribed_ips)
 
-                # Calculate stringency. This calculation could include division by
-                # the number of IPs and/or number of geos, but that would have
-                # no effect on the ordering of candidate solutions.
-                # print(geo_costs[geo])
-                # print(prescribed_ips)
-                stringency[date][geo] = np.dot(geo_costs[geo],np.array(list(prescribed_ips.values())))
-                # print(stringency[date][geo])
             # Create dataframe from prescriptions
             pres_df = pd.DataFrame(df_dict)
+            pres_df = base.add_geo_id(pres_df)
 
             # Make prediction given prescription for all countries
-            pred_df = self.get_predictions(self.eval_start_date.strftime("%Y-%m-%d"), date_str, pres_df)
+            pred_df = self.get_predictions(
+                self.eval_start_date.strftime("%Y-%m-%d"), date_str, pres_df)
+            pred_df = base.add_geo_id(pred_df)
 
             # Update past data with new day of prescriptions and predictions
-            pres_df = base.add_geo_id(pres_df)
-            pred_df = base.add_geo_id(pred_df)
             new_pres_df = pres_df[pres_df['Date'] == date_str]
             new_pred_df = pred_df[pred_df['Date'] == date_str]
+
             for geo in eval_geos:
+                # Get geo specific data
                 geo_pres = new_pres_df[new_pres_df['GeoID'] == geo]
                 geo_pred = new_pred_df[new_pred_df['GeoID'] == geo]
 
-                # Append array of prescriptions
-                pres_arr = np.array([geo_pres[ip_col].values[0] for ip_col in NPI_COLUMNS]).reshape(1,-1)
-                eval_past_ips[geo] = np.concatenate([eval_past_ips[geo], pres_arr])
+                # Append predictions and prescriptions to past data
+                self.append_pres_pred_to_df(eval_past_cases, eval_past_ips, geo,
+                                      geo_pres, geo_pred)
 
-                # Append predicted cases
-                eval_past_cases[geo] = np.append(eval_past_cases[geo],
-                                                    geo_pred[PRED_CASES_COL].values[0])
-                
                 #update bandit
                 self.bandit.update(geo_pred[PRED_CASES_COL].values[0],
-                              stringency[date][geo])
+                                   stringency[date][geo])
 
         return
-
 
 
     def prescribe(self,
@@ -249,48 +189,21 @@ class Bandit(BasePrescriptor):
             geo_df = prior_ips_df[prior_ips_df['GeoID'] == geo]
             past_ips[geo] = np.array(geo_df[NPI_COLUMNS])
 
-        # Fill in any missing case data before start_date
-        # using predictor given past_ips_df.
-        # Note that the following assumes that the df returned by prepare_historical_df()
-        # has the same final date for all regions. This has been true so far, but relies
-        # on it being true for the Oxford data csv loaded by prepare_historical_df().
-        last_historical_data_date_str = df['Date'].max()
-        last_historical_data_date = pd.to_datetime(last_historical_data_date_str,
-                                                   format='%Y-%m-%d')
-        if last_historical_data_date + pd.Timedelta(days=1) < start_date:
-            if self.verbose:
-                print("Filling in missing data...")
-            missing_data_start_date = last_historical_data_date + pd.Timedelta(days=1)
-            missing_data_start_date_str = datetime.strftime(missing_data_start_date,
-                                                               format='%Y-%m-%d')
-            missing_data_end_date = start_date - pd.Timedelta(days=1)
-            missing_data_end_date_str = datetime.strftime(missing_data_end_date,
-                                                               format='%Y-%m-%d')
-            pred_df = self.get_predictions(missing_data_start_date_str,
-                                           missing_data_end_date_str,
-                                           prior_ips_df)
-
-            for geo in geos:
-                geo_df = pred_df[pred_df['GeoID'] == geo].sort_values(by='Date')
-                pred_cases_arr = np.array(geo_df[PRED_CASES_COL])
-                past_cases[geo] = np.append(past_cases[geo], pred_cases_arr)
-        elif self.verbose:
-            print("No missing data.")
+        self.fill_missing_data(prior_ips_df, start_date, geos, df, past_cases)
 
         # # Gather values for scaling network output
         # ip_max_values_arr = np.array([NPI_MAX_VALUES[ip] for ip in NPI_COLUMNS])
 
         # Load IP costs to condition prescriptions
-        geo_costs = {}
-        for geo in geos:
-            costs = cost_df[cost_df['GeoID'] == geo]
-            cost_arr = np.array(costs[NPI_COLUMNS])[0]
-            geo_costs[geo] = cost_arr
+        geo_costs = self.prep_geo_costs(eval_geos=geos,
+            costs_provided=True, cost_df=cost_df)
+
 
         # Set up dictionary for keeping track of prescription
-        df_dict = {'CountryName': [], 'RegionName': [], 'Date': []}
-        for ip_col in sorted(NPI_MAX_VALUES.keys()):
-            df_dict[ip_col] = []
+        # df_dict = {'CountryName': [], 'RegionName': [], 'Date': []}
+        # for ip_col in sorted(NPI_MAX_VALUES.keys()):
+        #     df_dict[ip_col] = []
+        df_dict = self.prep_prescription_dict()
 
         # Set initial data
         eval_past_cases = deepcopy(past_cases)
@@ -300,6 +213,7 @@ class Bandit(BasePrescriptor):
         # predictions from the predictor back into the prescriptor.
         current_date = start_date
         while current_date <= end_date:
+            date_str = current_date.strftime("%Y-%m-%d")
 
             # Get prescription for all regions
             for geo in geos:
@@ -320,46 +234,46 @@ class Bandit(BasePrescriptor):
                 prescribed_ips = self.bandit.act()
 
                 # Add it to prescription dictionary
-                country_name, region_name = (geo.split(' / ') + [np.nan])[:2]
-                if region_name == 'nan':
-                    region_name = np.nan
                 if current_date > end_date:
                     break
-                date_str = current_date.strftime("%Y-%m-%d")
-                df_dict['CountryName'].append(country_name)
-                df_dict['RegionName'].append(region_name)
-                df_dict['Date'].append(date_str)
-                for ip_col, prescribed_ip in zip(NPI_COLUMNS, prescribed_ips):
-                    df_dict[ip_col].append(prescribed_ip)                
+                self.add_pres_to_dict(df_dict, date_str, geo, prescribed_ips)              
                 
             # Create dataframe from prescriptions
             pres_df = pd.DataFrame(df_dict)
+            pres_df = base.add_geo_id(pres_df)
 
             # Make prediction given prescription for all countries
             pred_df = self.get_predictions(start_date_str, date_str, pres_df)
-
-            # Update past data with new days of prescriptions and predictions
-            pres_df = base.add_geo_id(pres_df)
             pred_df = base.add_geo_id(pred_df)
+
+            # make sure we haven't passed the end date
             if current_date > end_date:
                 break
-            date_str = current_date.strftime("%Y-%m-%d")
+
+            # Update past data with new days of prescriptions and predictions
             new_pres_df = pres_df[pres_df['Date'] == date_str]
             new_pred_df = pred_df[pred_df['Date'] == date_str]
+
             for geo in geos:
+                # Get geo specific data
                 geo_pres = new_pres_df[new_pres_df['GeoID'] == geo]
                 geo_pred = new_pred_df[new_pred_df['GeoID'] == geo]
-                # Append array of prescriptions
-                pres_arr = np.array([geo_pres[ip_col].values[0] for
-                                        ip_col in NPI_COLUMNS]).reshape(1,-1)
-                eval_past_ips[geo] = np.concatenate([eval_past_ips[geo], pres_arr])
 
-                # It is possible that the predictor does not return values for some regions.
-                # To make sure we generate full prescriptions, this script continues anyway.
-                # This should not happen, but is included here for robustness.
-                if len(geo_pred) != 0:
-                    eval_past_cases[geo] = np.append(eval_past_cases[geo],
-                                                        geo_pred[PRED_CASES_COL].values[0])
+                # # Append array of prescriptions
+                # pres_arr = np.array([geo_pres[ip_col].values[0] for
+                #                         ip_col in NPI_COLUMNS]).reshape(1,-1)
+                # eval_past_ips[geo] = np.concatenate([eval_past_ips[geo], pres_arr])
+
+                # # It is possible that the predictor does not return values for some regions.
+                # # To make sure we generate full prescriptions, this script continues anyway.
+                # # This should not happen, but is included here for robustness.
+                # if len(geo_pred) != 0:
+                #     eval_past_cases[geo] = np.append(eval_past_cases[geo],
+                #                                         geo_pred[PRED_CASES_COL].values[0])
+
+                self.append_pres_pred_to_df(eval_past_cases,
+                                            eval_past_ips, geo,geo_pres,
+                                            geo_pred)
 
             # Move on to next date
             current_date += pd.DateOffset(days=1)
@@ -368,6 +282,181 @@ class Bandit(BasePrescriptor):
         # prescription_df= pres_df.drop(columns='GeoID')
         prescription_df['PrescriptionIndex'] = 1
         return prescription_df
+
+
+    def append_pres_pred_to_df(self, eval_past_cases, eval_past_ips, geo,
+                               geo_pres, geo_pred):
+        """
+        Append prescriptions and predictions to eval_past_cases and
+        eval_past_ips.
+        These apprend pres and pred will be used the next day in the context
+        fed to the bandit.
+        """
+        # Append prescriptions
+        pres_arr = np.array([geo_pres[ip_col].values[0] for 
+                             ip_col in NPI_COLUMNS]).reshape(1,-1)
+        eval_past_ips[geo] = np.concatenate([eval_past_ips[geo], pres_arr])
+
+        # Append predicted cases
+        if len(geo_pred) != 0:
+            eval_past_cases[geo] = np.append(eval_past_cases[geo],
+                                            geo_pred[PRED_CASES_COL].values[0])
+
+
+    def calc_stringency(self, X_costs, prescribed_ips):
+        """
+        Calculate stringency. This calculation could include division by
+        the number of IPs and/or number of geos, but that would have
+        no effect on the ordering of candidate solutions.
+        Input:
+            - X_costs: 
+        """
+        return np.dot(X_costs,np.array(list(prescribed_ips.values())))
+
+
+    def add_pres_to_dict(self, df_dict, date_str, geo, prescribed_ips):
+        """
+        Add prescribed NPIs to the dict of prescriptions.
+        Input: 
+            - df_dict: a dict of prescriptions, see prep_prescription_dict();
+            - date_str: a string representing the date for which a 
+                        prescription was made;
+            - geo: a GeoID for which the prescription was made;
+            - prescribed_ips: An array indicating the intensity of each
+              intervention in the prescription (0 to N).
+        Output:
+            - None. Appends to each list in df_dict.
+        """
+        country_name, region_name = (geo.split(' / ') + [np.nan])[:2]
+        if region_name == 'nan':
+            region_name = np.nan
+        df_dict['CountryName'].append(country_name)
+        df_dict['RegionName'].append(region_name)
+        df_dict['Date'].append(date_str)
+        for ip_col, prescribed_ip in zip(NPI_COLUMNS, prescribed_ips):
+            df_dict[ip_col].append(prescribed_ip)
+
+
+    def get_context_size(self, eval_past_cases, eval_past_ips, geo_costs):
+        """ 
+        Calculates context size needed for Bandit.
+        Each of the inputs' first elements is obtained to get length.
+        Context currently includes:
+            - geo_costs[geo]: an array of costs for NPIs for a specific GeoID;
+            - previous day's cases: the last element of eval_past_cases;
+            - previous day's IPS: the last element of eval_past_IPS.
+        """
+        eval_past_ips_len = len(next(iter(eval_past_ips.values()))[-1])
+        eval_past_cases_len = len(next(iter(eval_past_cases.values()))[-1])
+        geo_costs_len = len(next(iter(geo_costs.values())))
+        context_size = eval_past_ips_len + eval_past_cases_len + geo_costs_len
+        return context_size
+
+
+    def prep_prescription_dict(self):
+        """
+        Prepares a dict for prescriptions that will be turned into a df
+        fed to the BasePredictor's `get_predictions()`.
+        Input: None
+        Output: a dict where keys are column names and values are lists.
+        """
+        df_dict = {'CountryName': [], 'RegionName': [], 'Date': []}
+        for ip_col in NPI_COLUMNS:
+            df_dict[ip_col] = []
+        return df_dict
+
+
+    def prep_geo_costs(self, eval_geos, costs_provided=False, cost_df=None):
+        """
+        Prepares costs for each intervention (the "weights") for each GeoID.
+        Input: eval_geos, a list of GeoIDs for which costs are desired.
+        Output: geo_costs, a dict:
+            - each key is a GeoID
+            - each value is an array of size len(NPI_COLUMNS), so 12 usually,
+              which represents the stringency cost associated with each 
+              Non-Pharmaceutical Intervention (NPI). These values should sum to
+              12 (To be verified).
+        """
+        if costs_provided == False:
+            cost_df = base.generate_costs(self.hist_df, mode='random')
+            cost_df = base.add_geo_id(cost_df)
+        # Separate costs by geo
+        geo_costs = {}
+        for geo in eval_geos:
+            costs = cost_df[cost_df['GeoID'] == geo]
+            cost_arr = np.array(costs[NPI_COLUMNS])[0]
+            geo_costs[geo] = cost_arr
+        return geo_costs
+
+
+    def prep_past_ips_cases(self, eval_geos):
+        """
+        Separate past cases and past ips data for each eval geo.
+        Input: eval_geos, a list of GeoIDs used for evaluation.
+        Output: past_cases, past_ips, eval_past_cases, eval_past_ips
+            Dictionaries where each key is a GeoID and each value is:
+                - an array of past case values, or;
+                - an array of past interventions plans (IPs) represented by
+                  arrays indicating the intensity of each intervention (0 to N).
+        """
+        past_cases = {}
+        past_ips = {}
+        for geo in eval_geos:
+            geo_df = self.hist_df[self.hist_df['GeoID'] == geo]
+            past_cases[geo] = np.maximum(0, np.array(geo_df[CASES_COL]))
+            past_ips[geo] = np.array(geo_df[NPI_COLUMNS])
+        
+        eval_past_cases = deepcopy(past_cases)
+        eval_past_ips = deepcopy(past_ips)
+
+        return past_cases, past_ips, eval_past_cases, eval_past_ips
+
+
+    def choose_eval_geos(self):
+        """
+        As a heuristic, use the top NB_EVAL_COUNTRIES w.r.t. ConfirmedCases
+        so far as the geos for evaluation.
+
+        Input: None. Uses self.hist, which is part of __init__
+
+        output: a list of GeoIDs.
+        """
+        eval_geos = list(self.hist_df.groupby('GeoID').max()['ConfirmedCases'].sort_values(
+                         ascending=False).head(self.nb_eval_countries).index)
+        if self.verbose:
+            print("Bandit will be evaluated on the following geos:", eval_geos)
+        return eval_geos
+
+
+    def fill_missing_data(self, prior_ips_df, start_date, geos, df, past_cases):
+        """     
+        Fill in any missing case data before start_date using predictor given 
+        past_ips_df. Note that the following assumes that the df returned by 
+        prepare_historical_df() has the same final date for all regions. This
+        has been true so far, but relies on it being true for the Oxford data
+        csv loaded by prepare_historical_df().
+        """
+        last_historical_data_date_str = df['Date'].max()
+        last_historical_data_date = pd.to_datetime(last_historical_data_date_str,
+                                                   format='%Y-%m-%d')
+        if last_historical_data_date + pd.Timedelta(days=1) < start_date:
+            if self.verbose:
+                print("Filling in missing data...")
+            missing_data_start_date = last_historical_data_date + pd.Timedelta(days=1)
+            missing_data_start_date_str = datetime.strftime(missing_data_start_date,
+                                                               format='%Y-%m-%d')
+            missing_data_end_date = start_date - pd.Timedelta(days=1)
+            missing_data_end_date_str = datetime.strftime(missing_data_end_date,
+                                                               format='%Y-%m-%d')
+            pred_df = self.get_predictions(missing_data_start_date_str,
+                                           missing_data_end_date_str,
+                                           prior_ips_df)
+            for geo in geos:
+                geo_df = pred_df[pred_df['GeoID'] == geo].sort_values(by='Date')
+                pred_cases_arr = np.array(geo_df[PRED_CASES_COL])
+                past_cases[geo] = np.append(past_cases[geo], pred_cases_arr)
+        elif self.verbose:
+            print("No missing data.")
 
 
 if __name__ == '__main__':
