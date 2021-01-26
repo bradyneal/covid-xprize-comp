@@ -12,6 +12,14 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TMP_PRED_FILE_NAME = os.path.join(ROOT_DIR, 'tmp_predictions_for_prescriptions', 'preds.csv')
 TMP_PRESCRIPTION_FILE = os.path.join(ROOT_DIR, 'tmp_prescription.csv')
 
+# Number of days the prescriptors will look at in the past.
+# Larger values here may make convergence slower, but give
+# prescriptors more context. The number of inputs of each neat
+# network will be NB_LOOKBACK_DAYS * (NPI_COLUMNS + 1) + NPI_COLUMNS.
+# The '1' is for previous case data, and the final NPI_COLUMNS
+# is for IP cost information.
+NB_LOOKBACK_DAYS = 14
+
 # Number of countries to use for training. Again, lower numbers
 # here will make training faster, since there will be fewer
 # input variables, but could potentially miss out on useful info.
@@ -36,6 +44,7 @@ class Bandit(BasePrescriptor):
                  eval_end_date=EVAL_END_DATE,
                  nb_eval_countries=NB_EVAL_COUNTRIES,
                  nb_prescriptions=NB_PRESCRIPTIONS,
+                 nb_lookback_days=NB_LOOKBACK_DAYS,
                  hist_df=None,
                  verbose=True):
 
@@ -43,7 +52,7 @@ class Bandit(BasePrescriptor):
         self.eval_start_date = pd.to_datetime(eval_start_date, format='%Y-%m-%d')
         self.eval_end_date = pd.to_datetime(eval_end_date, format='%Y-%m-%d')
         self.nb_eval_countries = nb_eval_countries
-        # self.nb_lookback_days = nb_lookback_days
+        self.nb_lookback_days = nb_lookback_days
         self.nb_prescriptions = nb_prescriptions
         # self.nb_generations = nb_generations
         # self.action_duration = action_duration
@@ -114,8 +123,8 @@ class Bandit(BasePrescriptor):
             for geo in eval_geos:
 
                 X_costs = geo_costs[geo]
-                X_cases = np.log(eval_past_cases[geo][-1] + 1).flatten()
-                X_ips = eval_past_ips[geo][-1].flatten()
+                X_cases = np.log(eval_past_cases[geo][-self.nb_lookback_days:] + 1).flatten()
+                X_ips = eval_past_ips[geo][-self.nb_lookback_days:].flatten()
                 X = np.concatenate([X_cases, X_ips, X_costs])
 
                 # Observe context specific to geo
@@ -219,8 +228,8 @@ class Bandit(BasePrescriptor):
             for geo in geos:
                 # Prepare input data. Here we use log to place cases
                 # on a reasonable scale; many other approaches are possible.
-                X_cases = np.log(eval_past_cases[geo][-1] + 1)
-                X_ips = eval_past_ips[geo][-1]
+                X_cases = np.log(eval_past_cases[geo][-self.nb_lookback_days:] + 1)
+                X_ips = eval_past_ips[geo][-self.nb_lookback_days:]
                 X_costs = geo_costs[geo]
                 X = np.concatenate([X_cases.flatten(),
                                     X_ips.flatten(),
@@ -346,8 +355,8 @@ class Bandit(BasePrescriptor):
             - previous day's cases: the last element of eval_past_cases;
             - previous day's IPS: the last element of eval_past_IPS.
         """
-        eval_past_ips_len = len(next(iter(eval_past_ips.values()))[-1])
-        eval_past_cases_len = len(next(iter(eval_past_cases.values()))[-1])
+        eval_past_ips_len = len(next(iter(eval_past_ips.values()))[-self.nb_lookback_days:])
+        eval_past_cases_len = len(next(iter(eval_past_cases.values()))[-self.nb_lookback_days:])
         geo_costs_len = len(next(iter(geo_costs.values())))
         context_size = eval_past_ips_len + eval_past_cases_len + geo_costs_len
         return context_size
