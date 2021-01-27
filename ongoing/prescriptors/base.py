@@ -9,10 +9,19 @@ SEED = 0
 DEFAULT_TEST_COST = 'covid_xprize/validation/data/uniform_random_costs.csv'
 TEST_CONFIGS = [
     ('Default', {'start_date': '2020-08-01', 'end_date': '2020-08-05', 'costs': DEFAULT_TEST_COST}),
-    ('Jan_Mar_EC_fast', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'equal', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
-    ('Jan_Mar_RC_fast', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
-    # ('Jan_Mar_EC_full', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'equal'}),
-    # ('Jan_Mar_RC_full', {'start_date': '2021-01-01', 'end_date': '2021-03-31', 'costs': 'random'}),
+    ('Jan_Mar_EC_fast', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'equal', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
+    ('Jan_Mar_RC_fast', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
+    ('EQUAL', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'equal'}),
+    ('RANDOM1', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    ('RANDOM2', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    ('RANDOM3', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    # ('RANDOM4', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    # ('RANDOM5', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    # ('RANDOM6', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    # ('RANDOM7', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    # ('RANDOM8', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    # ('RANDOM9', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    # ('RANDOM10', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
     # ('Jan_RC_NoDec_fast', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'train_end_date': '2020-11-30', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
 ]
 
@@ -108,12 +117,11 @@ def gen_test_config(start_date=None,
     else:  # selected_geos can also be a list of GeoIDs
         country_df = pd.DataFrame.from_dict({'GeoID': selected_geos})
 
-    test_df = test_df.merge(country_df, on=['GeoID'], how='right', suffixes=('', '_y'))
-    cost_df = cost_df.merge(country_df, on=['GeoID'], how='right', suffixes=('', '_y'))
+    test_df = test_df[test_df['GeoID'].isin(country_df['GeoID'].unique())]
+    cost_df = cost_df[cost_df['GeoID'].isin(country_df['GeoID'].unique())]
 
-    train_df = df
     # forget all historical data starting from start_date
-    train_df = train_df[df['Date'] < pd_start_date]
+    train_df = df[df['Date'] < pd_start_date]
     if predictor is not None:
         predictor.df = predictor.df[predictor.df['Date'] < pd_start_date]
 
@@ -347,7 +355,7 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
     def prescribe(self, start_date_str, end_date_str, prior_ips_df, cost_df):
         pass
 
-    def evaluate(self, output_file_path=None, verbose=True):
+    def evaluate(self, output_file_path=None, fit=True, prescribe=True, verbose=True):
         all_tests_df = []
         for test_name, test_config in TEST_CONFIGS:
             if verbose:
@@ -361,9 +369,13 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
             start_date, end_date = test_config['start_date'], test_config['end_date']
 
             # train the model
-            if verbose:
-                print('...training the prescriptor model')
-            self.fit(train_df)
+            if fit:
+                if verbose:
+                    print('...training the prescriptor model')
+                self.fit(train_df)
+
+            if not prescribe:
+                continue
 
             # generate prescriptions
             if verbose:
