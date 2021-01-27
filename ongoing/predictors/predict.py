@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import pickle
 
+from econ.econ_predictor import econ_predictor
+# import econ.econ_utils as econ_utils
 #
 # import os,sys,inspect
 # currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # .../covid-xprize-comp/ongoing/predictors
@@ -28,6 +30,7 @@ MODEL_WEIGHTS_FILE = os.path.join(ROOT_DIR, "tempgeolstm", "models", "model_alld
 
 # LGBM weights
 MODEL_FILE = os.path.join(ROOT_DIR, "tempgeolgbm", "models", "model_alldata.pkl")
+ECON_MODEL_FILE = os.path.join(ROOT_DIR, 'econ', 'models', 'econ_models_1.pkl')
 
 COUNTRIES_FILE = os.path.join(ROOT_DIR, "models", "countries.txt")
 DATA_DIR = os.path.join(ROOT_DIR, os.pardir, 'data')
@@ -85,7 +88,7 @@ def predict(start_date: str,
     for npi_col in NPI_COLUMNS:
         npis_df.update(npis_df.groupby(['CountryName', 'RegionName'])[npi_col].ffill().fillna(0))
 
-    predictors = ["LSTM", "LGBM"]
+    predictors = ['econ', "LSTM", "LGBM"]
     for model in predictors:
         if model == "LSTM":
             # predictor = tempGeoLSTMPredictor(path_to_model_weights=MODEL_WEIGHTS_FILE, path_to_geos=COUNTRIES_FILE)
@@ -97,13 +100,54 @@ def predict(start_date: str,
             with open(MODEL_FILE, 'rb') as model_file:
                 predictor.predictor = pickle.load(model_file)
             lgbm_predictions_df = get_predictions(predictor, model, npis_df, start_date_dt, end_date_dt, output_file_path)
+        elif model == 'econ':
+            # econ prediction try-catch loop
+            try:
+            # get econ_predictions
+                econ_df = econ_predictor(
+                        start_date_str=start_date, 
+                        end_date_str=end_date, 
+                        DATA_DIR=DATA_DIR,
+                        MODEL_FILE=ECON_MODEL_FILE,
+                        path_to_hist_ips_file=os.path.join(DATA_DIR, "2020-09-30_historical_ip.csv"),
+                        path_to_future_ips_file=path_to_ips_file)
+                print('econ pred success')
+            except:
+                print('econ pred fail')
+                continue
 
     ensemble_predictions = get_ensemble_pred(ALPHA, lstm_predictions_df, lgbm_predictions_df)
-    # Create the output path
-    os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
-    # Save to a csv file
-    ensemble_predictions.to_csv(output_file_path, index=False)
-    print(f"Saved final model predictions to {output_file_path}")
+    
+    # econ csv try-catch
+    try:
+        ensemble_predictions['QuarterEnd'] = ensemble_predictions['Date'] +pd.tseries.offsets.QuarterEnd()
+        full_df = ensemble_predictions.merge(
+            econ_df,
+            how='left',
+            left_on=['CountryName','RegionName', 'QuarterEnd'],
+            right_on=['CountryName','RegionName','Date'],
+            suffixes= (None, '_extra')
+                                            )
+        full_df = full_df[full_df.columns.drop(list(full_df.filter(regex='_extra')))]
+        # Create the output path
+        os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+        # Save to a csv file
+        full_df.to_csv(output_file_path, index=False)
+        
+        # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        #     print(full_df)
+        print('econ merge succeeded')
+        print(f"Saved final model predictions to {output_file_path}")
+    except:
+                # Create the output path
+        os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+        # Save to a csv file
+        ensemble_predictions.to_csv(output_file_path, index=False)
+        
+        # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        #     print(full_df)
+        print('econ merge failed')
+        print(f"Saved final model predictions to {output_file_path}")
 
 
 def get_ensemble_pred(alpha, lstm_predictions_df, lgbm_predictions_df):
