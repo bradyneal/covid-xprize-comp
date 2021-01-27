@@ -12,6 +12,11 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TMP_PRED_FILE_NAME = os.path.join(ROOT_DIR, 'tmp_predictions_for_prescriptions', 'preds.csv')
 TMP_PRESCRIPTION_FILE = os.path.join(ROOT_DIR, 'tmp_prescription.csv')
 
+# Number of iterations of training for the bandit. 
+# Each iteration presents the bandit with a new context.
+# Each iteration trains the bandit for the entire prediction window.
+NB_ITERATIONS = 10
+
 # Number of days the prescriptors will look at in the past.
 # Larger values here may make convergence slower, but give
 # prescriptors more context. The number of inputs of each neat
@@ -96,6 +101,8 @@ class Bandit(BasePrescriptor):
         past_cases, past_ips, \
             eval_past_cases, eval_past_ips = self.prep_past_ips_cases(eval_geos)
 
+        # Currently, prep_geo_costs() is called to set the context size.
+        # geo_costs will be replaced at every training iteration.
         geo_costs = self.prep_geo_costs(eval_geos)
 
         df_dict = self.prep_prescription_dict()
@@ -105,66 +112,80 @@ class Bandit(BasePrescriptor):
             for date in pd.date_range(self.eval_start_date, self.eval_end_date)}
 
         context_size = self.get_context_size(eval_past_cases, eval_past_ips, geo_costs)
-
         # Initialize bandit
         self.bandit = CCTSB(
             N=[i + 1 for i in NPI_MAX_VALUES.values()], #assumed max val + zero
             K=len(NPI_MAX_VALUES),
             C=context_size,
             alpha_p=0.5,
-            nabla_p=0.5)
+            nabla_p=0.9)
+        
+        for t in range(NB_ITERATIONS):
 
-        # Make prescriptions one day at a time, feeding resulting
-        # predictions from the predictor back into the prescriptor.
-        for date in pd.date_range(self.eval_start_date, self.eval_end_date):
-            date_str = date.strftime("%Y-%m-%d")
+            # for each iteration, get a new set of costs for each geo
+            geo_costs = self.prep_geo_costs(eval_geos)
 
-            # Prescribe for each geo
-            for geo in eval_geos:
+            # Make prescriptions one day at a time, feeding resulting
+            # predictions from the predictor back into the prescriptor.
+            for date in pd.date_range(self.eval_start_date, self.eval_end_date):
+                date_str = date.strftime("%Y-%m-%d")
 
-                X_costs = geo_costs[geo]
-                X_cases = np.log(eval_past_cases[geo][-self.nb_lookback_days:] + 1).flatten()
-                X_ips = eval_past_ips[geo][-self.nb_lookback_days:].flatten()
-                X = np.concatenate([X_cases, X_ips, X_costs])
+                # Prescribe for each geo
+                for geo in eval_geos:
 
-                # Observe context specific to geo
-                self.bandit.observe(X)
+                    X_costs = geo_costs[geo]
+                    X_cases = np.log(eval_past_cases[geo][-self.nb_lookback_days:] + 1).flatten()
+                    X_ips = eval_past_ips[geo][-self.nb_lookback_days:].flatten()
+                    X = np.concatenate([X_cases, X_ips, X_costs])
 
-                # Get prescriptions
-                prescribed_ips = self.bandit.act()
+                    # Observe context specific to geo
+                    self.bandit.observe(X)
 
-                # Add it to prescription dictionary
-                self.add_pres_to_dict(df_dict, date_str, geo, prescribed_ips)
-                
-                # Calculate stringency
-                stringency[date][geo] = self.calc_stringency(X_costs,
-                                                             prescribed_ips)
+                    # Get prescriptions
+                    prescribed_ips = self.bandit.act()
 
-            # Create dataframe from prescriptions
-            pres_df = pd.DataFrame(df_dict)
-            pres_df = base.add_geo_id(pres_df)
+                    # Add it to prescription dictionary
+                    self.add_pres_to_dict(df_dict, date_str, geo, prescribed_ips)
+                    
+                    # Calculate stringency
+                    stringency[date][geo] = self.calc_stringency(X_costs,
+                                                                prescribed_ips)
 
-            # Make prediction given prescription for all countries
-            pred_df = self.get_predictions(
-                self.eval_start_date.strftime("%Y-%m-%d"), date_str, pres_df)
-            pred_df = base.add_geo_id(pred_df)
+                # Create dataframe from prescriptions
+                pres_df = pd.DataFrame(df_dict)
+                pres_df = base.add_geo_id(pres_df)
 
-            # Update past data with new day of prescriptions and predictions
-            new_pres_df = pres_df[pres_df['Date'] == date_str]
-            new_pred_df = pred_df[pred_df['Date'] == date_str]
+                # Make prediction given prescription for all countries
+                pred_df = self.get_predictions(
+                    self.eval_start_date.strftime("%Y-%m-%d"), date_str, pres_df)
+                pred_df = base.add_geo_id(pred_df)
 
-            for geo in eval_geos:
-                # Get geo specific data
-                geo_pres = new_pres_df[new_pres_df['GeoID'] == geo]
-                geo_pred = new_pred_df[new_pred_df['GeoID'] == geo]
+                # Update past data with new day of prescriptions and predictions
+                # new_pres_df = pres_df[pres_df['Date'] == date_str]
+                # new_pred_df = pred_df[pred_df['Date'] == date_str]
 
-                # Append predictions and prescriptions to past data
-                self.append_pres_pred_to_df(eval_past_cases, eval_past_ips, geo,
-                                      geo_pres, geo_pred)
+                for geo in eval_geos:
+                    # Get geo specific data
+                    geo_pres = pres_df[pres_df['GeoID'] == geo]
+                    geo_pred = pred_df[pred_df['GeoID'] == geo]
 
-                #update bandit
-                self.bandit.update(geo_pred[PRED_CASES_COL].values[0],
-                                   stringency[date][geo])
+                    new_pres = geo_pres[geo_pres['Date'] == date_str]
+                    new_pred = geo_pred[geo_pred['Date'] == date_str]
+
+                    # calculate reward before appending to df
+                    reward = new_pred[PRED_CASES_COL].values[0] / eval_past_cases[geo][-1]
+
+                    print(geo, reward)
+
+                    # Append predictions and prescriptions to past data
+                    self.append_pres_pred_to_df(eval_past_cases, eval_past_ips, geo,
+                                        new_pres, new_pred)
+
+
+                    #update bandit
+                    self.bandit.update(reward, stringency[date][geo])
+
+            print('Iteration ' + str(t) + ' done.')
 
         return
 
@@ -355,8 +376,8 @@ class Bandit(BasePrescriptor):
             - previous day's cases: the last element of eval_past_cases;
             - previous day's IPS: the last element of eval_past_IPS.
         """
-        eval_past_ips_len = len(next(iter(eval_past_ips.values()))[-self.nb_lookback_days:])
-        eval_past_cases_len = len(next(iter(eval_past_cases.values()))[-self.nb_lookback_days:])
+        eval_past_ips_len = len(next(iter(eval_past_ips.values()))[-1]) * NB_LOOKBACK_DAYS
+        eval_past_cases_len = len(next(iter(eval_past_cases.values()))[-1]) * NB_LOOKBACK_DAYS
         geo_costs_len = len(next(iter(geo_costs.values())))
         context_size = eval_past_ips_len + eval_past_cases_len + geo_costs_len
         return context_size

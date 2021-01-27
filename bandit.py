@@ -96,7 +96,4 @@ class CCTSB(Agent):
                 self.B_i_k[k][i] = self.nabla * self.B_i_k[k][i] + norm_c_t.dot(norm_c_t.T)
                 print(np.linalg.norm(self.B_i_k[k][i]))
                 self.z_i_k[k][i] += norm_c_t * r_star * update_coefficient
-                self.theta_i_k[k][i] = np.linalg.inv(self.B_i_k[k][i]).dot(self.z_i_k[k][i])
-            
-        
-            
+                self.theta_i_k[k][i] = np.linalg.inv(self.B_i_k[k][i]).dot(self.z_i_k[k][i])            
