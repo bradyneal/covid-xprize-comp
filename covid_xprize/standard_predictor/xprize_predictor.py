@@ -93,13 +93,16 @@ class XPrizePredictor(object):
     def predict(self,
                 start_date_str: str,
                 end_date_str: str,
-                path_to_ips_file: str) -> pd.DataFrame:
+                npis_df: pd.DataFrame) -> pd.DataFrame:
         start_date = pd.to_datetime(start_date_str, format='%Y-%m-%d')
         end_date = pd.to_datetime(end_date_str, format='%Y-%m-%d')
         nb_days = (end_date - start_date).days + 1
 
         # Load the npis into a DataFrame, handling regions
-        npis_df = self._load_original_data(path_to_ips_file)
+        npis_df["GeoID"] = np.where(npis_df["RegionName"].isnull(),
+                                      npis_df["CountryName"],
+                                      npis_df["CountryName"] + ' / ' + npis_df["RegionName"])
+        npis_df['Date'] = pd.to_datetime(npis_df['Date'])
 
         # Prepare the output
         forecast = {"CountryName": [],

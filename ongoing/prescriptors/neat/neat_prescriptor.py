@@ -398,7 +398,7 @@ class Neat(BasePrescriptor):
         ip_file_full_path = os.path.abspath(TMP_PRESCRIPTION_FILE)
 
         # generate the predictions
-        pred_df = self.predictor.predict(start_date_str, end_date_str, ip_file_full_path)
+        pred_df = self.predictor.predict(start_date_str, end_date_str, ips_df)
 
         return pred_df
 

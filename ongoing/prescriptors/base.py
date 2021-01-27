@@ -410,7 +410,7 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
                 ip_file_path = 'prescriptions/prescription_{}.csv'.format(idx)
                 os.makedirs(os.path.dirname(ip_file_path), exist_ok=True)
                 idx_df.to_csv(ip_file_path)
-                pred_df = self.predictor.predict(start_date, end_date, ip_file_path)
+                pred_df = self.predictor.predict(start_date, end_date, idx_df)
                 pred_df['PrescriptionIndex'] = idx
                 pred_dfs.append(pred_df)
             pred_df = pd.concat(pred_dfs)
