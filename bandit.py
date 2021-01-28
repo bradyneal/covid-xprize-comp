@@ -7,7 +7,7 @@ Bandit/RL Class
 usage:
 
 from bandit import CCTSB
-bandit = CCTSB(N=[4,3,3,4,5], K=5, C=100, alpha_p=0.5, nabla_p=0.5, obj_func=default_obj)
+bandit = CCTSB(N=[4,3,3,4,5], K=5, C=100, alpha_p=0.5, nabla_p=0.5, w=0.5, obj_func=default_obj)
 bandit.observe(context)
 actions = bandit.act()
 bandit.update(reward,cost)
@@ -32,11 +32,11 @@ class Agent(object):
         raise NotImplementedError
             
 
-def default_obj(r,s):
-    return r/s
+def default_obj(r,s,w):
+    return w*r + (1-w)/s
     
 class CCTSB(Agent):
-    def __init__(self, N=None, K=None, C=None, alpha_p=None, nabla_p=None, obj_func=default_obj):
+    def __init__(self, N=None, K=None, C=None, alpha_p=None, nabla_p=None, w=0.5, obj_func=default_obj):
         
         # for example: 
         # four possible actions: school closure, diet, vaccine, travel control
@@ -49,6 +49,7 @@ class CCTSB(Agent):
         
         self.alpha = alpha_p
         self.nabla = nabla_p
+        self.w = w
         self.obj_func = obj_func
         
         self.B_i_k = [ n * [np.eye(C)] for n in self.N ]
@@ -75,7 +76,7 @@ class CCTSB(Agent):
         return i_t
     
     def update(self, r=None, s=None):
-        r_star = self.obj_func(r,s)
+        r_star = self.obj_func(r,s,self.w)
         for k in range(self.K):
             i = self.i_t[k]
             self.B_i_k[k][i] = self.nabla * self.B_i_k[k][i] + self.c_t.dot(self.c_t.T)
