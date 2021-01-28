@@ -115,7 +115,7 @@ class XPrizePredictor(object):
         truncated_df = self.df[self.df.Date < start_date_str]
         country_samples = self._create_country_samples(truncated_df, geos, False)
 
-        # For each requested geo
+        # For each requested geo (NO HISTORICAL DATA)
         geos = npis_df.GeoID.unique()
         for g in geos:
             cdf = truncated_df[truncated_df.GeoID == g]
@@ -123,27 +123,115 @@ class XPrizePredictor(object):
                 # we don't have historical data for this geo: return zeroes
                 pred_new_cases = [0] * nb_days
                 geo_start_date = start_date
-            else:
+
+                # Append forecast data to results to return
+                country = npis_df[npis_df.GeoID == g].iloc[0].CountryName
+                region = npis_df[npis_df.GeoID == g].iloc[0].RegionName
+                for i, pred in enumerate(pred_new_cases):
+                    forecast["CountryName"].append(country)
+                    forecast["RegionName"].append(region)
+                    current_date = geo_start_date + pd.offsets.Day(i)
+                    forecast["Date"].append(current_date)
+                    forecast["PredictedDailyNewCases"].append(pred)
+
+        # For each requested geo (WITH HISTORICAL DATA)
+        #   1. Gather up batch
+        g_batch = []
+        cdf_batch = []
+        date_range_batch = []
+        npis_gdf_batch = []
+        for g in geos:
+            cdf = truncated_df[truncated_df.GeoID == g]
+            if len(cdf) != 0:
                 last_known_date = cdf.Date.max()
                 # Start predicting from start_date, unless there's a gap since last known date
                 geo_start_date = min(last_known_date + np.timedelta64(1, 'D'), start_date)
-                npis_gdf = npis_df[(npis_df.Date >= geo_start_date) & (npis_df.Date <= end_date)]
+                g_batch.append(g)
+                cdf_batch.append(cdf)
+                date_range_batch.append((npis_df.Date >= geo_start_date) &
+                                        (npis_df.Date <= end_date))
 
-                pred_new_cases = self._get_new_cases_preds(cdf, g, npis_gdf, country_samples)
+        #   2. Invoke batch code to compute predicted new cases dict.
+        pred_new_cases_dict = self._get_new_cases_preds_batch(cdf_batch, g_batch, date_range_batch,
+                                                              npis_df, country_samples)
 
-            # Append forecast data to results to return
-            country = npis_df[npis_df.GeoID == g].iloc[0].CountryName
-            region = npis_df[npis_df.GeoID == g].iloc[0].RegionName
-            for i, pred in enumerate(pred_new_cases):
-                forecast["CountryName"].append(country)
-                forecast["RegionName"].append(region)
-                current_date = geo_start_date + pd.offsets.Day(i)
-                forecast["Date"].append(current_date)
-                forecast["PredictedDailyNewCases"].append(pred)
+        #   3. Unpack dict into forecast dict.
+        for g in geos:
+            cdf = truncated_df[truncated_df.GeoID == g]
+            if len(cdf) != 0:
+                last_known_date = cdf.Date.max()
+                # Start predicting from start_date, unless there's a gap since last known date
+                geo_start_date = min(last_known_date + np.timedelta64(1, 'D'), start_date)
+
+                # Append forecast data to results to return
+                country = npis_df[npis_df.GeoID == g].iloc[0].CountryName
+                region = npis_df[npis_df.GeoID == g].iloc[0].RegionName
+                for i, pred in enumerate(pred_new_cases_dict[g]):
+                    forecast["CountryName"].append(country)
+                    forecast["RegionName"].append(region)
+                    current_date = geo_start_date + pd.offsets.Day(i)
+                    forecast["Date"].append(current_date)
+                    forecast["PredictedDailyNewCases"].append(pred)
+            
 
         forecast_df = pd.DataFrame.from_dict(forecast)
         # Return only the requested predictions
         return forecast_df[(forecast_df.Date >= start_date) & (forecast_df.Date <= end_date)]
+
+    def _get_new_cases_preds_batch(self, cdf_batch, g_batch, date_range_batch, npis_df, country_samples):
+        pred_new_cases_dict = {}
+        npis_sequence_batch = []
+        preds_batch         = []
+        context_input_batch = []
+        action_input_batch  = []
+
+        # 1. Prep
+        for c_df, g, date_range in zip(cdf_batch, g_batch, date_range_batch):
+            # Predictions with passed npis
+            npis_gdf         = npis_df[date_range]
+            cnpis_df         = npis_gdf[npis_gdf.GeoID == g]
+            npis_sequence    = np.array(cnpis_df[NPI_COLUMNS])
+
+            # Get the predictions with the passed NPIs
+            nb_roll_out_days = npis_sequence.shape[0]
+            preds            = np.zeros(nb_roll_out_days)
+            context_input    = np.copy(country_samples[g]['X_test_context'][-1])
+            action_input     = np.copy(country_samples[g]['X_test_action' ][-1])
+
+            # Append
+            npis_sequence_batch.append(npis_sequence)
+            preds_batch        .append(preds)
+            context_input_batch.append(context_input)
+            action_input_batch .append(action_input)
+
+        # 2. Stack
+        npis_sequence_batch = np.stack(npis_sequence_batch, axis=0)
+        preds_batch         = np.stack(preds_batch,         axis=0)
+        context_input_batch = np.stack(context_input_batch, axis=0)
+        action_input_batch  = np.stack(action_input_batch,  axis=0)
+
+        # 3. Batched Roll-Out
+        for d in range(npis_sequence_batch.shape[1]):
+            action_input_batch[:, :-1]  = action_input_batch[:, 1:]
+            action_sequence_batch       = npis_sequence_batch[:, d] # Use the passed actions
+            action_input_batch[:, -1]   = action_sequence_batch
+            pred_batch                  = self.predictor.predict([context_input_batch, action_input_batch])
+            preds_batch[:,d:d+1]        = pred_batch
+            context_input_batch[:, :-1] = context_input_batch[:, 1:]
+            context_input_batch[:, -1]  = pred_batch
+
+        # 4. Output transform
+        for c_df, g, date_range, preds in zip(cdf_batch, g_batch, date_range_batch, preds_batch):
+            cdf                  = c_df[c_df.ConfirmedCases.notnull()]
+            prev_confirmed_cases = np.array(cdf.ConfirmedCases)
+            prev_new_cases       = np.array(cdf.NewCases)
+            initial_total_cases  = prev_confirmed_cases[-1]
+            pop_size             = np.array(cdf.Population)[-1]  # Population size doesn't change over time
+            pred_new_cases_dict[g] = self._convert_ratios_to_total_cases(preds, WINDOW_SIZE, prev_new_cases,
+                                                                         initial_total_cases, pop_size)
+
+        # 5. Return
+        return pred_new_cases_dict
 
     def _get_new_cases_preds(self, c_df, g, npis_df, country_samples):
         cdf = c_df[c_df.ConfirmedCases.notnull()]
