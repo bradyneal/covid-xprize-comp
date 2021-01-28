@@ -15,6 +15,7 @@ bandit.update(reward,cost)
 """
 
 import numpy as np
+from scipy.stats import lognorm
 
 class Agent(object):
     def __init__(self):
@@ -32,8 +33,9 @@ class Agent(object):
         raise NotImplementedError
             
 
-def default_obj(r,s,w):
-    return w*r + (1-w)/s
+def default_obj(r,s, weight=None):
+    assert 0 < weight < 1, "objective weight should be in (0,1)"
+    return weight * r + (1 - weight) / s
     
 class CCTSB(Agent):
     def __init__(self, N=None, K=None, C=None, alpha_p=None, nabla_p=None, w=0.5, obj_func=default_obj):
@@ -59,6 +61,10 @@ class CCTSB(Agent):
         
         self.c_t = None
         self.i_t = None
+
+        self.update_history = []
+        self.update_range = 20
+        self.update_coefficients = [lognorm.pdf(i, s= 0.4, scale=np.exp(2)) for i in range(self.update_range)]
         
     def observe(self, c):
         self.c_t = c
@@ -74,6 +80,7 @@ class CCTSB(Agent):
             i_t[k] = np.argmax(self.c_t.T.dot(np.array(sample_theta[k]).T))
         
         self.i_t = i_t
+        self.update_history.append(self.i_t)
         return i_t
     
     def update(self, r=None, s=None, w=None):
@@ -96,4 +103,7 @@ class CCTSB(Agent):
                 self.B_i_k[k][i] = self.nabla * self.B_i_k[k][i] + norm_c_t.dot(norm_c_t.T)
                 print(np.linalg.norm(self.B_i_k[k][i]))
                 self.z_i_k[k][i] += norm_c_t * r_star * update_coefficient
-                self.theta_i_k[k][i] = np.linalg.inv(self.B_i_k[k][i]).dot(self.z_i_k[k][i])            
+                self.theta_i_k[k][i] = np.linalg.inv(self.B_i_k[k][i]).dot(self.z_i_k[k][i])
+    
+    def clear_update_hist(self):
+        self.update_history = []
