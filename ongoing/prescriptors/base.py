@@ -259,7 +259,7 @@ def generate_costs(df, mode='random'):
 
     Available distributions:
         - 'ones': cost is 1 for each NPI.
-        - 'uniform': costs are sampled uniformly across NPIs independently
+        - 'random': costs are sampled uniformly across NPIs independently
                      for each geo.
     """
     assert mode in ['equal', 'random'], \
