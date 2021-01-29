@@ -407,9 +407,9 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
                 if last_known_date < pd.to_datetime(idx_df['Date'].min()) - np.timedelta64(1, 'D'):
                     # append prior NPIs to the prescripted ones because the predictor will need them
                     idx_df = idx_df.append(test_df[test_df['Date'] > last_known_date].drop(columns='GeoID'))
-                ip_file_path = 'prescriptions/prescription_{}.csv'.format(idx)
-                os.makedirs(os.path.dirname(ip_file_path), exist_ok=True)
-                idx_df.to_csv(ip_file_path)
+                # ip_file_path = 'prescriptions/prescription_{}.csv'.format(idx)
+                # os.makedirs(os.path.dirname(ip_file_path), exist_ok=True)
+                # idx_df.to_csv(ip_file_path)
                 pred_df = self.predictor.predict(start_date, end_date, idx_df)
                 pred_df['PrescriptionIndex'] = idx
                 pred_dfs.append(pred_df)

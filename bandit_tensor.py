@@ -15,6 +15,7 @@ bandit.update(reward,cost)
 """
 
 import numpy as np
+import torch
 from scipy.stats import lognorm
 
 class Agent(object):
@@ -22,6 +23,8 @@ class Agent(object):
         self.N = None
         self.K = None
         self.C = None
+        self.geos = None
+        self.weights = None
 
     def observe(self):
         raise NotImplementedError
@@ -38,7 +41,15 @@ def default_obj(r,s, weight=None):
     return weight * r + (1 - weight) / s
     
 class CCTSB(Agent):
-    def __init__(self, N=None, K=None, C=None, alpha_p=None, nabla_p=None, w=0.5, obj_func=default_obj):
+    def __init__(self,
+                 N=None,
+                 K=None,
+                 C=None,
+                 geos=None,
+                 alpha_p=None,
+                 nabla_p=None,
+                 weights=None,
+                 obj_func=default_obj):
         
         # for example: 
         # four possible actions: school closure, diet, vaccine, travel control
@@ -48,15 +59,16 @@ class CCTSB(Agent):
         self.N = N # number of possible values in each action, e.g. [4,4,5,3]
         self.K = K # number of possible intervention actions, e.g. 4
         self.C = C # dimension of the context, e.g. 100
-        
+        self.geos = geos
         self.alpha = alpha_p
         self.nabla = nabla_p
-        self.w = w
+        self.weights = weights
         self.obj_func = obj_func
         
-        self.B_i_k = [ n * [np.eye(C)] for n in self.N ]
-        self.z_i_k = [ n * [np.zeros((C))] for n in self.N ]
-        self.theta_i_k = [ n * [np.zeros((C))] for n in self.N ]
+        # fix: need to set useless N values to NaN or -inf
+        self.B = torch.eye(C).repeat(1, np.max(N), K, len(geos), len(weights))
+        self.z = torch.zeros(C, np.max(N), K, len(geos), len(weights))
+        self.theta = torch.zeros(C, np.max(N), K, len(geos), len(weights))
         
         self.c_t = None
         self.i_t = None
@@ -66,18 +78,18 @@ class CCTSB(Agent):
         self.update_coefficients = [lognorm.pdf(i, s= 0.4, scale=np.exp(2)) for i in range(self.update_range)]
         
     def observe(self, c):
-        self.c_t = c
+        # C x geo x K x N x weights
+        self.c_t = c.repeat(1, self.K, np.max(self.N), len(self.weights))
 
-    def act(self):
-        sample_theta = [ n * [0] for n in self.N ]
-        i_t = {}
-        for k in range(self.K):
-            
-            for i in range(len(sample_theta[k])):
-                sample_theta[k][i] = np.random.multivariate_normal(self.theta_i_k[k][i], self.alpha**2 * np.linalg.inv(self.B_i_k[k][i]))
-            
-            i_t[k] = np.argmax(self.c_t.T.dot(np.array(sample_theta[k]).T))
+        # C x N x K x geo x weights
+        self.c_t = torch.transpose(self.c_t, 1, 3)
+    def act(self):        
+        sample_theta = torch.distributions.multivariate_normal.MultivariateNormal(
+            loc=self.theta,
+            covariance_matrix=self.B)
         
+        dot_prod = torch.matmul(self.c_t, sample_theta, dim=0) # need to specify which dimension
+        i_t = torch.argmax(dot_prod, dim=0)
         self.i_t = i_t
         self.update_history.append(self.i_t)
         return i_t

@@ -3,10 +3,11 @@ import pandas as pd
 import os
 from copy import deepcopy
 import datetime
+import torch
 
 from ongoing.prescriptors.base import BasePrescriptor, PRED_CASES_COL, CASES_COL, NPI_COLUMNS, NPI_MAX_VALUES
 import ongoing.prescriptors.base as base
-from bandit import CCTSB
+from bandit_tensor import CCTSB
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TMP_PRED_FILE_NAME = os.path.join(ROOT_DIR, 'tmp_predictions_for_prescriptions', 'preds.csv')
@@ -55,14 +56,12 @@ class Bandit(BasePrescriptor):
                  verbose=True):
 
         super().__init__(seed=seed)
+
         self.eval_start_date = pd.to_datetime(eval_start_date, format='%Y-%m-%d')
         self.eval_end_date = pd.to_datetime(eval_end_date, format='%Y-%m-%d')
         self.nb_eval_countries = nb_eval_countries
         self.nb_lookback_days = nb_lookback_days
         self.nb_prescriptions = nb_prescriptions
-        # self.action_duration = action_duration
-        # self.config_file = config_file
-        # self.prescriptors_file = prescriptors_file
         self.hist_df = hist_df
         self.verbose = verbose
         self.bandits = {}
@@ -110,85 +109,77 @@ class Bandit(BasePrescriptor):
         context_size = len(next(iter(geo_costs.values())))
 
 
-        for weight in OBJECTIVE_WEIGHTS:
+        self.bandit = CCTSB(
+            N=[i + 1 for i in NPI_MAX_VALUES.values()], #assumed max val + zero
+            K=len(NPI_MAX_VALUES),
+            C=context_size,
+            geos=eval_geos,
+            alpha_p=0.99,
+            nabla_p=0.8,
+            weights = OBJECTIVE_WEIGHTS)
 
-            # self.bandits is a dict of dicts [weight][geo]
-            self.bandits[weight] = {}
-
-            # Initialize a bandit for each weight and geo
-            for geo in eval_geos:
-                self.bandits[weight][geo] = CCTSB(
-                    N=[i + 1 for i in NPI_MAX_VALUES.values()], #assumed max val + zero
-                    K=len(NPI_MAX_VALUES),
-                    C=context_size,
-                    alpha_p=0.99,
-                    nabla_p=0.8,
-                    w = weight)
-
-            for t in range(NB_ITERATIONS):
+        for t in range(NB_ITERATIONS):
                 
-                #prepare costs for all geos
-                geo_costs = self.prep_geo_costs(eval_geos)
+            #prepare costs for all geos
+            geo_costs = self.prep_geo_costs_tensor(eval_geos)
 
-                for date in pd.date_range(self.eval_start_date, self.eval_end_date):
-                    date_str = date.strftime("%Y-%m-%d")
-                
-                    # Make prescriptions one day at a time, feeding resulting
-                    # predictions from the predictor back into the prescriptor.
-                    for geo in eval_geos:
-
-                        bandit = self.bandits[weight][geo]
-                        X_costs = geo_costs[geo]
-                        bandit.observe(X_costs)
-                        prescribed_ips = bandit.act() # gets prescriptions
-
-                        # Add it to prescription dictionary
-                        self.add_pres_to_dict(df_dict, date_str, geo, prescribed_ips)
-                        
-                        # Calculate stringency
-                        stringency[date][geo] = self.calc_stringency(X_costs,
-                                                                    prescribed_ips)
-
-                    # Once predictions are made for all geos, 
-                    # Create dataframe from prescriptions
-                    pres_df = pd.DataFrame(df_dict)
-                    pres_df = base.add_geo_id(pres_df)
-
-                    # Make batch predictions with prescriptions for all geos
-                    pred_df = self.get_predictions(
-                        self.eval_start_date.strftime("%Y-%m-%d"), date_str, pres_df)
-                    pred_df = base.add_geo_id(pred_df)
-
-                    # update each geo's bandit based on predictions
-                    for geo in eval_geos:
-                        bandit = self.bandits[weight][geo]
-                        geo_pres = pres_df[pres_df['GeoID'] == geo]
-                        geo_pred = pred_df[pred_df['GeoID'] == geo]
-
-                        new_pres = geo_pres[geo_pres['Date'] == date_str]
-                        new_pred = geo_pred[geo_pred['Date'] == date_str]
-
-                        # calculate reward before appending to df                    
-                        reward = eval_past_cases[geo][-1] / new_pred[PRED_CASES_COL].values[0]
-
-                        print(geo, reward)
-
-                        # Append predictions and prescriptions to past data
-                        self.append_pres_pred_to_df(eval_past_cases, eval_past_ips, geo,
-                                            new_pres, new_pred)
-
-
-                        #update bandit
-                        bandit.update(reward, stringency[date][geo], weight)
-
-                    print('Day ' + str(date) + ' done.')
-
-                print('Iteration ' + str(t) + ' done.')
-
-                for geo in eval_geos:
-                    self.bandits[weight][geo].clear_update_hist()
+            for date in pd.date_range(self.eval_start_date, self.eval_end_date):
+                date_str = date.strftime("%Y-%m-%d")
             
-            print('Weight ' + str(weight) + ' done.')
+                # Make prescriptions one day at a time, feeding resulting
+                # predictions from the predictor back into the prescriptor.
+
+                X_costs = geo_costs
+                self.bandit.observe(X_costs)
+                prescribed_ips = self.bandit.act() # gets prescriptions
+
+                # Add it to prescription dictionary
+                self.add_pres_to_dict(df_dict, date_str, geo, prescribed_ips)
+                
+                # Calculate stringency
+                stringency[date][geo] = self.calc_stringency(X_costs,
+                                                            prescribed_ips)
+
+                # Once predictions are made for all geos, 
+                # Create dataframe from prescriptions
+                pres_df = pd.DataFrame(df_dict)
+                pres_df = base.add_geo_id(pres_df)
+
+                # Make batch predictions with prescriptions for all geos
+                pred_df = self.get_predictions(
+                    self.eval_start_date.strftime("%Y-%m-%d"), date_str, pres_df)
+                pred_df = base.add_geo_id(pred_df)
+
+                # update each geo's bandit based on predictions
+                for geo in eval_geos:
+                    bandit = self.bandits[weight][geo]
+                    geo_pres = pres_df[pres_df['GeoID'] == geo]
+                    geo_pred = pred_df[pred_df['GeoID'] == geo]
+
+                    new_pres = geo_pres[geo_pres['Date'] == date_str]
+                    new_pred = geo_pred[geo_pred['Date'] == date_str]
+
+                    # calculate reward before appending to df                    
+                    reward = eval_past_cases[geo][-1] / new_pred[PRED_CASES_COL].values[0]
+
+                    print(geo, reward)
+
+                    # Append predictions and prescriptions to past data
+                    self.append_pres_pred_to_df(eval_past_cases, eval_past_ips, geo,
+                                        new_pres, new_pred)
+
+
+                    #update bandit
+                    bandit.update(reward, stringency[date][geo], weight)
+
+                print('Day ' + str(date) + ' done.')
+
+            print('Iteration ' + str(t) + ' done.')
+
+            for geo in eval_geos:
+                self.bandits[weight][geo].clear_update_hist()
+        
+        print('Weight ' + str(weight) + ' done.')
 
         return
 
@@ -424,6 +415,22 @@ class Bandit(BasePrescriptor):
             geo_costs[geo] = cost_arr
         return geo_costs
 
+    def prep_geo_costs_tensor(self, eval_geos, costs_provided=False, cost_df=None):
+        """
+        Prepares costs for each intervention (the "weights") for each GeoID.
+        Input: eval_geos, a list of GeoIDs for which costs are desired.
+        Output: geo_costs, a dict:
+            - each key is a GeoID
+            - each value is an array of size len(NPI_COLUMNS), so 12 usually,
+              which represents the stringency cost associated with each 
+              Non-Pharmaceutical Intervention (NPI). These values should sum to
+              12 (To be verified).
+        """
+        if costs_provided == False:
+            cost_df = base.generate_costs(self.hist_df, mode='random')
+            cost_df = base.add_geo_id(cost_df)
+
+        return torch.tensor(cost_df[NPI_COLUMNS].values)
 
     def prep_past_ips_cases(self, eval_geos):
         """
