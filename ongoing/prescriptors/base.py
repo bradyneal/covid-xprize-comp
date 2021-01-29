@@ -8,20 +8,20 @@ import time
 SEED = 0
 DEFAULT_TEST_COST = 'covid_xprize/validation/data/uniform_random_costs.csv'
 TEST_CONFIGS = [
-    ('Default', {'start_date': '2020-08-01', 'end_date': '2020-08-05', 'costs': DEFAULT_TEST_COST}),
-    ('Jan_Mar_EC_fast', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'equal', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
-    ('Jan_Mar_RC_fast', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
+    # ('Default', {'start_date': '2020-08-01', 'end_date': '2020-08-05', 'costs': DEFAULT_TEST_COST}),
+    # ('Jan_Mar_EC_fast', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'equal', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
+    # ('Jan_Mar_RC_fast', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
     ('EQUAL', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'equal'}),
     ('RANDOM1', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
     ('RANDOM2', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
     ('RANDOM3', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM4', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM5', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM6', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM7', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM8', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM9', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM10', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    ('RANDOM4', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    ('RANDOM5', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    ('RANDOM6', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    ('RANDOM7', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    ('RANDOM8', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    ('RANDOM9', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
+    ('RANDOM10', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
     # ('Jan_RC_NoDec_fast', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'train_end_date': '2020-11-30', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
 ]
 
@@ -407,9 +407,7 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
                 if last_known_date < pd.to_datetime(idx_df['Date'].min()) - np.timedelta64(1, 'D'):
                     # append prior NPIs to the prescripted ones because the predictor will need them
                     idx_df = idx_df.append(test_df[test_df['Date'] > last_known_date].drop(columns='GeoID'))
-                ip_file_path = 'prescriptions/prescription_{}.csv'.format(idx)
-                os.makedirs(os.path.dirname(ip_file_path), exist_ok=True)
-                idx_df.to_csv(ip_file_path)
+
                 pred_df = self.predictor.predict(start_date, end_date, idx_df)
                 pred_df['PrescriptionIndex'] = idx
                 pred_dfs.append(pred_df)
