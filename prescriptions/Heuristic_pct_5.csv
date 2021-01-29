@@ -1479,16 +1479,16 @@
 1477,Somalia,,7,9.897657566355743,6.21,Default
 1478,Somalia,,8,9.897657566355743,6.21,Default
 1479,Somalia,,9,9.813993596006432,10.49,Default
-1480,South Africa,,0,0.0,1.8799999999999997,Default
-1481,South Africa,,1,0.0,3.38,Default
-1482,South Africa,,2,0.0,3.38,Default
-1483,South Africa,,3,0.0,6.38,Default
-1484,South Africa,,4,0.0,6.38,Default
-1485,South Africa,,5,0.0,8.84,Default
-1486,South Africa,,6,0.0,8.84,Default
-1487,South Africa,,7,0.0,11.51,Default
-1488,South Africa,,8,0.0,11.51,Default
-1489,South Africa,,9,0.0,14.45,Default
+1480,South Africa,,0,13471.988328576259,1.8799999999999997,Default
+1481,South Africa,,1,13313.63345503143,3.38,Default
+1482,South Africa,,2,13313.63345503143,3.38,Default
+1483,South Africa,,3,13195.126640789345,6.38,Default
+1484,South Africa,,4,13195.126640789345,6.38,Default
+1485,South Africa,,5,12615.97105886696,8.84,Default
+1486,South Africa,,6,12615.97105886696,8.84,Default
+1487,South Africa,,7,12242.757902818938,11.51,Default
+1488,South Africa,,8,12242.757902818938,11.51,Default
+1489,South Africa,,9,12122.814739688825,14.45,Default
 1490,South Korea,,0,48.4096298797715,0.4,Default
 1491,South Korea,,1,47.959738078992494,1.04,Default
 1492,South Korea,,2,47.959738078992494,1.04,Default
@@ -1699,16 +1699,16 @@
 1697,United Arab Emirates,,7,444.50754671508366,6.23,Default
 1698,United Arab Emirates,,8,444.50754671508366,6.23,Default
 1699,United Arab Emirates,,9,441.9276761483541,9.049999999999999,Default
-1700,United Kingdom,England,0,1102.1854785769517,0.26,Default
-1701,United Kingdom,England,1,1090.2508137515517,2.1799999999999997,Default
-1702,United Kingdom,England,2,1090.2508137515517,2.1799999999999997,Default
-1703,United Kingdom,England,3,1080.0439969783952,3.2800000000000002,Default
-1704,United Kingdom,England,4,1080.0439969783952,3.2800000000000002,Default
-1705,United Kingdom,England,5,1059.8443884954575,5.5600000000000005,Default
-1706,United Kingdom,England,6,1059.8443884954575,5.5600000000000005,Default
-1707,United Kingdom,England,7,1046.4107352285068,9.24,Default
-1708,United Kingdom,England,8,1046.4107352285068,9.24,Default
-1709,United Kingdom,England,9,1037.614206770376,11.2,Default
+1700,United Kingdom,England,0,1101.567574367479,0.26,Default
+1701,United Kingdom,England,1,1089.6380639392241,2.1799999999999997,Default
+1702,United Kingdom,England,2,1089.6380639392241,2.1799999999999997,Default
+1703,United Kingdom,England,3,1079.4359624197848,3.2800000000000002,Default
+1704,United Kingdom,England,4,1079.4359624197848,3.2800000000000002,Default
+1705,United Kingdom,England,5,1059.245837540369,5.5600000000000005,Default
+1706,United Kingdom,England,6,1059.245837540369,5.5600000000000005,Default
+1707,United Kingdom,England,7,1045.8176827346683,9.24,Default
+1708,United Kingdom,England,8,1045.8176827346683,9.24,Default
+1709,United Kingdom,England,9,1037.025103169353,11.2,Default
 1710,United Kingdom,Northern Ireland,0,13.264658976817298,0.72,Default
 1711,United Kingdom,Northern Ireland,1,13.171004584138881,1.54,Default
 1712,United Kingdom,Northern Ireland,2,13.171004584138881,1.54,Default
@@ -1749,556 +1749,556 @@
 1747,United Kingdom,,7,1032.193728043169,7.68,Default
 1748,United Kingdom,,8,1032.193728043169,7.68,Default
 1749,United Kingdom,,9,1027.9479815581603,9.92,Default
-1750,United States,Alabama,0,0.0,0.12,Default
-1751,United States,Alabama,1,0.0,1.2000000000000002,Default
-1752,United States,Alabama,2,0.0,1.2000000000000002,Default
-1753,United States,Alabama,3,0.0,1.8000000000000003,Default
-1754,United States,Alabama,4,0.0,1.8000000000000003,Default
-1755,United States,Alabama,5,0.0,2.97,Default
-1756,United States,Alabama,6,0.0,2.97,Default
-1757,United States,Alabama,7,0.0,4.170000000000001,Default
-1758,United States,Alabama,8,0.0,4.170000000000001,Default
-1759,United States,Alabama,9,0.0,7.290000000000001,Default
-1760,United States,Alaska,0,0.0,0.42000000000000004,Default
-1761,United States,Alaska,1,0.0,2.46,Default
-1762,United States,Alaska,2,0.0,2.46,Default
-1763,United States,Alaska,3,0.0,4.41,Default
-1764,United States,Alaska,4,0.0,4.41,Default
-1765,United States,Alaska,5,0.0,5.890000000000001,Default
-1766,United States,Alaska,6,0.0,5.890000000000001,Default
-1767,United States,Alaska,7,0.0,9.41,Default
-1768,United States,Alaska,8,0.0,9.41,Default
-1769,United States,Alaska,9,0.0,12.379999999999999,Default
-1770,United States,Arizona,0,0.0,0.24,Default
-1771,United States,Arizona,1,0.0,1.8400000000000003,Default
-1772,United States,Arizona,2,0.0,1.8400000000000003,Default
-1773,United States,Arizona,3,0.0,2.7800000000000002,Default
-1774,United States,Arizona,4,0.0,2.7800000000000002,Default
-1775,United States,Arizona,5,0.0,4.58,Default
-1776,United States,Arizona,6,0.0,4.58,Default
-1777,United States,Arizona,7,0.0,6.02,Default
-1778,United States,Arizona,8,0.0,6.02,Default
-1779,United States,Arizona,9,0.0,7.68,Default
-1780,United States,Arkansas,0,0.0,0.44000000000000006,Default
-1781,United States,Arkansas,1,0.0,1.18,Default
-1782,United States,Arkansas,2,0.0,1.18,Default
-1783,United States,Arkansas,3,0.0,2.22,Default
-1784,United States,Arkansas,4,0.0,2.22,Default
-1785,United States,Arkansas,5,0.0,4.83,Default
-1786,United States,Arkansas,6,0.0,4.83,Default
-1787,United States,Arkansas,7,0.0,8.709999999999999,Default
-1788,United States,Arkansas,8,0.0,8.709999999999999,Default
-1789,United States,Arkansas,9,0.0,12.339999999999998,Default
-1790,United States,California,0,0.0,0.09,Default
-1791,United States,California,1,0.0,1.07,Default
-1792,United States,California,2,0.0,1.07,Default
-1793,United States,California,3,0.0,2.25,Default
-1794,United States,California,4,0.0,2.25,Default
-1795,United States,California,5,0.0,4.05,Default
-1796,United States,California,6,0.0,4.05,Default
-1797,United States,California,7,0.0,7.409999999999999,Default
-1798,United States,California,8,0.0,7.409999999999999,Default
-1799,United States,California,9,0.0,9.37,Default
-1800,United States,Colorado,0,0.0,0.9,Default
-1801,United States,Colorado,1,0.0,2.7,Default
-1802,United States,Colorado,2,0.0,2.7,Default
-1803,United States,Colorado,3,0.0,4.29,Default
-1804,United States,Colorado,4,0.0,4.29,Default
-1805,United States,Colorado,5,0.0,7.33,Default
-1806,United States,Colorado,6,0.0,7.33,Default
-1807,United States,Colorado,7,0.0,9.110000000000001,Default
-1808,United States,Colorado,8,0.0,9.110000000000001,Default
-1809,United States,Colorado,9,0.0,12.790000000000001,Default
-1810,United States,Connecticut,0,0.0,0.96,Default
-1811,United States,Connecticut,1,0.0,1.7,Default
-1812,United States,Connecticut,2,0.0,1.7,Default
-1813,United States,Connecticut,3,0.0,2.56,Default
-1814,United States,Connecticut,4,0.0,2.56,Default
-1815,United States,Connecticut,5,0.0,3.8,Default
-1816,United States,Connecticut,6,0.0,3.8,Default
-1817,United States,Connecticut,7,0.0,5.0600000000000005,Default
-1818,United States,Connecticut,8,0.0,5.0600000000000005,Default
-1819,United States,Connecticut,9,0.0,9.139999999999999,Default
-1820,United States,Delaware,0,0.0,0.56,Default
-1821,United States,Delaware,1,0.0,1.37,Default
-1822,United States,Delaware,2,0.0,1.37,Default
-1823,United States,Delaware,3,0.0,2.21,Default
-1824,United States,Delaware,4,0.0,2.21,Default
-1825,United States,Delaware,5,0.0,4.279999999999999,Default
-1826,United States,Delaware,6,0.0,4.279999999999999,Default
-1827,United States,Delaware,7,0.0,6.5,Default
-1828,United States,Delaware,8,0.0,6.5,Default
-1829,United States,Delaware,9,0.0,10.299999999999999,Default
-1830,United States,Florida,0,0.0,0.74,Default
-1831,United States,Florida,1,0.0,2.7,Default
-1832,United States,Florida,2,0.0,2.7,Default
-1833,United States,Florida,3,0.0,5.5,Default
-1834,United States,Florida,4,0.0,5.5,Default
-1835,United States,Florida,5,0.0,7.840000000000001,Default
-1836,United States,Florida,6,0.0,7.840000000000001,Default
-1837,United States,Florida,7,0.0,9.48,Default
-1838,United States,Florida,8,0.0,9.48,Default
-1839,United States,Florida,9,0.0,11.97,Default
-1840,United States,Georgia,0,0.0,1.08,Default
-1841,United States,Georgia,1,0.0,1.8400000000000003,Default
-1842,United States,Georgia,2,0.0,1.8400000000000003,Default
-1843,United States,Georgia,3,0.0,3.25,Default
-1844,United States,Georgia,4,0.0,3.25,Default
-1845,United States,Georgia,5,0.0,5.57,Default
-1846,United States,Georgia,6,0.0,5.57,Default
-1847,United States,Georgia,7,0.0,6.8100000000000005,Default
-1848,United States,Georgia,8,0.0,6.8100000000000005,Default
-1849,United States,Georgia,9,0.0,8.77,Default
-1850,United States,Hawaii,0,0.0,0.72,Default
-1851,United States,Hawaii,1,0.0,2.48,Default
-1852,United States,Hawaii,2,0.0,2.48,Default
-1853,United States,Hawaii,3,0.0,3.8299999999999996,Default
-1854,United States,Hawaii,4,0.0,3.8299999999999996,Default
-1855,United States,Hawaii,5,0.0,5.07,Default
-1856,United States,Hawaii,6,0.0,5.07,Default
-1857,United States,Hawaii,7,0.0,8.19,Default
-1858,United States,Hawaii,8,0.0,8.19,Default
-1859,United States,Hawaii,9,0.0,9.790000000000001,Default
-1860,United States,Idaho,0,0.0,0.32,Default
-1861,United States,Idaho,1,0.0,1.28,Default
-1862,United States,Idaho,2,0.0,1.28,Default
-1863,United States,Idaho,3,0.0,2.27,Default
-1864,United States,Idaho,4,0.0,2.27,Default
-1865,United States,Idaho,5,0.0,3.71,Default
-1866,United States,Idaho,6,0.0,3.71,Default
-1867,United States,Idaho,7,0.0,4.6899999999999995,Default
-1868,United States,Idaho,8,0.0,4.6899999999999995,Default
-1869,United States,Idaho,9,0.0,5.970000000000001,Default
-1870,United States,Illinois,0,0.0,0.1,Default
-1871,United States,Illinois,1,0.0,0.38,Default
-1872,United States,Illinois,2,0.0,0.38,Default
-1873,United States,Illinois,3,0.0,0.9800000000000001,Default
-1874,United States,Illinois,4,0.0,0.9800000000000001,Default
-1875,United States,Illinois,5,0.0,2.18,Default
-1876,United States,Illinois,6,0.0,2.18,Default
-1877,United States,Illinois,7,0.0,3.3800000000000003,Default
-1878,United States,Illinois,8,0.0,3.3800000000000003,Default
-1879,United States,Illinois,9,0.0,6.140000000000001,Default
-1880,United States,Indiana,0,0.0,1.24,Default
-1881,United States,Indiana,1,0.0,3.84,Default
-1882,United States,Indiana,2,0.0,1.24,Default
-1883,United States,Indiana,3,0.0,3.84,Default
-1884,United States,Indiana,4,0.0,3.84,Default
-1885,United States,Indiana,5,0.0,5.239999999999999,Default
-1886,United States,Indiana,6,0.0,5.239999999999999,Default
-1887,United States,Indiana,7,0.0,8.03,Default
-1888,United States,Indiana,8,0.0,8.03,Default
-1889,United States,Indiana,9,0.0,11.91,Default
-1890,United States,Iowa,0,0.0,0.12,Default
-1891,United States,Iowa,1,0.0,0.44000000000000006,Default
-1892,United States,Iowa,2,0.0,0.44000000000000006,Default
-1893,United States,Iowa,3,0.0,1.8799999999999997,Default
-1894,United States,Iowa,4,0.0,1.8799999999999997,Default
-1895,United States,Iowa,5,0.0,2.7199999999999998,Default
-1896,United States,Iowa,6,0.0,2.7199999999999998,Default
-1897,United States,Iowa,7,0.0,4.039999999999999,Default
-1898,United States,Iowa,8,0.0,4.039999999999999,Default
-1899,United States,Iowa,9,0.0,5.54,Default
-1900,United States,Kansas,0,0.0,0.72,Default
-1901,United States,Kansas,1,0.0,1.4,Default
-1902,United States,Kansas,2,0.0,1.4,Default
-1903,United States,Kansas,3,0.0,3.7600000000000002,Default
-1904,United States,Kansas,4,0.0,3.7600000000000002,Default
-1905,United States,Kansas,5,0.0,4.959999999999999,Default
-1906,United States,Kansas,6,0.0,4.959999999999999,Default
-1907,United States,Kansas,7,0.0,7.4399999999999995,Default
-1908,United States,Kansas,8,0.0,7.4399999999999995,Default
-1909,United States,Kansas,9,0.0,10.29,Default
-1910,United States,Kentucky,0,0.0,0.34,Default
-1911,United States,Kentucky,1,0.0,2.44,Default
-1912,United States,Kentucky,2,0.0,2.44,Default
-1913,United States,Kentucky,3,0.0,2.44,Default
-1914,United States,Kentucky,4,0.0,2.44,Default
-1915,United States,Kentucky,5,0.0,3.6399999999999997,Default
-1916,United States,Kentucky,6,0.0,3.6399999999999997,Default
-1917,United States,Kentucky,7,0.0,5.890000000000001,Default
-1918,United States,Kentucky,8,0.0,5.890000000000001,Default
-1919,United States,Kentucky,9,0.0,7.63,Default
-1920,United States,Louisiana,0,0.0,0.15,Default
-1921,United States,Louisiana,1,0.0,0.15,Default
-1922,United States,Louisiana,2,0.0,0.15,Default
-1923,United States,Louisiana,3,0.0,0.89,Default
-1924,United States,Louisiana,4,0.0,0.89,Default
-1925,United States,Louisiana,5,0.0,1.7100000000000002,Default
-1926,United States,Louisiana,6,0.0,1.7100000000000002,Default
-1927,United States,Louisiana,7,0.0,4.02,Default
-1928,United States,Louisiana,8,0.0,4.02,Default
-1929,United States,Louisiana,9,0.0,6.14,Default
-1930,United States,Maine,0,0.0,0.8699999999999999,Default
-1931,United States,Maine,1,0.0,2.23,Default
-1932,United States,Maine,2,0.0,2.23,Default
-1933,United States,Maine,3,0.0,2.99,Default
-1934,United States,Maine,4,0.0,2.99,Default
-1935,United States,Maine,5,0.0,4.37,Default
-1936,United States,Maine,6,0.0,4.37,Default
-1937,United States,Maine,7,0.0,6.590000000000001,Default
-1938,United States,Maine,8,0.0,6.590000000000001,Default
-1939,United States,Maine,9,0.0,8.31,Default
-1940,United States,Maryland,0,0.0,1.44,Default
-1941,United States,Maryland,1,0.0,2.62,Default
-1942,United States,Maryland,2,0.0,2.62,Default
-1943,United States,Maryland,3,0.0,5.74,Default
-1944,United States,Maryland,4,0.0,5.74,Default
-1945,United States,Maryland,5,0.0,7.360000000000001,Default
-1946,United States,Maryland,6,0.0,7.360000000000001,Default
-1947,United States,Maryland,7,0.0,9.85,Default
-1948,United States,Maryland,8,0.0,9.85,Default
-1949,United States,Maryland,9,0.0,11.87,Default
-1950,United States,Massachusetts,0,0.0,0.8,Default
-1951,United States,Massachusetts,1,0.0,1.8199999999999998,Default
-1952,United States,Massachusetts,2,0.0,1.8199999999999998,Default
-1953,United States,Massachusetts,3,0.0,3.4200000000000004,Default
-1954,United States,Massachusetts,4,0.0,3.4200000000000004,Default
-1955,United States,Massachusetts,5,0.0,5.540000000000001,Default
-1956,United States,Massachusetts,6,0.0,5.540000000000001,Default
-1957,United States,Massachusetts,7,0.0,6.6800000000000015,Default
-1958,United States,Massachusetts,8,0.0,6.6800000000000015,Default
-1959,United States,Massachusetts,9,0.0,7.9799999999999995,Default
-1960,United States,Michigan,0,0.0,0.06,Default
-1961,United States,Michigan,1,0.0,1.53,Default
-1962,United States,Michigan,2,0.0,1.53,Default
-1963,United States,Michigan,3,0.0,2.55,Default
-1964,United States,Michigan,4,0.0,2.55,Default
-1965,United States,Michigan,5,0.0,3.9899999999999998,Default
-1966,United States,Michigan,6,0.0,3.9899999999999998,Default
-1967,United States,Michigan,7,0.0,7.3100000000000005,Default
-1968,United States,Michigan,8,0.0,7.3100000000000005,Default
-1969,United States,Michigan,9,0.0,11.629999999999999,Default
-1970,United States,Minnesota,0,0.0,0.08,Default
-1971,United States,Minnesota,1,0.0,0.28,Default
-1972,United States,Minnesota,2,0.0,0.28,Default
-1973,United States,Minnesota,3,0.0,1.98,Default
-1974,United States,Minnesota,4,0.0,1.98,Default
-1975,United States,Minnesota,5,0.0,3.7,Default
-1976,United States,Minnesota,6,0.0,3.7,Default
-1977,United States,Minnesota,7,0.0,6.34,Default
-1978,United States,Minnesota,8,0.0,6.34,Default
-1979,United States,Minnesota,9,0.0,10.58,Default
-1980,United States,Mississippi,0,0.0,0.44000000000000006,Default
-1981,United States,Mississippi,1,0.0,1.72,Default
-1982,United States,Mississippi,2,0.0,1.72,Default
-1983,United States,Mississippi,3,0.0,2.98,Default
-1984,United States,Mississippi,4,0.0,2.98,Default
-1985,United States,Mississippi,5,0.0,3.9800000000000004,Default
-1986,United States,Mississippi,6,0.0,3.9800000000000004,Default
-1987,United States,Mississippi,7,0.0,6.220000000000001,Default
-1988,United States,Mississippi,8,0.0,6.220000000000001,Default
-1989,United States,Mississippi,9,0.0,8.620000000000001,Default
-1990,United States,Missouri,0,0.0,0.78,Default
-1991,United States,Missouri,1,0.0,1.94,Default
-1992,United States,Missouri,2,0.0,1.94,Default
-1993,United States,Missouri,3,0.0,3.16,Default
-1994,United States,Missouri,4,0.0,3.16,Default
-1995,United States,Missouri,5,0.0,5.72,Default
-1996,United States,Missouri,6,0.0,5.72,Default
-1997,United States,Missouri,7,0.0,8.36,Default
-1998,United States,Missouri,8,0.0,8.36,Default
-1999,United States,Missouri,9,0.0,14.84,Default
-2000,United States,Montana,0,0.0,0.06,Default
-2001,United States,Montana,1,0.0,0.8600000000000001,Default
-2002,United States,Montana,2,0.0,0.8600000000000001,Default
-2003,United States,Montana,3,0.0,2.5700000000000003,Default
-2004,United States,Montana,4,0.0,2.5700000000000003,Default
-2005,United States,Montana,5,0.0,4.29,Default
-2006,United States,Montana,6,0.0,4.29,Default
-2007,United States,Montana,7,0.0,7.769999999999999,Default
-2008,United States,Montana,8,0.0,7.769999999999999,Default
-2009,United States,Montana,9,0.0,9.670000000000002,Default
-2010,United States,Nebraska,0,0.0,0.0,Default
-2011,United States,Nebraska,1,0.0,0.96,Default
-2012,United States,Nebraska,2,0.0,0.96,Default
-2013,United States,Nebraska,3,0.0,1.77,Default
-2014,United States,Nebraska,4,0.0,1.77,Default
-2015,United States,Nebraska,5,0.0,4.29,Default
-2016,United States,Nebraska,6,0.0,4.29,Default
-2017,United States,Nebraska,7,0.0,5.91,Default
-2018,United States,Nebraska,8,0.0,5.91,Default
-2019,United States,Nebraska,9,0.0,7.630000000000001,Default
-2020,United States,Nevada,0,0.0,0.72,Default
-2021,United States,Nevada,1,0.0,1.53,Default
-2022,United States,Nevada,2,0.0,1.53,Default
-2023,United States,Nevada,3,0.0,2.79,Default
-2024,United States,Nevada,4,0.0,2.79,Default
-2025,United States,Nevada,5,0.0,3.71,Default
-2026,United States,Nevada,6,0.0,3.71,Default
-2027,United States,Nevada,7,0.0,6.470000000000001,Default
-2028,United States,Nevada,8,0.0,6.470000000000001,Default
-2029,United States,Nevada,9,0.0,8.01,Default
-2030,United States,New Hampshire,0,0.0,0.36,Default
-2031,United States,New Hampshire,1,0.0,1.38,Default
-2032,United States,New Hampshire,2,0.0,1.38,Default
-2033,United States,New Hampshire,3,0.0,3.2700000000000005,Default
-2034,United States,New Hampshire,4,0.0,3.2700000000000005,Default
-2035,United States,New Hampshire,5,0.0,6.19,Default
-2036,United States,New Hampshire,6,0.0,6.19,Default
-2037,United States,New Hampshire,7,0.0,7.69,Default
-2038,United States,New Hampshire,8,0.0,7.69,Default
-2039,United States,New Hampshire,9,0.0,10.479999999999999,Default
-2040,United States,New Jersey,0,0.0,0.03,Default
-2041,United States,New Jersey,1,0.0,1.35,Default
-2042,United States,New Jersey,2,0.0,1.35,Default
-2043,United States,New Jersey,3,0.0,3.3899999999999997,Default
-2044,United States,New Jersey,4,0.0,3.3899999999999997,Default
-2045,United States,New Jersey,5,0.0,7.07,Default
-2046,United States,New Jersey,6,0.0,7.07,Default
-2047,United States,New Jersey,7,0.0,9.09,Default
-2048,United States,New Jersey,8,0.0,9.09,Default
-2049,United States,New Jersey,9,0.0,15.270000000000001,Default
-2050,United States,New Mexico,0,0.0,0.0,Default
-2051,United States,New Mexico,1,0.0,0.24,Default
-2052,United States,New Mexico,2,0.0,0.24,Default
-2053,United States,New Mexico,3,0.0,0.8400000000000001,Default
-2054,United States,New Mexico,4,0.0,0.8400000000000001,Default
-2055,United States,New Mexico,5,0.0,2.67,Default
-2056,United States,New Mexico,6,0.0,2.67,Default
-2057,United States,New Mexico,7,0.0,5.15,Default
-2058,United States,New Mexico,8,0.0,5.15,Default
-2059,United States,New Mexico,9,0.0,7.67,Default
-2060,United States,New York,0,0.0,0.22000000000000003,Default
-2061,United States,New York,1,0.0,0.78,Default
-2062,United States,New York,2,0.0,0.78,Default
-2063,United States,New York,3,0.0,1.54,Default
-2064,United States,New York,4,0.0,1.54,Default
-2065,United States,New York,5,0.0,2.1,Default
-2066,United States,New York,6,0.0,2.1,Default
-2067,United States,New York,7,0.0,3.56,Default
-2068,United States,New York,8,0.0,3.56,Default
-2069,United States,New York,9,0.0,6.529999999999999,Default
-2070,United States,North Carolina,0,0.0,0.24,Default
-2071,United States,North Carolina,1,0.0,0.38,Default
-2072,United States,North Carolina,2,0.0,0.38,Default
-2073,United States,North Carolina,3,0.0,1.3399999999999999,Default
-2074,United States,North Carolina,4,0.0,1.3399999999999999,Default
-2075,United States,North Carolina,5,0.0,2.48,Default
-2076,United States,North Carolina,6,0.0,2.48,Default
-2077,United States,North Carolina,7,0.0,5.08,Default
-2078,United States,North Carolina,8,0.0,5.08,Default
-2079,United States,North Carolina,9,0.0,9.28,Default
-2080,United States,North Dakota,0,0.0,0.2,Default
-2081,United States,North Dakota,1,0.0,0.38,Default
-2082,United States,North Dakota,2,0.0,0.38,Default
-2083,United States,North Dakota,3,0.0,0.8400000000000001,Default
-2084,United States,North Dakota,4,0.0,0.8400000000000001,Default
-2085,United States,North Dakota,5,0.0,2.3600000000000003,Default
-2086,United States,North Dakota,6,0.0,2.3600000000000003,Default
-2087,United States,North Dakota,7,0.0,3.65,Default
-2088,United States,North Dakota,8,0.0,3.65,Default
-2089,United States,North Dakota,9,0.0,4.6899999999999995,Default
-2090,United States,Ohio,0,0.0,0.18,Default
-2091,United States,Ohio,1,0.0,1.14,Default
-2092,United States,Ohio,2,0.0,1.14,Default
-2093,United States,Ohio,3,0.0,1.8599999999999999,Default
-2094,United States,Ohio,4,0.0,1.8599999999999999,Default
-2095,United States,Ohio,5,0.0,2.84,Default
-2096,United States,Ohio,6,0.0,2.84,Default
-2097,United States,Ohio,7,0.0,5.359999999999999,Default
-2098,United States,Ohio,8,0.0,5.359999999999999,Default
-2099,United States,Ohio,9,0.0,9.48,Default
-2100,United States,Oklahoma,0,0.0,0.9200000000000002,Default
-2101,United States,Oklahoma,1,0.0,2.54,Default
-2102,United States,Oklahoma,2,0.0,2.54,Default
-2103,United States,Oklahoma,3,0.0,4.78,Default
-2104,United States,Oklahoma,4,0.0,4.78,Default
-2105,United States,Oklahoma,5,0.0,6.16,Default
-2106,United States,Oklahoma,6,0.0,6.16,Default
-2107,United States,Oklahoma,7,0.0,9.24,Default
-2108,United States,Oklahoma,8,0.0,9.24,Default
-2109,United States,Oklahoma,9,0.0,13.320000000000002,Default
-2110,United States,Oregon,0,0.0,0.02,Default
-2111,United States,Oregon,1,0.0,1.0699999999999998,Default
-2112,United States,Oregon,2,0.0,1.0699999999999998,Default
-2113,United States,Oregon,3,0.0,2.01,Default
-2114,United States,Oregon,4,0.0,2.01,Default
-2115,United States,Oregon,5,0.0,3.4799999999999995,Default
-2116,United States,Oregon,6,0.0,3.4799999999999995,Default
-2117,United States,Oregon,7,0.0,6.079999999999999,Default
-2118,United States,Oregon,8,0.0,6.079999999999999,Default
-2119,United States,Oregon,9,0.0,8.88,Default
-2120,United States,Pennsylvania,0,0.0,0.12,Default
-2121,United States,Pennsylvania,1,0.0,0.8400000000000001,Default
-2122,United States,Pennsylvania,2,0.0,0.8400000000000001,Default
-2123,United States,Pennsylvania,3,0.0,1.42,Default
-2124,United States,Pennsylvania,4,0.0,1.42,Default
-2125,United States,Pennsylvania,5,0.0,2.2,Default
-2126,United States,Pennsylvania,6,0.0,2.2,Default
-2127,United States,Pennsylvania,7,0.0,4.08,Default
-2128,United States,Pennsylvania,8,0.0,4.08,Default
-2129,United States,Pennsylvania,9,0.0,5.819999999999999,Default
-2130,United States,Rhode Island,0,0.0,0.0,Default
-2131,United States,Rhode Island,1,0.0,0.68,Default
-2132,United States,Rhode Island,2,0.0,0.68,Default
-2133,United States,Rhode Island,3,0.0,1.73,Default
-2134,United States,Rhode Island,4,0.0,1.73,Default
-2135,United States,Rhode Island,5,0.0,3.35,Default
-2136,United States,Rhode Island,6,0.0,3.35,Default
-2137,United States,Rhode Island,7,0.0,4.51,Default
-2138,United States,Rhode Island,8,0.0,4.51,Default
-2139,United States,Rhode Island,9,0.0,7.029999999999999,Default
-2140,United States,South Carolina,0,0.0,0.48,Default
-2141,United States,South Carolina,1,0.0,0.74,Default
-2142,United States,South Carolina,2,0.0,0.74,Default
-2143,United States,South Carolina,3,0.0,2.1399999999999997,Default
-2144,United States,South Carolina,4,0.0,2.1399999999999997,Default
-2145,United States,South Carolina,5,0.0,3.22,Default
-2146,United States,South Carolina,6,0.0,3.22,Default
-2147,United States,South Carolina,7,0.0,6.460000000000001,Default
-2148,United States,South Carolina,8,0.0,6.460000000000001,Default
-2149,United States,South Carolina,9,0.0,9.25,Default
-2150,United States,South Dakota,0,0.0,0.09,Default
-2151,United States,South Dakota,1,0.0,0.57,Default
-2152,United States,South Dakota,2,0.0,0.57,Default
-2153,United States,South Dakota,3,0.0,1.4699999999999998,Default
-2154,United States,South Dakota,4,0.0,1.4699999999999998,Default
-2155,United States,South Dakota,5,0.0,3.06,Default
-2156,United States,South Dakota,6,0.0,3.06,Default
-2157,United States,South Dakota,7,0.0,4.18,Default
-2158,United States,South Dakota,8,0.0,4.18,Default
-2159,United States,South Dakota,9,0.0,5.4799999999999995,Default
-2160,United States,Tennessee,0,0.0,0.04,Default
-2161,United States,Tennessee,1,0.0,0.2,Default
-2162,United States,Tennessee,2,0.0,0.2,Default
-2163,United States,Tennessee,3,0.0,1.0699999999999998,Default
-2164,United States,Tennessee,4,0.0,1.0699999999999998,Default
-2165,United States,Tennessee,5,0.0,1.8099999999999998,Default
-2166,United States,Tennessee,6,0.0,1.8099999999999998,Default
-2167,United States,Tennessee,7,0.0,3.91,Default
-2168,United States,Tennessee,8,0.0,3.91,Default
-2169,United States,Tennessee,9,0.0,5.95,Default
-2170,United States,Texas,0,0.0,0.22000000000000003,Default
-2171,United States,Texas,1,0.0,0.97,Default
-2172,United States,Texas,2,0.0,0.97,Default
-2173,United States,Texas,3,0.0,2.8000000000000003,Default
-2174,United States,Texas,4,0.0,2.8000000000000003,Default
-2175,United States,Texas,5,0.0,4.42,Default
-2176,United States,Texas,6,0.0,4.42,Default
-2177,United States,Texas,7,0.0,7.980000000000001,Default
-2178,United States,Texas,8,0.0,7.980000000000001,Default
-2179,United States,Texas,9,0.0,11.82,Default
-2180,United States,Utah,0,0.0,0.45,Default
-2181,United States,Utah,1,0.0,1.73,Default
-2182,United States,Utah,2,0.0,1.73,Default
-2183,United States,Utah,3,0.0,3.0300000000000002,Default
-2184,United States,Utah,4,0.0,3.0300000000000002,Default
-2185,United States,Utah,5,0.0,4.41,Default
-2186,United States,Utah,6,0.0,4.41,Default
-2187,United States,Utah,7,0.0,6.6,Default
-2188,United States,Utah,8,0.0,6.6,Default
-2189,United States,Utah,9,0.0,11.08,Default
-2190,United States,Vermont,0,0.0,0.0,Default
-2191,United States,Vermont,1,0.0,0.56,Default
-2192,United States,Vermont,2,0.0,0.56,Default
-2193,United States,Vermont,3,0.0,1.2200000000000002,Default
-2194,United States,Vermont,4,0.0,1.2200000000000002,Default
-2195,United States,Vermont,5,0.0,2.0200000000000005,Default
-2196,United States,Vermont,6,0.0,2.0200000000000005,Default
-2197,United States,Vermont,7,0.0,3.9400000000000004,Default
-2198,United States,Vermont,8,0.0,3.9400000000000004,Default
-2199,United States,Vermont,9,0.0,5.89,Default
-2200,United States,Virgin Islands,0,0.0,0.22000000000000003,Default
-2201,United States,Virgin Islands,1,0.0,0.7,Default
-2202,United States,Virgin Islands,2,0.0,0.7,Default
-2203,United States,Virgin Islands,3,0.0,2.46,Default
-2204,United States,Virgin Islands,4,0.0,2.46,Default
-2205,United States,Virgin Islands,5,0.0,3.62,Default
-2206,United States,Virgin Islands,6,0.0,3.62,Default
-2207,United States,Virgin Islands,7,0.0,6.34,Default
-2208,United States,Virgin Islands,8,0.0,6.34,Default
-2209,United States,Virgin Islands,9,0.0,8.59,Default
-2210,United States,Virginia,0,0.0,1.08,Default
-2211,United States,Virginia,1,0.0,3.7800000000000002,Default
-2212,United States,Virginia,2,0.0,3.7800000000000002,Default
-2213,United States,Virginia,3,0.0,3.7800000000000002,Default
-2214,United States,Virginia,4,0.0,3.7800000000000002,Default
-2215,United States,Virginia,5,0.0,6.260000000000001,Default
-2216,United States,Virginia,6,0.0,6.260000000000001,Default
-2217,United States,Virginia,7,0.0,8.32,Default
-2218,United States,Virginia,8,0.0,8.32,Default
-2219,United States,Virginia,9,0.0,11.59,Default
-2220,United States,Washington,0,0.0,0.12,Default
-2221,United States,Washington,1,0.0,0.48,Default
-2222,United States,Washington,2,0.0,0.48,Default
-2223,United States,Washington,3,0.0,1.12,Default
-2224,United States,Washington,4,0.0,1.12,Default
-2225,United States,Washington,5,0.0,3.6399999999999997,Default
-2226,United States,Washington,6,0.0,3.6399999999999997,Default
-2227,United States,Washington,7,0.0,6.25,Default
-2228,United States,Washington,8,0.0,6.25,Default
-2229,United States,Washington,9,0.0,8.129999999999999,Default
-2230,United States,Washington DC,0,0.0,0.8400000000000001,Default
-2231,United States,Washington DC,1,0.0,1.78,Default
-2232,United States,Washington DC,2,0.0,1.78,Default
-2233,United States,Washington DC,3,0.0,2.8200000000000003,Default
-2234,United States,Washington DC,4,0.0,2.8200000000000003,Default
-2235,United States,Washington DC,5,0.0,5.140000000000001,Default
-2236,United States,Washington DC,6,0.0,5.140000000000001,Default
-2237,United States,Washington DC,7,0.0,7.0600000000000005,Default
-2238,United States,Washington DC,8,0.0,7.0600000000000005,Default
-2239,United States,Washington DC,9,0.0,8.58,Default
-2240,United States,West Virginia,0,0.0,1.3800000000000001,Default
-2241,United States,West Virginia,1,0.0,2.3600000000000003,Default
-2242,United States,West Virginia,2,0.0,2.3600000000000003,Default
-2243,United States,West Virginia,3,0.0,4.640000000000001,Default
-2244,United States,West Virginia,4,0.0,4.640000000000001,Default
-2245,United States,West Virginia,5,0.0,5.9399999999999995,Default
-2246,United States,West Virginia,6,0.0,5.9399999999999995,Default
-2247,United States,West Virginia,7,0.0,7.8199999999999985,Default
-2248,United States,West Virginia,8,0.0,7.8199999999999985,Default
-2249,United States,West Virginia,9,0.0,11.9,Default
-2250,United States,Wisconsin,0,0.0,0.6000000000000001,Default
-2251,United States,Wisconsin,1,0.0,1.9200000000000004,Default
-2252,United States,Wisconsin,2,0.0,1.9200000000000004,Default
-2253,United States,Wisconsin,3,0.0,3.21,Default
-2254,United States,Wisconsin,4,0.0,3.21,Default
-2255,United States,Wisconsin,5,0.0,5.890000000000001,Default
-2256,United States,Wisconsin,6,0.0,5.890000000000001,Default
-2257,United States,Wisconsin,7,0.0,7.409999999999999,Default
-2258,United States,Wisconsin,8,0.0,7.409999999999999,Default
-2259,United States,Wisconsin,9,0.0,9.07,Default
-2260,United States,Wyoming,0,0.0,0.1,Default
-2261,United States,Wyoming,1,0.0,0.5499999999999999,Default
-2262,United States,Wyoming,2,0.0,0.5499999999999999,Default
-2263,United States,Wyoming,3,0.0,1.5699999999999998,Default
-2264,United States,Wyoming,4,0.0,1.5699999999999998,Default
-2265,United States,Wyoming,5,0.0,2.9699999999999998,Default
-2266,United States,Wyoming,6,0.0,2.9699999999999998,Default
-2267,United States,Wyoming,7,0.0,5.579999999999998,Default
-2268,United States,Wyoming,8,0.0,5.579999999999998,Default
-2269,United States,Wyoming,9,0.0,8.04,Default
-2270,United States,,0,0.0,1.02,Default
-2271,United States,,1,0.0,3.14,Default
-2272,United States,,2,0.0,3.14,Default
-2273,United States,,3,0.0,5.09,Default
-2274,United States,,4,0.0,5.09,Default
-2275,United States,,5,0.0,7.1,Default
-2276,United States,,6,0.0,7.1,Default
-2277,United States,,7,0.0,9.98,Default
-2278,United States,,8,0.0,9.98,Default
-2279,United States,,9,0.0,11.560000000000002,Default
-2280,Uruguay,,0,,0.0,Default
-2281,Uruguay,,1,,0.0,Default
-2282,Uruguay,,2,,0.0,Default
-2283,Uruguay,,3,,0.0,Default
-2284,Uruguay,,4,,0.0,Default
-2285,Uruguay,,5,,0.0,Default
-2286,Uruguay,,6,,0.0,Default
-2287,Uruguay,,7,,0.0,Default
-2288,Uruguay,,8,,0.0,Default
-2289,Uruguay,,9,,0.0,Default
-2290,Uzbekistan,,0,0.0,1.83,Default
-2291,Uzbekistan,,1,0.0,4.51,Default
-2292,Uzbekistan,,2,0.0,4.51,Default
-2293,Uzbekistan,,3,0.0,4.51,Default
-2294,Uzbekistan,,4,0.0,4.51,Default
-2295,Uzbekistan,,5,0.0,5.99,Default
-2296,Uzbekistan,,6,0.0,5.99,Default
-2297,Uzbekistan,,7,0.0,8.99,Default
-2298,Uzbekistan,,8,0.0,8.99,Default
-2299,Uzbekistan,,9,0.0,11.780000000000001,Default
+1750,United States,Alabama,0,2157.3470020633217,0.12,Default
+1751,United States,Alabama,1,2111.1878771866177,1.2000000000000002,Default
+1752,United States,Alabama,2,2111.1878771866177,1.2000000000000002,Default
+1753,United States,Alabama,3,2082.6841040323575,1.8000000000000003,Default
+1754,United States,Alabama,4,2082.6841040323575,1.8000000000000003,Default
+1755,United States,Alabama,5,2045.2155174649597,2.97,Default
+1756,United States,Alabama,6,2045.2155174649597,2.97,Default
+1757,United States,Alabama,7,1962.359399834193,4.170000000000001,Default
+1758,United States,Alabama,8,1962.359399834193,4.170000000000001,Default
+1759,United States,Alabama,9,1952.1337497740265,7.290000000000001,Default
+1760,United States,Alaska,0,225.03355353548574,0.42000000000000004,Default
+1761,United States,Alaska,1,220.4832848435728,2.46,Default
+1762,United States,Alaska,2,220.4832848435728,2.46,Default
+1763,United States,Alaska,3,216.12821508239153,4.41,Default
+1764,United States,Alaska,4,216.12821508239153,4.41,Default
+1765,United States,Alaska,5,214.1180467182259,5.890000000000001,Default
+1766,United States,Alaska,6,214.1180467182259,5.890000000000001,Default
+1767,United States,Alaska,7,211.73160241213571,9.41,Default
+1768,United States,Alaska,8,211.73160241213571,9.41,Default
+1769,United States,Alaska,9,210.6763121826285,12.379999999999999,Default
+1770,United States,Arizona,0,3142.6775297697377,0.24,Default
+1771,United States,Arizona,1,3107.1803082087217,1.8400000000000003,Default
+1772,United States,Arizona,2,3107.1803082087217,1.8400000000000003,Default
+1773,United States,Arizona,3,3061.9117930720818,2.7800000000000002,Default
+1774,United States,Arizona,4,3061.9117930720818,2.7800000000000002,Default
+1775,United States,Arizona,5,3035.410658628938,4.58,Default
+1776,United States,Arizona,6,3035.410658628938,4.58,Default
+1777,United States,Arizona,7,3016.380105256576,6.02,Default
+1778,United States,Arizona,8,3016.380105256576,6.02,Default
+1779,United States,Arizona,9,3004.058629026923,7.68,Default
+1780,United States,Arkansas,0,1058.3622621569662,0.44000000000000006,Default
+1781,United States,Arkansas,1,1040.6042255060195,1.18,Default
+1782,United States,Arkansas,2,1040.6042255060195,1.18,Default
+1783,United States,Arkansas,3,1031.924572517984,2.22,Default
+1784,United States,Arkansas,4,1031.924572517984,2.22,Default
+1785,United States,Arkansas,5,1022.6802751520711,4.83,Default
+1786,United States,Arkansas,6,1022.6802751520711,4.83,Default
+1787,United States,Arkansas,7,1006.4521239109811,8.709999999999999,Default
+1788,United States,Arkansas,8,1006.4521239109811,8.709999999999999,Default
+1789,United States,Arkansas,9,992.8999617922327,12.339999999999998,Default
+1790,United States,California,0,12128.555195286182,0.09,Default
+1791,United States,California,1,12060.65800222471,1.07,Default
+1792,United States,California,2,12060.65800222471,1.07,Default
+1793,United States,California,3,11912.52563043123,2.25,Default
+1794,United States,California,4,11912.52563043123,2.25,Default
+1795,United States,California,5,11731.401560933715,4.05,Default
+1796,United States,California,6,11731.401560933715,4.05,Default
+1797,United States,California,7,11660.94155826257,7.409999999999999,Default
+1798,United States,California,8,11660.94155826257,7.409999999999999,Default
+1799,United States,California,9,11604.660766614312,9.37,Default
+1800,United States,Colorado,0,807.4158498365018,0.9,Default
+1801,United States,Colorado,1,799.7653788056109,2.7,Default
+1802,United States,Colorado,2,799.7653788056109,2.7,Default
+1803,United States,Colorado,3,792.319419987155,4.29,Default
+1804,United States,Colorado,4,792.319419987155,4.29,Default
+1805,United States,Colorado,5,782.2718210681294,7.33,Default
+1806,United States,Colorado,6,782.2718210681294,7.33,Default
+1807,United States,Colorado,7,776.4037502783775,9.110000000000001,Default
+1808,United States,Colorado,8,776.4037502783775,9.110000000000001,Default
+1809,United States,Colorado,9,768.7181756559143,12.790000000000001,Default
+1810,United States,Connecticut,0,250.24000099241385,0.96,Default
+1811,United States,Connecticut,1,246.7380988761301,1.7,Default
+1812,United States,Connecticut,2,246.7380988761301,1.7,Default
+1813,United States,Connecticut,3,245.02277495940947,2.56,Default
+1814,United States,Connecticut,4,245.02277495940947,2.56,Default
+1815,United States,Connecticut,5,243.4615432651446,3.8,Default
+1816,United States,Connecticut,6,243.4615432651446,3.8,Default
+1817,United States,Connecticut,7,241.40367132054195,5.0600000000000005,Default
+1818,United States,Connecticut,8,241.40367132054195,5.0600000000000005,Default
+1819,United States,Connecticut,9,239.16922645378372,9.139999999999999,Default
+1820,United States,Delaware,0,118.91589266564965,0.56,Default
+1821,United States,Delaware,1,112.82326090176753,1.37,Default
+1822,United States,Delaware,2,112.82326090176753,1.37,Default
+1823,United States,Delaware,3,111.34277985650692,2.21,Default
+1824,United States,Delaware,4,111.34277985650692,2.21,Default
+1825,United States,Delaware,5,107.67682598366862,4.279999999999999,Default
+1826,United States,Delaware,6,107.67682598366862,4.279999999999999,Default
+1827,United States,Delaware,7,106.38550450060647,6.5,Default
+1828,United States,Delaware,8,106.38550450060647,6.5,Default
+1829,United States,Delaware,9,105.56159285437703,10.299999999999999,Default
+1830,United States,Florida,0,12900.098121181049,0.74,Default
+1831,United States,Florida,1,12583.9836312999,2.7,Default
+1832,United States,Florida,2,12583.9836312999,2.7,Default
+1833,United States,Florida,3,12382.650450202247,5.5,Default
+1834,United States,Florida,4,12382.650450202247,5.5,Default
+1835,United States,Florida,5,12274.318162588208,7.840000000000001,Default
+1836,United States,Florida,6,12274.318162588208,7.840000000000001,Default
+1837,United States,Florida,7,12206.091097462824,9.48,Default
+1838,United States,Florida,8,12206.091097462824,9.48,Default
+1839,United States,Florida,9,12041.383930913586,11.97,Default
+1840,United States,Georgia,0,4698.770014014472,1.08,Default
+1841,United States,Georgia,1,4659.7595856985545,1.8400000000000003,Default
+1842,United States,Georgia,2,4659.7595856985545,1.8400000000000003,Default
+1843,United States,Georgia,3,4608.723452863636,3.25,Default
+1844,United States,Georgia,4,4608.723452863636,3.25,Default
+1845,United States,Georgia,5,4546.206241130334,5.57,Default
+1846,United States,Georgia,6,4546.206241130334,5.57,Default
+1847,United States,Georgia,7,4509.312682120175,6.8100000000000005,Default
+1848,United States,Georgia,8,4509.312682120175,6.8100000000000005,Default
+1849,United States,Georgia,9,4487.619271843706,8.77,Default
+1850,United States,Hawaii,0,141.28028068972,0.72,Default
+1851,United States,Hawaii,1,138.50720758110373,2.48,Default
+1852,United States,Hawaii,2,138.50720758110373,2.48,Default
+1853,United States,Hawaii,3,132.0421697070943,3.8299999999999996,Default
+1854,United States,Hawaii,4,132.0421697070943,3.8299999999999996,Default
+1855,United States,Hawaii,5,131.22508156498628,5.07,Default
+1856,United States,Hawaii,6,131.22508156498628,5.07,Default
+1857,United States,Hawaii,7,129.73187238472332,8.19,Default
+1858,United States,Hawaii,8,129.73187238472332,8.19,Default
+1859,United States,Hawaii,9,128.87459316686636,9.790000000000001,Default
+1860,United States,Idaho,0,678.6991476137446,0.32,Default
+1861,United States,Idaho,1,645.3927690298137,1.28,Default
+1862,United States,Idaho,2,645.3927690298137,1.28,Default
+1863,United States,Idaho,3,633.3873450985656,2.27,Default
+1864,United States,Idaho,4,633.3873450985656,2.27,Default
+1865,United States,Idaho,5,615.0042510317684,3.71,Default
+1866,United States,Idaho,6,615.0042510317684,3.71,Default
+1867,United States,Idaho,7,610.9873177787338,4.6899999999999995,Default
+1868,United States,Idaho,8,610.9873177787338,4.6899999999999995,Default
+1869,United States,Idaho,9,608.3250523535423,5.970000000000001,Default
+1870,United States,Illinois,0,2097.5766774419235,0.1,Default
+1871,United States,Illinois,1,2059.248901095988,0.38,Default
+1872,United States,Illinois,2,2059.248901095988,0.38,Default
+1873,United States,Illinois,3,1957.4595336709413,0.9800000000000001,Default
+1874,United States,Illinois,4,1957.4595336709413,0.9800000000000001,Default
+1875,United States,Illinois,5,1922.1400006334668,2.18,Default
+1876,United States,Illinois,6,1922.1400006334668,2.18,Default
+1877,United States,Illinois,7,1914.2546591110618,3.3800000000000003,Default
+1878,United States,Illinois,8,1914.2546591110618,3.3800000000000003,Default
+1879,United States,Illinois,9,1860.070183154125,6.140000000000001,Default
+1880,United States,Indiana,0,1124.1220955838003,1.24,Default
+1881,United States,Indiana,1,1097.7491628581754,3.84,Default
+1882,United States,Indiana,2,1124.1220955838003,1.24,Default
+1883,United States,Indiana,3,1097.7491628581754,3.84,Default
+1884,United States,Indiana,4,1097.7491628581754,3.84,Default
+1885,United States,Indiana,5,1089.9380643947961,5.239999999999999,Default
+1886,United States,Indiana,6,1089.9380643947961,5.239999999999999,Default
+1887,United States,Indiana,7,1053.8464185871148,8.03,Default
+1888,United States,Indiana,8,1053.8464185871148,8.03,Default
+1889,United States,Indiana,9,1043.7575090709536,11.91,Default
+1890,United States,Iowa,0,617.3493331273982,0.12,Default
+1891,United States,Iowa,1,610.4700766677249,0.44000000000000006,Default
+1892,United States,Iowa,2,610.4700766677249,0.44000000000000006,Default
+1893,United States,Iowa,3,598.4519558954544,1.8799999999999997,Default
+1894,United States,Iowa,4,598.4519558954544,1.8799999999999997,Default
+1895,United States,Iowa,5,590.6826069617873,2.7199999999999998,Default
+1896,United States,Iowa,6,590.6826069617873,2.7199999999999998,Default
+1897,United States,Iowa,7,580.7854102300514,4.039999999999999,Default
+1898,United States,Iowa,8,580.7854102300514,4.039999999999999,Default
+1899,United States,Iowa,9,577.1235411062278,5.54,Default
+1900,United States,Kansas,0,562.1029874598008,0.72,Default
+1901,United States,Kansas,1,554.1658394970154,1.4,Default
+1902,United States,Kansas,2,554.1658394970154,1.4,Default
+1903,United States,Kansas,3,544.8455958260004,3.7600000000000002,Default
+1904,United States,Kansas,4,544.8455958260004,3.7600000000000002,Default
+1905,United States,Kansas,5,542.4332614588343,4.959999999999999,Default
+1906,United States,Kansas,6,542.4332614588343,4.959999999999999,Default
+1907,United States,Kansas,7,538.8034323863665,7.4399999999999995,Default
+1908,United States,Kansas,8,538.8034323863665,7.4399999999999995,Default
+1909,United States,Kansas,9,535.4355634838093,10.29,Default
+1910,United States,Kentucky,0,896.6199218733467,0.34,Default
+1911,United States,Kentucky,1,846.8374958023354,2.44,Default
+1912,United States,Kentucky,2,846.8374958023354,2.44,Default
+1913,United States,Kentucky,3,846.8374958023354,2.44,Default
+1914,United States,Kentucky,4,846.8374958023354,2.44,Default
+1915,United States,Kentucky,5,841.326004164521,3.6399999999999997,Default
+1916,United States,Kentucky,6,841.326004164521,3.6399999999999997,Default
+1917,United States,Kentucky,7,835.1384162429622,5.890000000000001,Default
+1918,United States,Kentucky,8,835.1384162429622,5.890000000000001,Default
+1919,United States,Kentucky,9,830.7268546246308,7.63,Default
+1920,United States,Louisiana,0,2342.5311089974534,0.15,Default
+1921,United States,Louisiana,1,2342.5311089974534,0.15,Default
+1922,United States,Louisiana,2,2342.5311089974534,0.15,Default
+1923,United States,Louisiana,3,2310.758614214727,0.89,Default
+1924,United States,Louisiana,4,2310.758614214727,0.89,Default
+1925,United States,Louisiana,5,2297.64439700406,1.7100000000000002,Default
+1926,United States,Louisiana,6,2297.64439700406,1.7100000000000002,Default
+1927,United States,Louisiana,7,2255.281576763938,4.02,Default
+1928,United States,Louisiana,8,2255.281576763938,4.02,Default
+1929,United States,Louisiana,9,2243.5630456447225,6.14,Default
+1930,United States,Maine,0,33.5343868367478,0.8699999999999999,Default
+1931,United States,Maine,1,33.210408413152074,2.23,Default
+1932,United States,Maine,2,33.210408413152074,2.23,Default
+1933,United States,Maine,3,33.04625008329184,2.99,Default
+1934,United States,Maine,4,33.04625008329184,2.99,Default
+1935,United States,Maine,5,32.74902804200743,4.37,Default
+1936,United States,Maine,6,32.74902804200743,4.37,Default
+1937,United States,Maine,7,32.271231011230384,6.590000000000001,Default
+1938,United States,Maine,8,32.271231011230384,6.590000000000001,Default
+1939,United States,Maine,9,32.014323359505454,8.31,Default
+1940,United States,Maryland,0,1370.0294086421911,1.44,Default
+1941,United States,Maryland,1,1350.9386284626794,2.62,Default
+1942,United States,Maryland,2,1350.9386284626794,2.62,Default
+1943,United States,Maryland,3,1329.6944127337233,5.74,Default
+1944,United States,Maryland,4,1329.6944127337233,5.74,Default
+1945,United States,Maryland,5,1318.3728637556712,7.360000000000001,Default
+1946,United States,Maryland,6,1318.3728637556712,7.360000000000001,Default
+1947,United States,Maryland,7,1303.4522774978677,9.85,Default
+1948,United States,Maryland,8,1303.4522774978677,9.85,Default
+1949,United States,Maryland,9,1299.485597979362,11.87,Default
+1950,United States,Massachusetts,0,432.6850183180289,0.8,Default
+1951,United States,Massachusetts,1,422.9108316371368,1.8199999999999998,Default
+1952,United States,Massachusetts,2,422.9108316371368,1.8199999999999998,Default
+1953,United States,Massachusetts,3,417.4614052050416,3.4200000000000004,Default
+1954,United States,Massachusetts,4,417.4614052050416,3.4200000000000004,Default
+1955,United States,Massachusetts,5,414.61173062081707,5.540000000000001,Default
+1956,United States,Massachusetts,6,414.61173062081707,5.540000000000001,Default
+1957,United States,Massachusetts,7,413.2036894803126,6.6800000000000015,Default
+1958,United States,Massachusetts,8,413.2036894803126,6.6800000000000015,Default
+1959,United States,Massachusetts,9,411.07713884013884,7.9799999999999995,Default
+1960,United States,Michigan,0,1175.7429845070674,0.06,Default
+1961,United States,Michigan,1,1162.0386967614236,1.53,Default
+1962,United States,Michigan,2,1162.0386967614236,1.53,Default
+1963,United States,Michigan,3,1152.4595343819592,2.55,Default
+1964,United States,Michigan,4,1152.4595343819592,2.55,Default
+1965,United States,Michigan,5,1144.5098957483722,3.9899999999999998,Default
+1966,United States,Michigan,6,1144.5098957483722,3.9899999999999998,Default
+1967,United States,Michigan,7,1127.1690890326731,7.3100000000000005,Default
+1968,United States,Michigan,8,1127.1690890326731,7.3100000000000005,Default
+1969,United States,Michigan,9,1115.8474801723057,11.629999999999999,Default
+1970,United States,Minnesota,0,1035.185581082168,0.08,Default
+1971,United States,Minnesota,1,1012.6042816740779,0.28,Default
+1972,United States,Minnesota,2,1012.6042816740779,0.28,Default
+1973,United States,Minnesota,3,1005.3477648288383,1.98,Default
+1974,United States,Minnesota,4,1005.3477648288383,1.98,Default
+1975,United States,Minnesota,5,1000.5021570369133,3.7,Default
+1976,United States,Minnesota,6,1000.5021570369133,3.7,Default
+1977,United States,Minnesota,7,993.0101383520632,6.34,Default
+1978,United States,Minnesota,8,993.0101383520632,6.34,Default
+1979,United States,Minnesota,9,982.5479909696926,10.58,Default
+1980,United States,Mississippi,0,1865.344393169335,0.44000000000000006,Default
+1981,United States,Mississippi,1,1826.4809584446389,1.72,Default
+1982,United States,Mississippi,2,1826.4809584446389,1.72,Default
+1983,United States,Mississippi,3,1793.5466861811922,2.98,Default
+1984,United States,Mississippi,4,1793.5466861811922,2.98,Default
+1985,United States,Mississippi,5,1783.2159524976164,3.9800000000000004,Default
+1986,United States,Mississippi,6,1783.2159524976164,3.9800000000000004,Default
+1987,United States,Mississippi,7,1772.0887507819468,6.220000000000001,Default
+1988,United States,Mississippi,8,1772.0887507819468,6.220000000000001,Default
+1989,United States,Mississippi,9,1761.8657101332851,8.620000000000001,Default
+1990,United States,Missouri,0,2511.949959817316,0.78,Default
+1991,United States,Missouri,1,2470.7347112898174,1.94,Default
+1992,United States,Missouri,2,2470.7347112898174,1.94,Default
+1993,United States,Missouri,3,2456.666869485791,3.16,Default
+1994,United States,Missouri,4,2456.666869485791,3.16,Default
+1995,United States,Missouri,5,2415.262838830361,5.72,Default
+1996,United States,Missouri,6,2415.262838830361,5.72,Default
+1997,United States,Missouri,7,2398.2642915488377,8.36,Default
+1998,United States,Missouri,8,2398.2642915488377,8.36,Default
+1999,United States,Missouri,9,2303.3150323052423,14.84,Default
+2000,United States,Montana,0,194.44532839811012,0.06,Default
+2001,United States,Montana,1,192.51183698465707,0.8600000000000001,Default
+2002,United States,Montana,2,192.51183698465707,0.8600000000000001,Default
+2003,United States,Montana,3,185.65321816802685,2.5700000000000003,Default
+2004,United States,Montana,4,185.65321816802685,2.5700000000000003,Default
+2005,United States,Montana,5,184.5359742722312,4.29,Default
+2006,United States,Montana,6,184.5359742722312,4.29,Default
+2007,United States,Montana,7,182.57944955269446,7.769999999999999,Default
+2008,United States,Montana,8,182.57944955269446,7.769999999999999,Default
+2009,United States,Montana,9,182.02164459166704,9.670000000000002,Default
+2010,United States,Nebraska,0,391.9538484262092,0.0,Default
+2011,United States,Nebraska,1,384.70766965254916,0.96,Default
+2012,United States,Nebraska,2,384.70766965254916,0.96,Default
+2013,United States,Nebraska,3,381.0590286724955,1.77,Default
+2014,United States,Nebraska,4,381.0590286724955,1.77,Default
+2015,United States,Nebraska,5,378.05138228216686,4.29,Default
+2016,United States,Nebraska,6,378.05138228216686,4.29,Default
+2017,United States,Nebraska,7,374.27454177744204,5.91,Default
+2018,United States,Nebraska,8,374.27454177744204,5.91,Default
+2019,United States,Nebraska,9,372.490645169583,7.630000000000001,Default
+2020,United States,Nevada,0,1393.3136078488574,0.72,Default
+2021,United States,Nevada,1,1360.7121844937333,1.53,Default
+2022,United States,Nevada,2,1360.7121844937333,1.53,Default
+2023,United States,Nevada,3,1301.3577079530583,2.79,Default
+2024,United States,Nevada,4,1301.3577079530583,2.79,Default
+2025,United States,Nevada,5,1295.8226236678954,3.71,Default
+2026,United States,Nevada,6,1295.8226236678954,3.71,Default
+2027,United States,Nevada,7,1281.2424697972322,6.470000000000001,Default
+2028,United States,Nevada,8,1281.2424697972322,6.470000000000001,Default
+2029,United States,Nevada,9,1272.5990329537383,8.01,Default
+2030,United States,New Hampshire,0,43.99635466403378,0.36,Default
+2031,United States,New Hampshire,1,43.41718199789017,1.38,Default
+2032,United States,New Hampshire,2,43.41718199789017,1.38,Default
+2033,United States,New Hampshire,3,41.69131829914844,3.2700000000000005,Default
+2034,United States,New Hampshire,4,41.69131829914844,3.2700000000000005,Default
+2035,United States,New Hampshire,5,41.12753007101388,6.19,Default
+2036,United States,New Hampshire,6,41.12753007101388,6.19,Default
+2037,United States,New Hampshire,7,40.90297867826087,7.69,Default
+2038,United States,New Hampshire,8,40.90297867826087,7.69,Default
+2039,United States,New Hampshire,9,39.27972779974285,10.479999999999999,Default
+2040,United States,New Jersey,0,764.106270569954,0.03,Default
+2041,United States,New Jersey,1,753.3302406847513,1.35,Default
+2042,United States,New Jersey,2,753.3302406847513,1.35,Default
+2043,United States,New Jersey,3,739.4994300526839,3.3899999999999997,Default
+2044,United States,New Jersey,4,739.4994300526839,3.3899999999999997,Default
+2045,United States,New Jersey,5,731.2625749313524,7.07,Default
+2046,United States,New Jersey,6,731.2625749313524,7.07,Default
+2047,United States,New Jersey,7,727.6791361471012,9.09,Default
+2048,United States,New Jersey,8,727.6791361471012,9.09,Default
+2049,United States,New Jersey,9,718.7706270724921,15.270000000000001,Default
+2050,United States,New Mexico,0,472.21580861877976,0.0,Default
+2051,United States,New Mexico,1,467.64694230998083,0.24,Default
+2052,United States,New Mexico,2,467.64694230998083,0.24,Default
+2053,United States,New Mexico,3,461.40024869628394,0.8400000000000001,Default
+2054,United States,New Mexico,4,461.40024869628394,0.8400000000000001,Default
+2055,United States,New Mexico,5,442.39916897208093,2.67,Default
+2056,United States,New Mexico,6,442.39916897208093,2.67,Default
+2057,United States,New Mexico,7,439.4607025482919,5.15,Default
+2058,United States,New Mexico,8,439.4607025482919,5.15,Default
+2059,United States,New Mexico,9,435.1437998811654,7.67,Default
+2060,United States,New York,0,833.1691957647233,0.22000000000000003,Default
+2061,United States,New York,1,823.7787502055113,0.78,Default
+2062,United States,New York,2,823.7787502055113,0.78,Default
+2063,United States,New York,3,808.914865861065,1.54,Default
+2064,United States,New York,4,808.914865861065,1.54,Default
+2065,United States,New York,5,803.2645836224826,2.1,Default
+2066,United States,New York,6,803.2645836224826,2.1,Default
+2067,United States,New York,7,795.0649202672217,3.56,Default
+2068,United States,New York,8,795.0649202672217,3.56,Default
+2069,United States,New York,9,761.6226879616898,6.529999999999999,Default
+2070,United States,North Carolina,0,2621.587462412296,0.24,Default
+2071,United States,North Carolina,1,2598.7493128387396,0.38,Default
+2072,United States,North Carolina,2,2598.7493128387396,0.38,Default
+2073,United States,North Carolina,3,2545.7820877054655,1.3399999999999999,Default
+2074,United States,North Carolina,4,2545.7820877054655,1.3399999999999999,Default
+2075,United States,North Carolina,5,2535.3111064450186,2.48,Default
+2076,United States,North Carolina,6,2535.3111064450186,2.48,Default
+2077,United States,North Carolina,7,2519.0665586519235,5.08,Default
+2078,United States,North Carolina,8,2519.0665586519235,5.08,Default
+2079,United States,North Carolina,9,2493.6224492610068,9.28,Default
+2080,United States,North Dakota,0,184.68395921322292,0.2,Default
+2081,United States,North Dakota,1,183.61090766780742,0.38,Default
+2082,United States,North Dakota,2,183.61090766780742,0.38,Default
+2083,United States,North Dakota,3,181.28398698860616,0.8400000000000001,Default
+2084,United States,North Dakota,4,181.28398698860616,0.8400000000000001,Default
+2085,United States,North Dakota,5,179.9165572490986,2.3600000000000003,Default
+2086,United States,North Dakota,6,179.9165572490986,2.3600000000000003,Default
+2087,United States,North Dakota,7,177.1789446737717,3.65,Default
+2088,United States,North Dakota,8,177.1789446737717,3.65,Default
+2089,United States,North Dakota,9,176.512089037419,4.6899999999999995,Default
+2090,United States,Ohio,0,1758.9046692077968,0.18,Default
+2091,United States,Ohio,1,1738.0468601995613,1.14,Default
+2092,United States,Ohio,2,1738.0468601995613,1.14,Default
+2093,United States,Ohio,3,1716.9348619629013,1.8599999999999999,Default
+2094,United States,Ohio,4,1716.9348619629013,1.8599999999999999,Default
+2095,United States,Ohio,5,1705.8280044147264,2.84,Default
+2096,United States,Ohio,6,1705.8280044147264,2.84,Default
+2097,United States,Ohio,7,1680.6169327219009,5.359999999999999,Default
+2098,United States,Ohio,8,1680.6169327219009,5.359999999999999,Default
+2099,United States,Ohio,9,1669.3037832935,9.48,Default
+2100,United States,Oklahoma,0,1704.3085820371107,0.9200000000000002,Default
+2101,United States,Oklahoma,1,1686.6957229724405,2.54,Default
+2102,United States,Oklahoma,2,1686.6957229724405,2.54,Default
+2103,United States,Oklahoma,3,1655.2998511539263,4.78,Default
+2104,United States,Oklahoma,4,1655.2998511539263,4.78,Default
+2105,United States,Oklahoma,5,1645.941898219096,6.16,Default
+2106,United States,Oklahoma,6,1645.941898219096,6.16,Default
+2107,United States,Oklahoma,7,1634.6966916738934,9.24,Default
+2108,United States,Oklahoma,8,1634.6966916738934,9.24,Default
+2109,United States,Oklahoma,9,1622.3526411112055,13.320000000000002,Default
+2110,United States,Oregon,0,485.2562975450784,0.02,Default
+2111,United States,Oregon,1,479.40517415295824,1.0699999999999998,Default
+2112,United States,Oregon,2,479.40517415295824,1.0699999999999998,Default
+2113,United States,Oregon,3,475.58424866999866,2.01,Default
+2114,United States,Oregon,4,475.58424866999866,2.01,Default
+2115,United States,Oregon,5,466.05319450925236,3.4799999999999995,Default
+2116,United States,Oregon,6,466.05319450925236,3.4799999999999995,Default
+2117,United States,Oregon,7,460.7458043100258,6.079999999999999,Default
+2118,United States,Oregon,8,460.7458043100258,6.079999999999999,Default
+2119,United States,Oregon,9,455.8485390193159,8.88,Default
+2120,United States,Pennsylvania,0,1357.580177288753,0.12,Default
+2121,United States,Pennsylvania,1,1342.2412855573036,0.8400000000000001,Default
+2122,United States,Pennsylvania,2,1342.2412855573036,0.8400000000000001,Default
+2123,United States,Pennsylvania,3,1327.380597479679,1.42,Default
+2124,United States,Pennsylvania,4,1327.380597479679,1.42,Default
+2125,United States,Pennsylvania,5,1319.7613676253773,2.2,Default
+2126,United States,Pennsylvania,6,1319.7613676253773,2.2,Default
+2127,United States,Pennsylvania,7,1310.5832237360744,4.08,Default
+2128,United States,Pennsylvania,8,1310.5832237360744,4.08,Default
+2129,United States,Pennsylvania,9,1293.2187336529482,5.819999999999999,Default
+2130,United States,Rhode Island,0,186.94770340434582,0.0,Default
+2131,United States,Rhode Island,1,184.3808120425808,0.68,Default
+2132,United States,Rhode Island,2,184.3808120425808,0.68,Default
+2133,United States,Rhode Island,3,180.9841337764215,1.73,Default
+2134,United States,Rhode Island,4,180.9841337764215,1.73,Default
+2135,United States,Rhode Island,5,174.03073677693288,3.35,Default
+2136,United States,Rhode Island,6,174.03073677693288,3.35,Default
+2137,United States,Rhode Island,7,173.21786109472743,4.51,Default
+2138,United States,Rhode Island,8,173.21786109472743,4.51,Default
+2139,United States,Rhode Island,9,172.26980339981029,7.029999999999999,Default
+2140,United States,South Carolina,0,1928.452043817328,0.48,Default
+2141,United States,South Carolina,1,1895.1390093429586,0.74,Default
+2142,United States,South Carolina,2,1895.1390093429586,0.74,Default
+2143,United States,South Carolina,3,1856.5342846475985,2.1399999999999997,Default
+2144,United States,South Carolina,4,1856.5342846475985,2.1399999999999997,Default
+2145,United States,South Carolina,5,1844.0829594359554,3.22,Default
+2146,United States,South Carolina,6,1844.0829594359554,3.22,Default
+2147,United States,South Carolina,7,1822.0258100217293,6.460000000000001,Default
+2148,United States,South Carolina,8,1822.0258100217293,6.460000000000001,Default
+2149,United States,South Carolina,9,1749.4682196740068,9.25,Default
+2150,United States,South Dakota,0,133.5879841133553,0.09,Default
+2151,United States,South Dakota,1,130.6776510969953,0.57,Default
+2152,United States,South Dakota,2,130.6776510969953,0.57,Default
+2153,United States,South Dakota,3,128.37107523989394,1.4699999999999998,Default
+2154,United States,South Dakota,4,128.37107523989394,1.4699999999999998,Default
+2155,United States,South Dakota,5,123.67903282095608,3.06,Default
+2156,United States,South Dakota,6,123.67903282095608,3.06,Default
+2157,United States,South Dakota,7,123.12100996623192,4.18,Default
+2158,United States,South Dakota,8,123.12100996623192,4.18,Default
+2159,United States,South Dakota,9,122.67587198633646,5.4799999999999995,Default
+2160,United States,Tennessee,0,3407.2481272435266,0.04,Default
+2161,United States,Tennessee,1,3349.944836258004,0.2,Default
+2162,United States,Tennessee,2,3349.944836258004,0.2,Default
+2163,United States,Tennessee,3,3206.1867123812895,1.0699999999999998,Default
+2164,United States,Tennessee,4,3206.1867123812895,1.0699999999999998,Default
+2165,United States,Tennessee,5,3179.575206482321,1.8099999999999998,Default
+2166,United States,Tennessee,6,3179.575206482321,1.8099999999999998,Default
+2167,United States,Tennessee,7,3093.5953891308754,3.91,Default
+2168,United States,Tennessee,8,3093.5953891308754,3.91,Default
+2169,United States,Tennessee,9,3080.833490321321,5.95,Default
+2170,United States,Texas,0,11076.932208200778,0.22000000000000003,Default
+2171,United States,Texas,1,10768.923179561205,0.97,Default
+2172,United States,Texas,2,10768.923179561205,0.97,Default
+2173,United States,Texas,3,10256.628572276732,2.8000000000000003,Default
+2174,United States,Texas,4,10256.628572276732,2.8000000000000003,Default
+2175,United States,Texas,5,10137.644333821674,4.42,Default
+2176,United States,Texas,6,10137.644333821674,4.42,Default
+2177,United States,Texas,7,10069.02240435133,7.980000000000001,Default
+2178,United States,Texas,8,10069.02240435133,7.980000000000001,Default
+2179,United States,Texas,9,9963.585781095224,11.82,Default
+2180,United States,Utah,0,584.6086617400988,0.45,Default
+2181,United States,Utah,1,578.8411019300581,1.73,Default
+2182,United States,Utah,2,578.8411019300581,1.73,Default
+2183,United States,Utah,3,574.0769602548237,3.0300000000000002,Default
+2184,United States,Utah,4,574.0769602548237,3.0300000000000002,Default
+2185,United States,Utah,5,567.5977276032937,4.41,Default
+2186,United States,Utah,6,567.5977276032937,4.41,Default
+2187,United States,Utah,7,550.1810913274736,6.6,Default
+2188,United States,Utah,8,550.1810913274736,6.6,Default
+2189,United States,Utah,9,544.7662760238194,11.08,Default
+2190,United States,Vermont,0,5.401987127873683,0.0,Default
+2191,United States,Vermont,1,5.324515464463984,0.56,Default
+2192,United States,Vermont,2,5.324515464463984,0.56,Default
+2193,United States,Vermont,3,5.293980294194607,1.2200000000000002,Default
+2194,United States,Vermont,4,5.293980294194607,1.2200000000000002,Default
+2195,United States,Vermont,5,5.258338802034701,2.0200000000000005,Default
+2196,United States,Vermont,6,5.258338802034701,2.0200000000000005,Default
+2197,United States,Vermont,7,5.036607814099732,3.9400000000000004,Default
+2198,United States,Vermont,8,5.036607814099732,3.9400000000000004,Default
+2199,United States,Vermont,9,4.896538083634295,5.89,Default
+2200,United States,Virgin Islands,0,9.102676379021169,0.22000000000000003,Default
+2201,United States,Virgin Islands,1,9.033107843026126,0.7,Default
+2202,United States,Virgin Islands,2,9.033107843026126,0.7,Default
+2203,United States,Virgin Islands,3,8.93264557158828,2.46,Default
+2204,United States,Virgin Islands,4,8.93264557158828,2.46,Default
+2205,United States,Virgin Islands,5,8.802162206547107,3.62,Default
+2206,United States,Virgin Islands,6,8.802162206547107,3.62,Default
+2207,United States,Virgin Islands,7,8.667202665222726,6.34,Default
+2208,United States,Virgin Islands,8,8.667202665222726,6.34,Default
+2209,United States,Virgin Islands,9,8.27237619831096,8.59,Default
+2210,United States,Virginia,0,1580.9096841848034,1.08,Default
+2211,United States,Virginia,1,1541.116172679031,3.7800000000000002,Default
+2212,United States,Virginia,2,1541.116172679031,3.7800000000000002,Default
+2213,United States,Virginia,3,1541.116172679031,3.7800000000000002,Default
+2214,United States,Virginia,4,1541.116172679031,3.7800000000000002,Default
+2215,United States,Virginia,5,1520.152321142556,6.260000000000001,Default
+2216,United States,Virginia,6,1520.152321142556,6.260000000000001,Default
+2217,United States,Virginia,7,1509.3435287686475,8.32,Default
+2218,United States,Virginia,8,1509.3435287686475,8.32,Default
+2219,United States,Virginia,9,1473.4798314609056,11.59,Default
+2220,United States,Washington,0,1140.2602194614567,0.12,Default
+2221,United States,Washington,1,1116.0547170280156,0.48,Default
+2222,United States,Washington,2,1116.0547170280156,0.48,Default
+2223,United States,Washington,3,1094.6864942898574,1.12,Default
+2224,United States,Washington,4,1094.6864942898574,1.12,Default
+2225,United States,Washington,5,1085.1853337314715,3.6399999999999997,Default
+2226,United States,Washington,6,1085.1853337314715,3.6399999999999997,Default
+2227,United States,Washington,7,1052.5779117648424,6.25,Default
+2228,United States,Washington,8,1052.5779117648424,6.25,Default
+2229,United States,Washington,9,1045.4560613860288,8.129999999999999,Default
+2230,United States,Washington DC,0,100.17774961621052,0.8400000000000001,Default
+2231,United States,Washington DC,1,99.16039866461794,1.78,Default
+2232,United States,Washington DC,2,99.16039866461794,1.78,Default
+2233,United States,Washington DC,3,98.57979141899008,2.8200000000000003,Default
+2234,United States,Washington DC,4,98.57979141899008,2.8200000000000003,Default
+2235,United States,Washington DC,5,97.7425685333886,5.140000000000001,Default
+2236,United States,Washington DC,6,97.7425685333886,5.140000000000001,Default
+2237,United States,Washington DC,7,93.46626667137033,7.0600000000000005,Default
+2238,United States,Washington DC,8,93.46626667137033,7.0600000000000005,Default
+2239,United States,Washington DC,9,92.9381750910965,8.58,Default
+2240,United States,West Virginia,0,187.45187832917946,1.3800000000000001,Default
+2241,United States,West Virginia,1,185.7509662415451,2.3600000000000003,Default
+2242,United States,West Virginia,2,185.7509662415451,2.3600000000000003,Default
+2243,United States,West Virginia,3,184.11412595115684,4.640000000000001,Default
+2244,United States,West Virginia,4,184.11412595115684,4.640000000000001,Default
+2245,United States,West Virginia,5,182.01490723254113,5.9399999999999995,Default
+2246,United States,West Virginia,6,182.01490723254113,5.9399999999999995,Default
+2247,United States,West Virginia,7,180.91191786758048,7.8199999999999985,Default
+2248,United States,West Virginia,8,180.91191786758048,7.8199999999999985,Default
+2249,United States,West Virginia,9,179.0310156935233,11.9,Default
+2250,United States,Wisconsin,0,1209.7447075503283,0.6000000000000001,Default
+2251,United States,Wisconsin,1,1185.374701408778,1.9200000000000004,Default
+2252,United States,Wisconsin,2,1185.374701408778,1.9200000000000004,Default
+2253,United States,Wisconsin,3,1142.4598222924847,3.21,Default
+2254,United States,Wisconsin,4,1142.4598222924847,3.21,Default
+2255,United States,Wisconsin,5,1133.903914981911,5.890000000000001,Default
+2256,United States,Wisconsin,6,1133.903914981911,5.890000000000001,Default
+2257,United States,Wisconsin,7,1127.764935569324,7.409999999999999,Default
+2258,United States,Wisconsin,8,1127.764935569324,7.409999999999999,Default
+2259,United States,Wisconsin,9,1118.7641147452596,9.07,Default
+2260,United States,Wyoming,0,68.28299827210886,0.1,Default
+2261,United States,Wyoming,1,65.4306485003971,0.5499999999999999,Default
+2262,United States,Wyoming,2,65.4306485003971,0.5499999999999999,Default
+2263,United States,Wyoming,3,64.20597414265,1.5699999999999998,Default
+2264,United States,Wyoming,4,64.20597414265,1.5699999999999998,Default
+2265,United States,Wyoming,5,63.488313064335884,2.9699999999999998,Default
+2266,United States,Wyoming,6,63.488313064335884,2.9699999999999998,Default
+2267,United States,Wyoming,7,61.06997358297908,5.579999999999998,Default
+2268,United States,Wyoming,8,61.06997358297908,5.579999999999998,Default
+2269,United States,Wyoming,9,60.88646033202902,8.04,Default
+2270,United States,,0,88628.66531540627,1.02,Default
+2271,United States,,1,86946.34697830975,3.14,Default
+2272,United States,,2,86946.34697830975,3.14,Default
+2273,United States,,3,85252.16606382861,5.09,Default
+2274,United States,,4,85252.16606382861,5.09,Default
+2275,United States,,5,81771.98896255788,7.1,Default
+2276,United States,,6,81771.98896255788,7.1,Default
+2277,United States,,7,80980.79897991898,9.98,Default
+2278,United States,,8,80980.79897991898,9.98,Default
+2279,United States,,9,80628.62579277091,11.560000000000002,Default
+2280,Uruguay,,0,24.100108733684728,0.27,Default
+2281,Uruguay,,1,22.961574635302348,1.11,Default
+2282,Uruguay,,2,22.961574635302348,1.11,Default
+2283,Uruguay,,3,22.542823159599795,2.3100000000000005,Default
+2284,Uruguay,,4,22.542823159599795,2.3100000000000005,Default
+2285,Uruguay,,5,22.3260926587838,3.3900000000000006,Default
+2286,Uruguay,,6,22.3260926587838,3.3900000000000006,Default
+2287,Uruguay,,7,21.75068152211014,5.97,Default
+2288,Uruguay,,8,21.75068152211014,5.97,Default
+2289,Uruguay,,9,21.64105423201258,7.93,Default
+2290,Uzbekistan,,0,1037.2113973585633,1.83,Default
+2291,Uzbekistan,,1,1018.2517792565337,4.51,Default
+2292,Uzbekistan,,2,1018.2517792565337,4.51,Default
+2293,Uzbekistan,,3,1018.2517792565337,4.51,Default
+2294,Uzbekistan,,4,1018.2517792565337,4.51,Default
+2295,Uzbekistan,,5,1004.8181364087774,5.99,Default
+2296,Uzbekistan,,6,1004.8181364087774,5.99,Default
+2297,Uzbekistan,,7,996.9440675361224,8.99,Default
+2298,Uzbekistan,,8,996.9440675361224,8.99,Default
+2299,Uzbekistan,,9,955.3463861434923,11.780000000000001,Default
 2300,Vanuatu,,0,0.0,0.8100000000000002,Default
 2301,Vanuatu,,1,0.0,3.4900000000000007,Default
 2302,Vanuatu,,2,0.0,3.4900000000000007,Default
@@ -2309,56 +2309,56 @@
 2307,Vanuatu,,7,0.0,9.08,Default
 2308,Vanuatu,,8,0.0,9.08,Default
 2309,Vanuatu,,9,0.0,11.69,Default
-2310,Venezuela,,0,0.0,0.12,Default
-2311,Venezuela,,1,0.0,0.42000000000000004,Default
-2312,Venezuela,,2,0.0,0.42000000000000004,Default
-2313,Venezuela,,3,0.0,0.7000000000000001,Default
-2314,Venezuela,,4,0.0,0.7000000000000001,Default
-2315,Venezuela,,5,0.0,1.54,Default
-2316,Venezuela,,6,0.0,1.54,Default
-2317,Venezuela,,7,0.0,3.8600000000000003,Default
-2318,Venezuela,,8,0.0,3.8600000000000003,Default
-2319,Venezuela,,9,0.0,5.199999999999999,Default
-2320,Vietnam,,0,0.0,0.2,Default
-2321,Vietnam,,1,0.0,0.9399999999999998,Default
-2322,Vietnam,,2,0.0,0.9399999999999998,Default
-2323,Vietnam,,3,0.0,2.36,Default
-2324,Vietnam,,4,0.0,2.36,Default
-2325,Vietnam,,5,0.0,4.82,Default
-2326,Vietnam,,6,0.0,4.82,Default
-2327,Vietnam,,7,0.0,8.62,Default
-2328,Vietnam,,8,0.0,8.62,Default
-2329,Vietnam,,9,0.0,10.82,Default
-2330,Yemen,,0,0.0,1.52,Default
-2331,Yemen,,1,0.0,2.56,Default
-2332,Yemen,,2,0.0,2.56,Default
-2333,Yemen,,3,0.0,4.210000000000001,Default
-2334,Yemen,,4,0.0,4.210000000000001,Default
-2335,Yemen,,5,0.0,7.010000000000001,Default
-2336,Yemen,,6,0.0,7.010000000000001,Default
-2337,Yemen,,7,0.0,10.33,Default
-2338,Yemen,,8,0.0,10.33,Default
-2339,Yemen,,9,0.0,12.940000000000001,Default
-2340,Zambia,,0,0.0,0.16,Default
-2341,Zambia,,1,0.0,0.7200000000000001,Default
-2342,Zambia,,2,0.0,0.7200000000000001,Default
-2343,Zambia,,3,0.0,1.18,Default
-2344,Zambia,,4,0.0,1.18,Default
-2345,Zambia,,5,0.0,2.02,Default
-2346,Zambia,,6,0.0,2.02,Default
-2347,Zambia,,7,0.0,2.6,Default
-2348,Zambia,,8,0.0,2.6,Default
-2349,Zambia,,9,0.0,3.8400000000000007,Default
-2350,Zimbabwe,,0,0.0,0.06,Default
-2351,Zimbabwe,,1,0.0,0.6200000000000001,Default
-2352,Zimbabwe,,2,0.0,0.6200000000000001,Default
-2353,Zimbabwe,,3,0.0,1.55,Default
-2354,Zimbabwe,,4,0.0,1.55,Default
-2355,Zimbabwe,,5,0.0,3.4099999999999993,Default
-2356,Zimbabwe,,6,0.0,3.4099999999999993,Default
-2357,Zimbabwe,,7,0.0,6.02,Default
-2358,Zimbabwe,,8,0.0,6.02,Default
-2359,Zimbabwe,,9,0.0,7.82,Default
+2310,Venezuela,,0,985.4181299338518,0.12,Default
+2311,Venezuela,,1,948.7752448339503,0.42000000000000004,Default
+2312,Venezuela,,2,948.7752448339503,0.42000000000000004,Default
+2313,Venezuela,,3,939.2288922347846,0.7000000000000001,Default
+2314,Venezuela,,4,939.2288922347846,0.7000000000000001,Default
+2315,Venezuela,,5,934.682054069632,1.54,Default
+2316,Venezuela,,6,934.682054069632,1.54,Default
+2317,Venezuela,,7,928.8668529425133,3.8600000000000003,Default
+2318,Venezuela,,8,928.8668529425133,3.8600000000000003,Default
+2319,Venezuela,,9,922.440099343998,5.199999999999999,Default
+2320,Vietnam,,0,52.56909747527318,0.2,Default
+2321,Vietnam,,1,51.97705500321807,0.9399999999999998,Default
+2322,Vietnam,,2,51.97705500321807,0.9399999999999998,Default
+2323,Vietnam,,3,51.64198878249299,2.36,Default
+2324,Vietnam,,4,51.64198878249299,2.36,Default
+2325,Vietnam,,5,51.069447780475464,4.82,Default
+2326,Vietnam,,6,51.069447780475464,4.82,Default
+2327,Vietnam,,7,50.25324505574746,8.62,Default
+2328,Vietnam,,8,50.25324505574746,8.62,Default
+2329,Vietnam,,9,49.797784881975794,10.82,Default
+2330,Yemen,,0,8.77715636454107,1.52,Default
+2331,Yemen,,1,8.64811802577199,2.56,Default
+2332,Yemen,,2,8.64811802577199,2.56,Default
+2333,Yemen,,3,8.558249188821856,4.210000000000001,Default
+2334,Yemen,,4,8.558249188821856,4.210000000000001,Default
+2335,Yemen,,5,8.44562670986478,7.010000000000001,Default
+2336,Yemen,,6,8.44562670986478,7.010000000000001,Default
+2337,Yemen,,7,8.383020734563669,10.33,Default
+2338,Yemen,,8,8.383020734563669,10.33,Default
+2339,Yemen,,9,8.27473601796569,12.940000000000001,Default
+2340,Zambia,,0,543.9671940130597,0.16,Default
+2341,Zambia,,1,531.9372091231152,0.7200000000000001,Default
+2342,Zambia,,2,531.9372091231152,0.7200000000000001,Default
+2343,Zambia,,3,525.5218027592197,1.18,Default
+2344,Zambia,,4,525.5218027592197,1.18,Default
+2345,Zambia,,5,521.2544951395505,2.02,Default
+2346,Zambia,,6,521.2544951395505,2.02,Default
+2347,Zambia,,7,519.1423146855392,2.6,Default
+2348,Zambia,,8,519.1423146855392,2.6,Default
+2349,Zambia,,9,516.4217753243462,3.8400000000000007,Default
+2350,Zimbabwe,,0,220.46674772071816,0.06,Default
+2351,Zimbabwe,,1,215.7580897797211,0.6200000000000001,Default
+2352,Zimbabwe,,2,215.7580897797211,0.6200000000000001,Default
+2353,Zimbabwe,,3,208.62886051969457,1.55,Default
+2354,Zimbabwe,,4,208.62886051969457,1.55,Default
+2355,Zimbabwe,,5,207.24381943005363,3.4099999999999993,Default
+2356,Zimbabwe,,6,207.24381943005363,3.4099999999999993,Default
+2357,Zimbabwe,,7,204.87775531512094,6.02,Default
+2358,Zimbabwe,,8,204.87775531512094,6.02,Default
+2359,Zimbabwe,,9,204.34070381241435,7.82,Default
 0,Canada,,0,38539.849575325774,34.0,Jan_Mar_EC_fast
 1,Canada,,1,38539.849575325774,34.0,Jan_Mar_EC_fast
 2,Canada,,2,38539.849575325774,34.0,Jan_Mar_EC_fast
@@ -4119,26 +4119,26 @@
 1697,United Arab Emirates,,7,8570.364652218756,34.0,EQUAL
 1698,United Arab Emirates,,8,8570.364652218756,34.0,EQUAL
 1699,United Arab Emirates,,9,8570.364652218756,34.0,EQUAL
-1700,United Kingdom,England,0,50982.65830757779,34.0,EQUAL
-1701,United Kingdom,England,1,50982.65830757779,34.0,EQUAL
-1702,United Kingdom,England,2,50982.65830757779,34.0,EQUAL
-1703,United Kingdom,England,3,50982.65830757779,34.0,EQUAL
-1704,United Kingdom,England,4,50982.65830757779,34.0,EQUAL
-1705,United Kingdom,England,5,50982.65830757779,34.0,EQUAL
-1706,United Kingdom,England,6,50982.65830757779,34.0,EQUAL
-1707,United Kingdom,England,7,50982.65830757779,34.0,EQUAL
-1708,United Kingdom,England,8,50982.65830757779,34.0,EQUAL
-1709,United Kingdom,England,9,50982.65830757779,34.0,EQUAL
-1710,United Kingdom,Northern Ireland,0,1992.4038818383142,34.0,EQUAL
-1711,United Kingdom,Northern Ireland,1,1992.4038818383142,34.0,EQUAL
-1712,United Kingdom,Northern Ireland,2,1992.4038818383142,34.0,EQUAL
-1713,United Kingdom,Northern Ireland,3,1992.4038818383142,34.0,EQUAL
-1714,United Kingdom,Northern Ireland,4,1992.4038818383142,34.0,EQUAL
-1715,United Kingdom,Northern Ireland,5,1992.4038818383142,34.0,EQUAL
-1716,United Kingdom,Northern Ireland,6,1992.4038818383142,34.0,EQUAL
-1717,United Kingdom,Northern Ireland,7,1992.4038818383142,34.0,EQUAL
-1718,United Kingdom,Northern Ireland,8,1992.4038818383142,34.0,EQUAL
-1719,United Kingdom,Northern Ireland,9,1992.4038818383142,34.0,EQUAL
+1700,United Kingdom,England,0,50980.894752424334,34.0,EQUAL
+1701,United Kingdom,England,1,50980.894752424334,34.0,EQUAL
+1702,United Kingdom,England,2,50980.894752424334,34.0,EQUAL
+1703,United Kingdom,England,3,50980.894752424334,34.0,EQUAL
+1704,United Kingdom,England,4,50980.894752424334,34.0,EQUAL
+1705,United Kingdom,England,5,50980.894752424334,34.0,EQUAL
+1706,United Kingdom,England,6,50980.894752424334,34.0,EQUAL
+1707,United Kingdom,England,7,50980.894752424334,34.0,EQUAL
+1708,United Kingdom,England,8,50980.894752424334,34.0,EQUAL
+1709,United Kingdom,England,9,50980.894752424334,34.0,EQUAL
+1710,United Kingdom,Northern Ireland,0,1992.453490234743,34.0,EQUAL
+1711,United Kingdom,Northern Ireland,1,1992.453490234743,34.0,EQUAL
+1712,United Kingdom,Northern Ireland,2,1992.453490234743,34.0,EQUAL
+1713,United Kingdom,Northern Ireland,3,1992.453490234743,34.0,EQUAL
+1714,United Kingdom,Northern Ireland,4,1992.453490234743,34.0,EQUAL
+1715,United Kingdom,Northern Ireland,5,1992.453490234743,34.0,EQUAL
+1716,United Kingdom,Northern Ireland,6,1992.453490234743,34.0,EQUAL
+1717,United Kingdom,Northern Ireland,7,1992.453490234743,34.0,EQUAL
+1718,United Kingdom,Northern Ireland,8,1992.453490234743,34.0,EQUAL
+1719,United Kingdom,Northern Ireland,9,1992.453490234743,34.0,EQUAL
 1720,United Kingdom,Scotland,0,6048.057406240574,34.0,EQUAL
 1721,United Kingdom,Scotland,1,6048.057406240574,34.0,EQUAL
 1722,United Kingdom,Scotland,2,6048.057406240574,34.0,EQUAL
@@ -6479,26 +6479,26 @@
 1697,United Arab Emirates,,7,12224.804795033318,6.899516395683725,RANDOM1
 1698,United Arab Emirates,,8,12224.804795033318,6.899516395683725,RANDOM1
 1699,United Arab Emirates,,9,11763.131939931918,10.501118716063049,RANDOM1
-1700,United Kingdom,England,0,85775.54895450418,0.08907984765259432,RANDOM1
-1701,United Kingdom,England,1,80460.55888259172,0.2884154413178453,RANDOM1
-1702,United Kingdom,England,2,80460.55888259172,0.2884154413178453,RANDOM1
-1703,United Kingdom,England,3,70824.7428525313,0.574636233122518,RANDOM1
-1704,United Kingdom,England,4,70824.7428525313,0.574636233122518,RANDOM1
-1705,United Kingdom,England,5,68394.32633747856,0.8429326306260535,RANDOM1
-1706,United Kingdom,England,6,68394.32633747856,0.8429326306260535,RANDOM1
-1707,United Kingdom,England,7,67030.23799333682,1.896179733461451,RANDOM1
-1708,United Kingdom,England,8,67030.23799333682,1.896179733461451,RANDOM1
-1709,United Kingdom,England,9,64035.98868844761,4.836768011563894,RANDOM1
-1710,United Kingdom,Northern Ireland,0,2815.65338287831,0.10699321591206203,RANDOM1
-1711,United Kingdom,Northern Ireland,1,2475.6963343626035,0.675822965505965,RANDOM1
-1712,United Kingdom,Northern Ireland,2,2475.6963343626035,0.675822965505965,RANDOM1
-1713,United Kingdom,Northern Ireland,3,2344.7173513397815,2.631683627967248,RANDOM1
-1714,United Kingdom,Northern Ireland,4,2344.7173513397815,2.631683627967248,RANDOM1
-1715,United Kingdom,Northern Ireland,5,2276.998541045086,4.126588957391032,RANDOM1
-1716,United Kingdom,Northern Ireland,6,2276.998541045086,4.126588957391032,RANDOM1
-1717,United Kingdom,Northern Ireland,7,2229.33718812513,6.906051143011907,RANDOM1
-1718,United Kingdom,Northern Ireland,8,2229.33718812513,6.906051143011907,RANDOM1
-1719,United Kingdom,Northern Ireland,9,2177.38108888791,9.11335895827105,RANDOM1
+1700,United Kingdom,England,0,85774.55718906602,0.08907984765259432,RANDOM1
+1701,United Kingdom,England,1,80459.47607408927,0.2884154413178453,RANDOM1
+1702,United Kingdom,England,2,80459.47607408927,0.2884154413178453,RANDOM1
+1703,United Kingdom,England,3,70823.43724264999,0.574636233122518,RANDOM1
+1704,United Kingdom,England,4,70823.43724264999,0.574636233122518,RANDOM1
+1705,United Kingdom,England,5,68392.97795756625,0.8429326306260535,RANDOM1
+1706,United Kingdom,England,6,68392.97795756625,0.8429326306260535,RANDOM1
+1707,United Kingdom,England,7,67028.7987586629,1.896179733461451,RANDOM1
+1708,United Kingdom,England,8,67028.7987586629,1.896179733461451,RANDOM1
+1709,United Kingdom,England,9,64034.512594636966,4.836768011563894,RANDOM1
+1710,United Kingdom,Northern Ireland,0,2815.7180281782485,0.10699321591206203,RANDOM1
+1711,United Kingdom,Northern Ireland,1,2475.756190709104,0.675822965505965,RANDOM1
+1712,United Kingdom,Northern Ireland,2,2475.756190709104,0.675822965505965,RANDOM1
+1713,United Kingdom,Northern Ireland,3,2344.777293046269,2.631683627967248,RANDOM1
+1714,United Kingdom,Northern Ireland,4,2344.777293046269,2.631683627967248,RANDOM1
+1715,United Kingdom,Northern Ireland,5,2277.0565028417977,4.126588957391032,RANDOM1
+1716,United Kingdom,Northern Ireland,6,2277.0565028417977,4.126588957391032,RANDOM1
+1717,United Kingdom,Northern Ireland,7,2229.394420915787,6.906051143011907,RANDOM1
+1718,United Kingdom,Northern Ireland,8,2229.394420915787,6.906051143011907,RANDOM1
+1719,United Kingdom,Northern Ireland,9,2177.4361803810943,9.11335895827105,RANDOM1
 1720,United Kingdom,Scotland,0,9149.638240204482,1.9623316700147277,RANDOM1
 1721,United Kingdom,Scotland,1,8539.988546869943,3.9251744617160202,RANDOM1
 1722,United Kingdom,Scotland,2,8539.988546869943,3.9251744617160202,RANDOM1
@@ -8839,26 +8839,26 @@
 1697,United Arab Emirates,,7,13029.451859067081,6.039858266900938,RANDOM2
 1698,United Arab Emirates,,8,13029.451859067081,6.039858266900938,RANDOM2
 1699,United Arab Emirates,,9,12269.49137410672,9.480536862839894,RANDOM2
-1700,United Kingdom,England,0,87715.01721691185,0.07159108526615736,RANDOM2
-1701,United Kingdom,England,1,82040.11027238595,0.23153053133250276,RANDOM2
-1702,United Kingdom,England,2,82040.11027238595,0.23153053133250276,RANDOM2
-1703,United Kingdom,England,3,76250.0933252584,1.2286027208153039,RANDOM2
-1704,United Kingdom,England,4,76250.0933252584,1.2286027208153039,RANDOM2
-1705,United Kingdom,England,5,75065.55716862717,2.061017923249514,RANDOM2
-1706,United Kingdom,England,6,75065.55716862717,2.061017923249514,RANDOM2
-1707,United Kingdom,England,7,72415.53562825562,3.1993342789171297,RANDOM2
-1708,United Kingdom,England,8,72415.53562825562,3.1993342789171297,RANDOM2
-1709,United Kingdom,England,9,65048.67020288223,5.866139470970451,RANDOM2
-1710,United Kingdom,Northern Ireland,0,3126.1037092601637,0.335230942520873,RANDOM2
-1711,United Kingdom,Northern Ireland,1,3064.29335927926,1.1838461124684871,RANDOM2
-1712,United Kingdom,Northern Ireland,2,3064.29335927926,1.1838461124684871,RANDOM2
-1713,United Kingdom,Northern Ireland,3,2723.2909378146037,2.468520027436178,RANDOM2
-1714,United Kingdom,Northern Ireland,4,2723.2909378146037,2.468520027436178,RANDOM2
-1715,United Kingdom,Northern Ireland,5,2579.458623828655,4.262377016410823,RANDOM2
-1716,United Kingdom,Northern Ireland,6,2579.458623828655,4.262377016410823,RANDOM2
-1717,United Kingdom,Northern Ireland,7,2480.034076689511,7.437448792623935,RANDOM2
-1718,United Kingdom,Northern Ireland,8,2480.034076689511,7.437448792623935,RANDOM2
-1719,United Kingdom,Northern Ireland,9,2437.753924632011,9.161453307079537,RANDOM2
+1700,United Kingdom,England,0,87714.10444740922,0.07159108526615736,RANDOM2
+1701,United Kingdom,England,1,82038.98873385071,0.23153053133250276,RANDOM2
+1702,United Kingdom,England,2,82038.98873385071,0.23153053133250276,RANDOM2
+1703,United Kingdom,England,3,76248.92387151337,1.2286027208153039,RANDOM2
+1704,United Kingdom,England,4,76248.92387151337,1.2286027208153039,RANDOM2
+1705,United Kingdom,England,5,75064.3364543223,2.061017923249514,RANDOM2
+1706,United Kingdom,England,6,75064.3364543223,2.061017923249514,RANDOM2
+1707,United Kingdom,England,7,72414.2436607617,3.1993342789171297,RANDOM2
+1708,United Kingdom,England,8,72414.2436607617,3.1993342789171297,RANDOM2
+1709,United Kingdom,England,9,65047.20774784465,5.866139470970451,RANDOM2
+1710,United Kingdom,Northern Ireland,0,3126.170260125801,0.335230942520873,RANDOM2
+1711,United Kingdom,Northern Ireland,1,3064.3592648605563,1.1838461124684871,RANDOM2
+1712,United Kingdom,Northern Ireland,2,3064.3592648605563,1.1838461124684871,RANDOM2
+1713,United Kingdom,Northern Ireland,3,2723.355667161002,2.468520027436178,RANDOM2
+1714,United Kingdom,Northern Ireland,4,2723.355667161002,2.468520027436178,RANDOM2
+1715,United Kingdom,Northern Ireland,5,2579.5199860964726,4.262377016410823,RANDOM2
+1716,United Kingdom,Northern Ireland,6,2579.5199860964726,4.262377016410823,RANDOM2
+1717,United Kingdom,Northern Ireland,7,2480.0933804147116,7.437448792623935,RANDOM2
+1718,United Kingdom,Northern Ireland,8,2480.0933804147116,7.437448792623935,RANDOM2
+1719,United Kingdom,Northern Ireland,9,2437.814309559752,9.161453307079537,RANDOM2
 1720,United Kingdom,Scotland,0,9671.72735073844,0.5522212541920318,RANDOM2
 1721,United Kingdom,Scotland,1,8292.47759893945,1.334070493573777,RANDOM2
 1722,United Kingdom,Scotland,2,8292.47759893945,1.334070493573777,RANDOM2
