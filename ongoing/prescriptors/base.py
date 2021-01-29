@@ -407,7 +407,6 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
                 if last_known_date < pd.to_datetime(idx_df['Date'].min()) - np.timedelta64(1, 'D'):
                     # append prior NPIs to the prescripted ones because the predictor will need them
                     idx_df = idx_df.append(test_df[test_df['Date'] > last_known_date].drop(columns='GeoID'))
-
                 pred_df = self.predictor.predict(start_date, end_date, idx_df)
                 pred_df['PrescriptionIndex'] = idx
                 pred_dfs.append(pred_df)
