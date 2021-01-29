@@ -83,6 +83,7 @@ class CCTSB(Agent):
 
         # C x N x K x geo x weights
         self.c_t = torch.transpose(self.c_t, 1, 3)
+
     def act(self):        
         sample_theta = torch.distributions.multivariate_normal.MultivariateNormal(
             loc=self.theta,

@@ -128,8 +128,11 @@ class Bandit(BasePrescriptor):
             
                 # Make prescriptions one day at a time, feeding resulting
                 # predictions from the predictor back into the prescriptor.
-
+                
+                # geo_costs is a tensor (geos x context)
                 X_costs = geo_costs
+
+                # observe will return a tensor (context x N x K x geos x weights)
                 self.bandit.observe(X_costs)
                 prescribed_ips = self.bandit.act() # gets prescriptions
 
