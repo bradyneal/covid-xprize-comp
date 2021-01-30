@@ -53,7 +53,7 @@ class Heuristic(BasePrescriptor):
 
 
                 for prescription_idx in range(NUM_PRESCRIPTIONS):
-                    P =  (prescription_idx + 1)*6
+                    P =  (prescription_idx + 1)*5
                     P = np.percentile(np.array(ip_weights), P)
 
                     # Turn on the next IP
