@@ -1,16 +1,10 @@
 # Copyright 2020 (c) Cognizant Digital Business, Evolutionary AI. All rights reserved. Issued under the Apache 2.0 License.
 
 [NEAT]
-# stop after a certain number of generations
 fitness_criterion     = max
-#fitness_threshold     = 0
-fitness_threshold     = 1000
-no_fitness_termination = True
-# for many-objective optimization population should be big enough
-#pop_size              = 20
-pop_size              = 100
+fitness_threshold     = 0
+pop_size              = 10
 reset_on_extinction   = False
-
 
 [DefaultGenome]
 # node activation options
@@ -83,5 +77,5 @@ max_stagnation       = 20
 species_elitism      = 2
 
 [DefaultReproduction]
-elitism            = 0
-survival_threshold = 0.9
+elitism            = 2
+survival_threshold = 0.2
