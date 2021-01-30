@@ -11,7 +11,7 @@ import ongoing.prescriptors.base as base
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CHECKPOINTS_PREFIX = os.path.join(ROOT_DIR, 'neat-checkpoint-')
-CONFIG_FILE = os.path.join(ROOT_DIR, 'config-prescriptor')
+CONFIG_FILE = os.path.join(ROOT_DIR, 'config-prescriptor-multiobjective')
 TMP_PRED_FILE_NAME = os.path.join(ROOT_DIR, 'tmp_predictions_for_prescriptions', 'preds.csv')
 TMP_PRESCRIPTION_FILE = os.path.join(ROOT_DIR, 'tmp_prescription.csv')
 
