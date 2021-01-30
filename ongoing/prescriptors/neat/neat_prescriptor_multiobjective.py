@@ -130,6 +130,8 @@ class Neat(BasePrescriptor):
                 geo_costs[geo] = cost_arr
             # Evaluate each individual
             for genome_id, genome in genomes:
+                if genome.fitness is not None:
+                    continue
                 # Create net from genome
                 net = neat.nn.FeedForwardNetwork.create(genome, config)
                 # Set up dictionary to keep track of prescription
@@ -140,7 +142,7 @@ class Neat(BasePrescriptor):
                 eval_past_cases = deepcopy(past_cases)
                 eval_past_ips = deepcopy(past_ips)
                 # Compute prescribed stringency incrementally
-                stringency = 0.
+                stringency = np.zeros(config.genome_config.num_outputs)
                 # Make prescriptions one day at a time, feeding resulting
                 # predictions from the predictor back into the prescriptor.
                 for date in pd.date_range(self.eval_start_date, self.eval_end_date):
@@ -169,7 +171,7 @@ class Neat(BasePrescriptor):
                         # Update stringency. This calculation could include division by
                         # the number of IPs and/or number of geos, but that would have
                         # no effect on the ordering of candidate solutions.
-                        stringency += np.sum(geo_costs[geo] * prescribed_ips)
+                        stringency += prescribed_ips
                     # Create dataframe from prescriptions.
                     pres_df = pd.DataFrame(df_dict)
                     # Make prediction given prescription for all countries
@@ -197,7 +199,9 @@ class Neat(BasePrescriptor):
                 # stringency zero. To achieve more interesting behavior, a different fitness
                 # function may be required.
                 new_cases = pred_df[PRED_CASES_COL].mean().mean()
-                genome.fitness_mult = (-new_cases, -stringency)
+                fitness_mult = list(-stringency)
+                fitness_mult.append(-new_cases)
+                genome.fitness_mult = tuple(fitness_mult)
                 if self.verbose:
                     print('Evaluated Genome', genome_id)
                     print('New cases:', new_cases)
@@ -473,9 +477,9 @@ class Neat(BasePrescriptor):
         # unless evolution finds the solution that uses 0 for all ips. A different
         # value can be placed in the config for automatic stopping at other thresholds.
         # winner = p.run(eval_genomes, n=self.nb_generations)
-        winner = p.run_NSGA2(eval_genomes_2d, n=self.nb_generations, multi=True, algo='NSGA-2')
+        # winner = p.run_NSGA2(eval_genomes_2d, n=self.nb_generations, multi=True, algo='NSGA-2')
         # winner = p.run_NSGA2(eval_genomes_2d_ones, n=self.nb_generations, multi=True, algo='PO')
-        # winner = p.run_NSGA2(eval_genomes_multy_ones, n=self.nb_generations, multi=True, algo='PO')
+        winner = p.run_NSGA2(eval_genomes_multy_ones, n=self.nb_generations, multi=True, algo='PO')
         # winner = p.run_NSGA2(eval_genomes_multy_ones, n=self.nb_generations, multi=True, algo='PO-repair')
 
         return
