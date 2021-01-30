@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import os
+import os,sys
 
 from ongoing.prescriptors.base import BasePrescriptor, NPI_COLUMNS, NPI_MAX_VALUES
 import ongoing.prescriptors.base as base
@@ -53,7 +53,7 @@ class Heuristic(BasePrescriptor):
 
 
                 for prescription_idx in range(NUM_PRESCRIPTIONS):
-                    P =  (prescription_idx + 1)*PCT
+                    P =  (prescription_idx + 1)*5
                     P = np.percentile(np.array(ip_weights), P)
 
                     # Turn on the next IP
@@ -79,12 +79,3 @@ class Heuristic(BasePrescriptor):
 
         return prescription_df
 
-# if __name__ == '__main__':
-for PCT in [5]:#,6,7,8,9,10,9.25,9.5,9.75]:
-    st = str(PCT).replace('.','_')
-    print('\nRUNNING ',st)
-    prescriptor = Heuristic()
-    # output_dir = '/home/thinng/code/2020/covid-xprize-comp/prescriptions/'
-    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir, os.pardir, 'prescriptions')
-    ofile_path = os.path.abspath(os.path.join(output_dir, 'Heuristic_pct_' + st + '.csv'))
-    prescriptor.evaluate(output_file_path=ofile_path)
