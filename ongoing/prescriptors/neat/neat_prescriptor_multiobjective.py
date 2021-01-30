@@ -518,10 +518,10 @@ class Neat(BasePrescriptor):
             if self.verbose:
                 print("Filling in missing data...")
             missing_data_start_date = last_historical_data_date + pd.Timedelta(days=1)
-            missing_data_start_date_str = datetime.strftime(missing_data_start_date,
+            missing_data_start_date_str = datetime.datetime.strftime(missing_data_start_date,
                                                                format='%Y-%m-%d')
             missing_data_end_date = start_date - pd.Timedelta(days=1)
-            missing_data_end_date_str = datetime.strftime(missing_data_end_date,
+            missing_data_end_date_str = datetime.datetime.strftime(missing_data_end_date,
                                                                format='%Y-%m-%d')
             pred_df = self.get_predictions(missing_data_start_date_str,
                                            missing_data_end_date_str,
