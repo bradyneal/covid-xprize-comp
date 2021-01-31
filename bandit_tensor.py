@@ -44,7 +44,7 @@ def default_obj(r,s, w):
     s = s.transpose(0,1)
 
     reward = torch.mul(weights, r) + torch.div(1 - weights, s)
-    # geo x weight
+    # weights x geo
     return reward.transpose(0,1)
     
 class CCTSB(Agent):
@@ -82,7 +82,7 @@ class CCTSB(Agent):
         self.c_t = None
         self.i_t = None
 
-        self.update_history = []
+        self.update_history = None
         self.update_range = 20
         self.update_coefficients = [lognorm.pdf(i, s= 0.4, scale=np.exp(2)) for i in range(self.update_range)]
         
@@ -103,13 +103,22 @@ class CCTSB(Agent):
 
         # i_t is geo x w x k
         self.i_t = i_t
-        self.update_history.append(self.i_t)
+
+        if self.update_history is None:
+            self.update_history = i_t.unsqueeze(0)
+        else:
+            self.update_history = torch.cat(self.update_history,
+                                            i_t.unsqueeze(0))
         return i_t
     
     def update(self, r=None, s=None, w=None):
 
-        # geo x weight
+        # weights x geo
         r_star = self.obj_func(r, s, w)
+
+        update_coefficients = torch.tensor(self.update_coefficients)
+
+        r_star_days = torch.einsum('wg,d->dwg', r_star, update_coefficients)
 
         for day in range(self.update_range):
             update_coefficient = self.update_coefficients[-(day+1)]

@@ -86,19 +86,11 @@ class Bandit(BasePrescriptor):
         return pred_df
 
 
-    def fit(self, hist_df=None, start_date=None, end_date=None):
+    def fit(self, hist_df=None):
 
         if hist_df is not None:
             self.hist_df = hist_df
         
-        if start_date is None:
-            start_date = self.hist_df['Date'].min()
-        
-        if end_date is None:
-            end_date = self.hist_df['Date'].max()
-        self.eval_start_date = pd.to_datetime(start_date, format='%Y-%m-%d')
-        self.eval_end_date = pd.to_datetime(end_date, format='%Y-%m-%d')
-
         # eval_geos = self.choose_eval_geos()
         eval_geos = list(self.hist_df.groupby('GeoID').max()['ConfirmedCases'].sort_values(
                          ascending=False).index)
@@ -107,20 +99,21 @@ class Bandit(BasePrescriptor):
             print("Bandit will be evaluated on the following geos:", eval_geos)
 
 
-        # TODO: add past cases and IPS
-        # will be tensor days x geo x weights x k 
-        prescriptions = None
 
         # weight x days x geo
         predictions = None
+        start_date = '2021-01-01'
+        end_date = '2021-02-01'
 
+        self.eval_start_date = pd.to_datetime(start_date, format='%Y-%m-%d')
+        self.eval_end_date = pd.to_datetime(end_date, format='%Y-%m-%d')
         # days x geos x weights
         stringency = None
         
         geo_costs = self.prep_geo_costs(eval_geos) #dummy call to get size
         context_size = len(next(iter(geo_costs.values())))
 
-        predictor_df_bkp = self.predictor.df.copy()
+        # predictor_df_bkp = self.predictor.df.copy()
 
         self.bandit = CCTSB(
             N=[i + 1 for i in NPI_MAX_VALUES.values()], #assumed max val + zero
@@ -132,10 +125,19 @@ class Bandit(BasePrescriptor):
             weights = OBJECTIVE_WEIGHTS)
 
         for t in range(NB_ITERATIONS):
+            predictor_df_bkp = self.predictor.df.copy()
+            # forget all data before eval_start_date
+            self.predictor.df = self.predictor.df[
+                (self.predictor.df['Date'] < self.eval_start_date) 
+                & (self.predictor.df['GeoID'].isin(eval_geos))]
+
                 
             #prepare costs for all geos
             # returns tensor geos x context
             geo_costs = self.prep_geo_costs_tensor(eval_geos)
+            # TODO: add past cases and IPS
+            # will be tensor days x geo x weights x k 
+            prescriptions = None
 
             for date in pd.date_range(self.eval_start_date, self.eval_end_date):
                 date_str = date.strftime("%Y-%m-%d")
@@ -222,8 +224,6 @@ class Bandit(BasePrescriptor):
                     else: 
                         predictions = pred_tensor.unsqueeze(0)
                 
-                # geo x weights x k
-                # new_pres = prescriptions[-1, :, :, :]
                 # weights x geo
                 new_pred = predictions[:, -1, :]
 
@@ -232,8 +232,9 @@ class Bandit(BasePrescriptor):
                 except:
                     prev_pred = torch.zeros(new_pred.size())
 
-                # calculate reward before appending to df                    
-                reward = torch.div(prev_pred, new_pred)
+                # calculate reward before appending to df
+                # weights x geo                  
+                reward = torch.div(prev_pred, new_pred + 1)
 
                 #update bandit
                 self.bandit.update(reward,
