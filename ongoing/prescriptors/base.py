@@ -9,20 +9,20 @@ SEED = 0
 DEFAULT_TEST_COST = 'covid_xprize/validation/data/uniform_random_costs.csv'
 TEST_CONFIGS = [
     # ('Default', {'start_date': '2020-08-01', 'end_date': '2020-08-05', 'costs': DEFAULT_TEST_COST}),
-    ('Jan_Mar_EC_fast', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'equal', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
-    # ('Jan_Mar_RC_fast', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
-    # ('EQUAL', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'equal'}),
-    # ('RANDOM1', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM2', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM3', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM4', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM5', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM6', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM7', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM8', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM9', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('RANDOM10', {'start_date': '2021-01-01', 'end_date': '2021-04-01', 'costs': 'random'}),
-    # ('Jan_RC_NoDec_fast', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'train_end_date': '2020-11-30', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
+    # ('Jan_Mar_EC_fast', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'equal', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
+    # ('Jan_Mar_RC_fast', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
+    ('EQUAL', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'equal'}),
+    ('RANDOM1', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'random'}),
+    ('RANDOM2', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'random'}),
+    ('RANDOM3', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'random'}),
+    ('RANDOM4', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'random'}),
+    ('RANDOM5', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'random'}),
+    ('RANDOM6', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'random'}),
+    ('RANDOM7', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'random'}),
+    ('RANDOM8', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'random'}),
+    ('RANDOM9', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'random'}),
+    ('RANDOM10', {'start_date': '2021-01-28', 'end_date': '2021-04-27', 'costs': 'random'}),
+    ('Jan_RC_NoDec_fast', {'start_date': '2021-01-01', 'end_date': '2021-01-31', 'train_end_date': '2020-11-30', 'costs': 'random', 'selected_geos': ['Canada', 'United States', 'United States / Texas']}),
 ]
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -122,7 +122,6 @@ def gen_test_config(start_date=None,
 
     # forget all historical data starting from start_date
     train_df = df[df['Date'] < pd_start_date]
-    train_df = train_df[train_df['GeoID'].isin(country_df['GeoID'].unique())]
     if predictor is not None:
         predictor.df = predictor.df[predictor.df['Date'] < pd_start_date]
 
@@ -349,7 +348,7 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
         self.predictor = XPrizePredictor(PREDICTOR_PATH, OXFORD_FILEPATH)
 
     @abstractmethod
-    def fit(self, hist_df, start_date, end_date):
+    def fit(self, hist_df):
         pass
 
     @abstractmethod
@@ -373,7 +372,7 @@ class BasePrescriptor(object, metaclass=BasePrescriptorMeta):
             if fit:
                 if verbose:
                     print('...training the prescriptor model')
-                self.fit(train_df, start_date, end_date)
+                self.fit(train_df)
 
             if not prescribe:
                 continue
