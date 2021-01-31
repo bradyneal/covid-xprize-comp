@@ -24,12 +24,12 @@ NB_ITERATIONS = 10
 # network will be NB_LOOKBACK_DAYS * (NPI_COLUMNS + 1) + NPI_COLUMNS.
 # The '1' is for previous case data, and the final NPI_COLUMNS
 # is for IP cost information.
-NB_LOOKBACK_DAYS = 14
+# NB_LOOKBACK_DAYS = 14
 
 # Number of countries to use for training. Again, lower numbers
 # here will make training faster, since there will be fewer
 # input variables, but could potentially miss out on useful info.
-NB_EVAL_COUNTRIES = 10
+# NB_EVAL_COUNTRIES = 10
 
 # Range of days the prescriptors will be evaluated on.
 # To save time during training, this range may be significantly
@@ -47,20 +47,22 @@ OBJECTIVE_WEIGHTS = [0.01, 0.1, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8, 0.9, 0.99]
 class Bandit(BasePrescriptor):
     def __init__(self,
                  seed=base.SEED,
-                 eval_start_date=EVAL_START_DATE,
-                 eval_end_date=EVAL_END_DATE,
-                 nb_eval_countries=NB_EVAL_COUNTRIES,
+                #  eval_start_date=EVAL_START_DATE,
+                #  eval_end_date=EVAL_END_DATE,
+                #  nb_eval_countries=NB_EVAL_COUNTRIES,
                  nb_prescriptions=NB_PRESCRIPTIONS,
-                 nb_lookback_days=NB_LOOKBACK_DAYS,
+                #  nb_lookback_days=NB_LOOKBACK_DAYS,
                  hist_df=None,
                  verbose=True):
 
         super().__init__(seed=seed)
 
-        self.eval_start_date = pd.to_datetime(eval_start_date, format='%Y-%m-%d')
-        self.eval_end_date = pd.to_datetime(eval_end_date, format='%Y-%m-%d')
-        self.nb_eval_countries = nb_eval_countries
-        self.nb_lookback_days = nb_lookback_days
+        # self.eval_start_date = pd.to_datetime(eval_start_date, format='%Y-%m-%d')
+        # self.eval_end_date = pd.to_datetime(eval_end_date, format='%Y-%m-%d')
+        # self.nb_eval_countries = nb_eval_countries
+        # self.nb_lookback_days = nb_lookback_days
+        self.eval_start_date = None
+        self.eval_end_date = None
         self.nb_prescriptions = nb_prescriptions
         self.hist_df = hist_df
         self.verbose = verbose
@@ -84,10 +86,18 @@ class Bandit(BasePrescriptor):
         return pred_df
 
 
-    def fit(self, hist_df=None):
+    def fit(self, hist_df=None, start_date=None, end_date=None):
 
         if hist_df is not None:
             self.hist_df = hist_df
+        
+        if start_date is None:
+            start_date = self.hist_df['Date'].min()
+        
+        if end_date is None:
+            end_date = self.hist_df['Date'].max()
+        self.eval_start_date = pd.to_datetime(start_date, format='%Y-%m-%d')
+        self.eval_end_date = pd.to_datetime(end_date, format='%Y-%m-%d')
 
         # eval_geos = self.choose_eval_geos()
         eval_geos = list(self.hist_df.groupby('GeoID').max()['ConfirmedCases'].sort_values(
@@ -96,9 +106,8 @@ class Bandit(BasePrescriptor):
         if self.verbose:
             print("Bandit will be evaluated on the following geos:", eval_geos)
 
-        past_cases, past_ips, \
-            eval_past_cases, eval_past_ips = self.prep_past_ips_cases(eval_geos)
 
+        # TODO: add past cases and IPS
         # will be tensor days x geo x weights x k 
         prescriptions = None
 
@@ -111,6 +120,7 @@ class Bandit(BasePrescriptor):
         geo_costs = self.prep_geo_costs(eval_geos) #dummy call to get size
         context_size = len(next(iter(geo_costs.values())))
 
+        predictor_df_bkp = self.predictor.df.copy()
 
         self.bandit = CCTSB(
             N=[i + 1 for i in NPI_MAX_VALUES.values()], #assumed max val + zero
@@ -124,6 +134,7 @@ class Bandit(BasePrescriptor):
         for t in range(NB_ITERATIONS):
                 
             #prepare costs for all geos
+            # returns tensor geos x context
             geo_costs = self.prep_geo_costs_tensor(eval_geos)
 
             for date in pd.date_range(self.eval_start_date, self.eval_end_date):
@@ -134,25 +145,22 @@ class Bandit(BasePrescriptor):
                 
                 # geo_costs is a tensor (geos x context)
                 X_costs = geo_costs
-
-                # observe will choose arms (preserved internally)
                 self.bandit.observe(X_costs)
 
                 # geo x weights x k
                 prescribed_ips = self.bandit.act() # gets prescriptions
 
-                # Add it to prescription dictionary
-                # df_dict is a tensor  days x geo x weights x k
+                # Add it to prescription tensor
+                # prescriptions is a tensor  days x geo x weights x k
                 if prescriptions is not None:
                     prescriptions = torch.cat(prescriptions, prescribed_ips.unsqueeze(0))
-                
                 else: 
                     prescriptions = prescribed_ips.unsqueeze(0)
                 
-                
+                # curent_stringency is geo x weights
                 current_stringency = torch.einsum("gk, gwk->gw",
                                                   X_costs,
-                                                  prescribed_ips)
+                                                  prescribed_ips.double())
                 if stringency is not None:
                     stringency = torch.cat(stringency,
                                            current_stringency.unsqueeze(0))
@@ -172,44 +180,47 @@ class Bandit(BasePrescriptor):
                     # (days, geo) x k
                     pres_tensor = pres_tensor.flatten(0,1)
 
-                    geo_and_dates = [(geo, date) for geo in eval_geos \
+                    # cartesian product of geos and days
+                    geo_and_dates = [(date, geo) for geo in eval_geos \
                         for date in current_daterange]
                     
                     # give tuples containing all the info for the dataframe
+                    # (date, geo, *interventions)
                     df_tuples = [(*geodate, *interv) for geodate, interv in \
-                        zip(geo_and_dates, pres_tensor)]
+                        zip(geo_and_dates, pres_tensor.numpy())]
 
                     # Once predictions are made for all geos, 
                     # Create dataframe from prescriptions
                     # Dataframe should have columns: 
                     # CountryName, RegionName, Date, and 1 column per NPI
                     pres_df = pd.DataFrame(df_tuples,
-                                           columns = ['GeoID', 'Date'] + NPI_COLUMNS)
-                    country_names, region_names = (pres_df.GeoID.str.split('/') + [np.nan])[:2]
+                                           columns = ['Date', 'GeoID'] + NPI_COLUMNS)
+                    countries_regions = pres_df.GeoID.str.split(' / ', expand=True).fillna(value=np.nan)
+                    country_names = countries_regions[0]
+                    region_names = countries_regions[1]
                     region_names = region_names.where(region_names != 'nan')
                     pres_df['CountryName'] = country_names
                     pres_df['RegionName'] = region_names
                     pres_df = pres_df.drop(columns='GeoID')
-
                     # Make batch predictions with prescriptions for all geos
                     pred_df = self.get_predictions(
                         self.eval_start_date.strftime("%Y-%m-%d"), date_str, pres_df)
                     pred_df = base.add_geo_id(pred_df)
                     
                     # turn predictions into tensor days x geo
-                    pred_tensor = pred_df[['GeoID', 'Date', 'C1_School closing']]
+                    pred_tensor = pred_df[['GeoID', 'Date'] + PRED_CASES_COL]
                     pred_tensor = pd.pivot(pred_tensor,
                                            index = 'Date',
                                            columns = 'GeoID',
-                                           values = PRED_CASES_COL)
+                                           values = PRED_CASES_COL[0])
                     pred_tensor = torch.tensor(pred_tensor.values)
 
                     if predictions is not None:
                         # predictions will be weight x days x geo
-                        predictions = torch.cat(predictions, pred_tensor.unsqueeze(0))
+                        predictions = torch.cat((predictions, pred_tensor.unsqueeze(0)))
                     
                     else: 
-                        predictions = prescribed_ips.unsqueeze(0)
+                        predictions = pred_tensor.unsqueeze(0)
                 
                 # geo x weights x k
                 # new_pres = prescriptions[-1, :, :, :]

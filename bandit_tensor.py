@@ -96,7 +96,7 @@ class CCTSB(Agent):
     def act(self):        
         sample_theta = torch.distributions.multivariate_normal.MultivariateNormal(
             loc=self.theta,
-            covariance_matrix=self.B).sample()
+            covariance_matrix=self.B).sample().double()
         
         dot_prod = torch.einsum("cnkgw,cnkgw->nkgw", self.c_t, sample_theta)
         i_t = torch.argmax(dot_prod, dim=0)
