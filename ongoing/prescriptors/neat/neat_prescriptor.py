@@ -258,6 +258,7 @@ class Neat(BasePrescriptor):
             pred_df = self.get_predictions(missing_data_start_date_str,
                                            missing_data_end_date_str,
                                            prior_ips_df)
+            pred_df = base.add_geo_id(pred_df)
 
             for geo in geos:
                 geo_df = pred_df[pred_df['GeoID'] == geo].sort_values(by='Date')
