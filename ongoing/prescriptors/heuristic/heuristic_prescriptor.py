@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
 import numpy as np
 import pandas as pd
 import os,sys
@@ -32,6 +38,8 @@ class Heuristic(BasePrescriptor):
         }
         for ip in NPI_COLUMNS:
             prescription_dict[ip] = []
+            
+        EQUAL = ( len(set(cost_df[NPI_COLUMNS].values.flatten())) ==1 )  
 
         for country_name in prior_ips_df['CountryName'].unique():
             country_df = prior_ips_df[prior_ips_df['CountryName'] == country_name]
@@ -43,36 +51,39 @@ class Heuristic(BasePrescriptor):
                 geo_costs = cost_df[cost_df['GeoID'] == geoid][NPI_COLUMNS]
                 ip_names = list(geo_costs.columns)
                 ip_weights = geo_costs.values[0]
-                ip_weights = [e/sum(ip_weights) for e in ip_weights]
-
-#                 sorted_ips = [ip for _, ip in sorted(zip(ip_weights, ip_names))]
-
-                # Initialize the IPs to all turned off
-#                 curr_ips = {ip: 0 for ip in NPI_MAX_VALUES}
-
-
-
-                for prescription_idx in range(NUM_PRESCRIPTIONS):
-                    P =  (prescription_idx + 1)*5
-                    P = np.percentile(np.array(ip_weights), P)
-
-                    # Turn on the next IP
-#                     next_ip = sorted_ips[prescription_idx]
-#                     curr_ips[next_ip] = NPI_MAX_VALUES[next_ip]
-
-                    # Use curr_ips for all dates for this prescription
-                    for date in pd.date_range(start_date, end_date):
-                        prescription_dict['PrescriptionIndex'].append(prescription_idx)
-                        prescription_dict['CountryName'].append(country_name)
-                        prescription_dict['RegionName'].append(region_name)
-                        prescription_dict['Date'].append(date.strftime("%Y-%m-%d"))
-#                         for ip in NPI_COLUMNS:
-#                             prescription_dict[ip].append(curr_ips[ip])
-                        for ii in range(len(NPI_COLUMNS)):
-                            v = 0  
-                            if (ip_weights[ii] <= P):
-                                v = NPI_MAX_VALUES[NPI_COLUMNS[ii]]
-                            prescription_dict[NPI_COLUMNS[ii]].append(v)                            
+#                 EQUAL = (len(set(ip_weights)) == 1)
+                
+                if EQUAL:
+                    sorted_ips = [ip for _, ip in sorted(zip(ip_weights, ip_names))]
+                    # Initialize the IPs to all turned off
+                    curr_ips = {ip: 0 for ip in NPI_MAX_VALUES}
+                    for prescription_idx in range(NUM_PRESCRIPTIONS):
+                        # Turn on the next IP
+                        next_ip = sorted_ips[prescription_idx]
+                        curr_ips[next_ip] = NPI_MAX_VALUES[next_ip]
+                        # Use curr_ips for all dates for this prescription
+                        for date in pd.date_range(start_date, end_date):
+                            prescription_dict['PrescriptionIndex'].append(prescription_idx)
+                            prescription_dict['CountryName'].append(country_name)
+                            prescription_dict['RegionName'].append(region_name)
+                            prescription_dict['Date'].append(date.strftime("%Y-%m-%d"))
+                            for ip in NPI_COLUMNS:
+                                prescription_dict[ip].append(curr_ips[ip])  
+                else:
+                    ip_weights = [e/sum(ip_weights) for e in ip_weights]
+                    for prescription_idx in range(NUM_PRESCRIPTIONS):
+                        P =  (prescription_idx + 1)*5
+                        P = np.percentile(np.array(ip_weights), P)
+                        for date in pd.date_range(start_date, end_date):
+                            prescription_dict['PrescriptionIndex'].append(prescription_idx)
+                            prescription_dict['CountryName'].append(country_name)
+                            prescription_dict['RegionName'].append(region_name)
+                            prescription_dict['Date'].append(date.strftime("%Y-%m-%d"))
+                            for ii in range(len(NPI_COLUMNS)):
+                                v = 0  
+                                if (ip_weights[ii] <= P):
+                                    v = NPI_MAX_VALUES[NPI_COLUMNS[ii]]
+                                prescription_dict[NPI_COLUMNS[ii]].append(v)                            
 
         # Create dataframe from dictionary.
         prescription_df = pd.DataFrame(prescription_dict)
