@@ -10,6 +10,7 @@ keras==2.4.3
 neat-python==0.92
 lightgbm==3.1.1
 h5py==2.10.0
+pickle5
 
 # plotting
 plotly==4.11.0
