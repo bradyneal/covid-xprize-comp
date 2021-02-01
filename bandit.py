@@ -13,9 +13,10 @@ actions = bandit.act()
 bandit.update(reward,cost)
 
 """
-
+NORM_CONST_STRINGENCY = 1
 import numpy as np
 from scipy.stats import lognorm
+import time
 
 class Agent(object):
     def __init__(self):
@@ -34,11 +35,19 @@ class Agent(object):
             
 
 def default_obj(r,s, weight=None):
-    assert 0 < weight < 1, "objective weight should be in (0,1)"
-    return weight * r + (1 - weight) / s
+    # assert 0 < weight < 1, "objective weight should be in (0,1)"
+
+    # print("reward : ", r)
+    # print(" string : ", s)
+    # print(" r_star : ", weight * r + (1 - weight) / (s/NORM_CONST_STRING))
+    # return weight * r + (1 - weight) / np.max((0.1, s / NORM_CONST_STRINGENCY))
+    # return weight * r - (1 - weight) * s
+    # return 1/ (1 + np.exp(-np.log(r)))
+    print('stringency : ', s)
+    return (1 - weight) * (34 - s) + weight * r * 34
     
 class CCTSB(Agent):
-    def __init__(self, N=None, K=None, C=None, alpha_p=None, nabla_p=None, w=0.5, obj_func=default_obj):
+    def __init__(self, N=None, K=None, C=None, alpha_p=None, nabla_p=None, w=0.5, obj_func=default_obj, verbose=False):
         
         # for example: 
         # four possible actions: school closure, diet, vaccine, travel control
@@ -48,6 +57,7 @@ class CCTSB(Agent):
         self.N = N # number of possible values in each action, e.g. [4,4,5,3]
         self.K = K # number of possible intervention actions, e.g. 4
         self.C = C # dimension of the context, e.g. 100
+        self.verbose = verbose
         
         self.alpha = alpha_p
         self.nabla = nabla_p
@@ -74,35 +84,51 @@ class CCTSB(Agent):
         for k in range(self.K):
             
             for i in range(len(sample_theta[k])):
-                sample_theta[k][i] = np.random.multivariate_normal(self.theta_i_k[k][i], self.alpha**2 * np.linalg.inv(self.B_i_k[k][i]))
-            
+                sample_theta[k][i] = np.random.multivariate_normal(self.theta_i_k[k][i], self.alpha**2 * np.linalg.pinv(self.B_i_k[k][i]))
+                # print('self.theta_i_k[k][i] : ', np.linalg.norm(self.theta_i_k[k][i]))
             i_t[k] = np.argmax(self.c_t.T.dot(np.array(sample_theta[k]).T))
-        
+
+            # print('dot product : ', self.c_t.T.dot(np.array(sample_theta[k]).T))
+            # print('c_t : ', self.c_t)
         self.i_t = i_t
         self.update_history.append(self.i_t)
         return i_t
     
-    def update(self, r=None, s=None, w=None):
+    def update(self, r=None, s=None, w=None, verbose=False):
         r_star = self.obj_func(r, s, w)
-        for day in range(self.update_range):
-            update_coefficient = self.update_coefficients[-(day+1)]
-            for k in range(self.K):
-                # print("Day : ", day)
-                # print("update history : ", self.update_history)
-                # print("update history specific : ", self.update_history[-(day+1)])
+        inner_verbose=False
+        for k in range(self.K):
+            for day in range(self.update_range): # {0 - 19}
+                if k == 0:
+                    if day == 0:
+                        inner_verbose=True
+                    else:
+                        inner_verbose=False
+                else:
+                    inner_verbose=False
+                update_coefficient = self.update_coefficients[-(day+1)]
                 try: 
                     i = self.update_history[-(day+1)][k] # at day 0, we want the most recent actions by the bandit (so -1)
                 except:
-                    # print('update history too short: ', len(self.update_history))
                     continue
-                norm = np.linalg.norm(self.c_t, ord=1)
-                norm_c_t = self.c_t/norm
-                # print(norm, norm_c_t)
-                # print(np.linalg.norm(self.B_i_k[k][i]))
-                self.B_i_k[k][i] = self.nabla * self.B_i_k[k][i] + norm_c_t.dot(norm_c_t.T)
-                # print(np.linalg.norm(self.B_i_k[k][i]))
+
+                # norm = np.linalg.norm(self.c_t, ord=1)
+                norm_c_t = self.c_t
+                norm_c_t_2d = norm_c_t[:,np.newaxis]
+
+                try:
+                    self.B_i_k[k][i] = self.nabla * self.B_i_k[k][i] + norm_c_t_2d.dot(norm_c_t_2d.T)
+                except:
+                    print(self.B_i_k[k][i])
+                    self.B_i_k[k][i] = self.nabla * self.B_i_k[k][i] + norm_c_t_2d.dot(norm_c_t_2d.T)
+
                 self.z_i_k[k][i] += norm_c_t * r_star * update_coefficient
-                self.theta_i_k[k][i] = np.linalg.inv(self.B_i_k[k][i]).dot(self.z_i_k[k][i])
-    
+                # self.z_i_k[k][i] += norm_c_t * r_star
+
+                self.theta_i_k[k][i] = np.linalg.pinv(self.B_i_k[k][i]).dot(self.z_i_k[k][i])
+                if verbose==True:
+                    if inner_verbose == True:
+                        print(np.linalg.eig(np.linalg.pinv(self.B_i_k[k][i]))[0])
+
     def clear_update_hist(self):
         self.update_history = []
