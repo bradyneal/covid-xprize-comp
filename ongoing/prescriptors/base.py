@@ -71,7 +71,7 @@ def gen_test_config(start_date=None,
                     costs='random',
                     selected_geos=COUNTRY_LIST,
                     predictor=None,
-                    update_data=True):
+                    update_data=False):
     """
     Loads the data and splits it into train and test sets
 
@@ -88,7 +88,6 @@ def gen_test_config(start_date=None,
     Returns: (train_df, test_df, cost_df)
     """
     assert (start_date is not None) and (end_date is not None)
-    assert isinstance(selected_geos, str) or isinstance(selected_geos, list)
 
     df = load_historical_data(update_data=update_data)
 
