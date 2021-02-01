@@ -20,7 +20,7 @@ path = os.path.join(ROOT_DIR, 'models/5days-results-2d-1-hidden/')
 num_checkpoint = 26
 PRESCRIPTORS_FILE = os.path.join(path, 'neat-checkpoint-{}'.format(num_checkpoint))
 PRESCRIPTORS_FILE_ZIP = os.path.join(path, 'neat-checkpoint-{}.zip'.format(num_checkpoint))
-CONFIG_FILE = path + 'config-Sscriptor-{}'.format(num_checkpoint)
+CONFIG_FILE = path + 'config-prescriptor-{}'.format(num_checkpoint)
 
 def prescribe(start_date_str: str,
               end_date_str: str,
