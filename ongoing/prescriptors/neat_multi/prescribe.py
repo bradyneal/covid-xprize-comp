@@ -2,6 +2,7 @@ import os
 import argparse
 import numpy as np
 import pandas as pd
+import time
 
 import zipfile
 import os.path
@@ -96,5 +97,8 @@ if __name__ == '__main__':
                         help="The path to an intervention plan .csv file")
     args = parser.parse_args()
     print(f"Generating prescriptions from {args.start_date} to {args.end_date}...")
+    start = time.time()
     prescribe(args.start_date, args.end_date, args.prev_file, args.cost_file, args.output_file)
+    end = time.time()
+    print('TIME elapsed:', (end - start) / 60, 'minutes')
     print("Done!")

@@ -8,7 +8,8 @@ import time
 try:
     import cPickle as pickle # pylint: disable=import-error
 except ImportError:
-    import pickle # pylint: disable=import-error
+    #import pickle # pylint: disable=import-error
+    import pickle5 as pickle
 
 from neat.population import Population
 from neat.reporting import BaseReporter
