@@ -48,6 +48,10 @@ OXFORD_FILEPATH = os.path.join(DATA_DIR, 'OxCGRT_latest.csv')
 # number of prescriptions
 NUM_REQUIRED = 10
 
+# limits on the allowed values of stringency for our solutions
+MIN_STRINGENCY = 0.5
+MAX_STRINGENCY = 35
+
 def prescribe(start_date_str: str,
               end_date_str: str,
               path_to_prior_ips_file: str,
@@ -327,6 +331,11 @@ def aggregate_results(df_arr):
                 pass
             # put them all together and remove duplicates
             prescr_df = pd.concat(prescr_df).drop_duplicates(['PredictedDailyNewCases', 'Stringency'])
+
+            # remove solutions with (Stringency < min_stringency) or (Stringency > max_stringency)
+            prescr_df.reset_index(inplace=True, drop=True)
+            idx_to_drop = prescr_df[(prescr_df['Stringency'] < MIN_STRINGENCY) | (prescr_df['Stringency'] > MAX_STRINGENCY)].index
+            prescr_df.drop(idx_to_drop, inplace=True)
 
             # choose non-dominated
             arr = prescr_df[['PredictedDailyNewCases', 'Stringency']].values
