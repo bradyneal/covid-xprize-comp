@@ -25,10 +25,14 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Neat2D configs
 NEAT2D_PATH = os.path.join(ROOT_DIR, 'neat_multi/models/5days-results-2d-1-hidden/')
-NEAT2D_CHECKPOINT = 26
-NEAT2D_FILE = os.path.join(NEAT2D_PATH, 'neat-checkpoint-{}'.format(NEAT2D_CHECKPOINT))
-NEAT2D_FILE_ZIP = os.path.join(NEAT2D_PATH, 'neat-checkpoint-{}.zip'.format(NEAT2D_CHECKPOINT))
-NEAT2D_CONFIG_FILE = NEAT2D_PATH + 'config-prescriptor-{}'.format(NEAT2D_CHECKPOINT)
+NEAT2D_CHECKPOINT_0 = 26
+NEAT2D_FILE_0 = os.path.join(NEAT2D_PATH, 'neat-checkpoint-{}'.format(NEAT2D_CHECKPOINT_0))
+NEAT2D_FILE_ZIP_0 = os.path.join(NEAT2D_PATH, 'neat-checkpoint-{}.zip'.format(NEAT2D_CHECKPOINT_0))
+NEAT2D_CONFIG_FILE_0 = NEAT2D_PATH + 'config-prescriptor-{}'.format(NEAT2D_CHECKPOINT_0)
+NEAT2D_CHECKPOINT_1 = 45
+NEAT2D_FILE_1 = os.path.join(NEAT2D_PATH, 'neat-checkpoint-{}'.format(NEAT2D_CHECKPOINT_1))
+NEAT2D_FILE_ZIP_1 = os.path.join(NEAT2D_PATH, 'neat-checkpoint-{}.zip'.format(NEAT2D_CHECKPOINT_1))
+NEAT2D_CONFIG_FILE_1 = NEAT2D_PATH + 'config-prescriptor-{}'.format(NEAT2D_CHECKPOINT_1)
 
 # Neat13D configs
 NEAT13D_PATH = os.path.join(ROOT_DIR, 'neat_13D/models/13d_5days/')
@@ -75,41 +79,51 @@ def prescribe(start_date_str: str,
     cost_df = base.add_geo_id(cost_df)
 
     # unpack the model if required
-    if os.path.isfile(NEAT2D_FILE):
+    if os.path.isfile(NEAT2D_FILE_0):
         print("Model file exists")
     else:
         print("Un-zipping model file")
-        with zipfile.ZipFile(NEAT2D_FILE_ZIP, 'r') as zip_ref:
+        with zipfile.ZipFile(NEAT2D_FILE_ZIP_0, 'r') as zip_ref:
             zip_ref.extractall(NEAT2D_PATH)
 
     # unpack the model if required
-    if os.path.isfile(NEAT13D_FILE_0):
+    if os.path.isfile(NEAT2D_FILE_1):
         print("Model file exists")
     else:
-        print("Please unzip model file {}".format(NEAT13D_FILE_ZIP_0))
-        exit(-2)
+        print("Un-zipping model file")
+        with zipfile.ZipFile(NEAT2D_FILE_ZIP_1, 'r') as zip_ref:
+            zip_ref.extractall(NEAT2D_PATH)
 
-    # unpack the model if required
-    if os.path.isfile(NEAT13D_FILE_1):
-        print("Model file exists")
-    else:
-        print("Please unzip model file {}".format(NEAT13D_FILE_ZIP_1))
-        exit(-2)
+    # # unpack the model if required
+    # if os.path.isfile(NEAT13D_FILE_0):
+    #     print("Model file exists")
+    # else:
+    #     print("Please unzip model file {}".format(NEAT13D_FILE_ZIP_0))
+    #     exit(-2)
+
+    # # unpack the model if required
+    # if os.path.isfile(NEAT13D_FILE_1):
+    #     print("Model file exists")
+    # else:
+    #     print("Please unzip model file {}".format(NEAT13D_FILE_ZIP_1))
+    #     exit(-2)
 
     # instantiate prescriptors
-    bandit = Bandit(load=True)
-    neat2d_ad15 = Neat2D(prescriptors_file=NEAT2D_FILE, hist_df=hist_df, config_file=NEAT2D_CONFIG_FILE, action_duration=15)
-    neat2d_ad1 = Neat2D(prescriptors_file=NEAT2D_FILE, hist_df=hist_df, config_file=NEAT2D_CONFIG_FILE, action_duration=1)
-    neat13d_ckp0 = Neat13D(prescriptors_file=NEAT13D_FILE_0, hist_df=hist_df, config_file=NEAT13D_CONFIG_FILE_0)
-    neat13d_ckp1 = Neat13D(prescriptors_file=NEAT13D_FILE_1, hist_df=hist_df, config_file=NEAT13D_CONFIG_FILE_1)
+    # bandit = Bandit(load=True, hist_df=hist_df, verbose=False)
+    neat2d_ad15_ckp0 = Neat2D(prescriptors_file=NEAT2D_FILE_0, hist_df=hist_df, config_file=NEAT2D_CONFIG_FILE_0, action_duration=15)
+    neat2d_ad15_ckp1 = Neat2D(prescriptors_file=NEAT2D_FILE_1, hist_df=hist_df, config_file=NEAT2D_CONFIG_FILE_1, action_duration=15)
+    neat2d_ad1 = Neat2D(prescriptors_file=NEAT2D_FILE_0, hist_df=hist_df, config_file=NEAT2D_CONFIG_FILE_0, action_duration=1)
+    # neat13d_ckp0 = Neat13D(prescriptors_file=NEAT13D_FILE_0, hist_df=hist_df, config_file=NEAT13D_CONFIG_FILE_0)
+    # neat13d_ckp1 = Neat13D(prescriptors_file=NEAT13D_FILE_1, hist_df=hist_df, config_file=NEAT13D_CONFIG_FILE_1)
     heuristic = Heuristic()
     blind_greedy = BlindGreedy()
     prescriptors = {
-        'Bandit': bandit,
-        'Neat2D_AD15': neat2d_ad15,
+        # 'Bandit': bandit,
         'Neat2D_AD1': neat2d_ad1,
-        # 'Neat13D-CKP0': neat13d_ckp0,
-        # 'Neat13D-CKP1': neat13d_ckp1,
+        'Neat2D_AD15_CKP0': neat2d_ad15_ckp0,
+        'Neat2D_AD15_CKP1': neat2d_ad15_ckp1,
+        # 'Neat13D_CKP0': neat13d_ckp0,
+        # 'Neat13D_CKP1': neat13d_ckp1,
         'Heuristic': heuristic,
         'BlindGreedy': blind_greedy,
     }
