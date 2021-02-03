@@ -368,7 +368,7 @@ class Bandit(BasePrescriptor):
                 # Get prescription for all regions
                 for geo in geos:
                     # only Canada bandit is trained
-                    bandit = self.bandits[weight]['Canada']
+                    bandit = self.bandits[weight][geo]
                     X_costs = geo_costs[geo]
                     bandit.observe(X_costs)
                     prescribed_ips = bandit.act()
@@ -396,7 +396,7 @@ class Bandit(BasePrescriptor):
                     break
 
                 for geo in geos:
-                    bandit = self.bandits[weight]['Canada']
+                    bandit = self.bandits[weight][geo]
                     geo_pres = new_pres_df[new_pres_df['GeoID'] == geo]
                     geo_pred = new_pred_df[new_pred_df['GeoID'] == geo]
 
