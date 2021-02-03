@@ -5,6 +5,7 @@ from copy import deepcopy
 import datetime
 import pickle
 import time
+import copy
 
 os.system('export PYTHONPATH="$(pwd):$PYTHONPATH"')
 from ongoing.prescriptors.base import BasePrescriptor, PRED_CASES_COL, CASES_COL, NPI_COLUMNS, NPI_MAX_VALUES
@@ -21,8 +22,8 @@ TMP_PRESCRIPTION_FILE = os.path.join(ROOT_DIR, 'tmp_prescription.csv')
 # Number of iterations of training for the bandit. 
 # Each iteration presents the bandit with a new context.
 # Each iteration trains the bandit for the entire prediction window.
-NB_ITERATIONS = 2000
-EXPLORE_ITERATIONS = 1900
+NB_ITERATIONS = 2
+EXPLORE_ITERATIONS = 1
 CHOICE = 'fixed'
 # Number of days the prescriptors will look at in the past.
 # Larger values here may make convergence slower, but give
@@ -51,6 +52,7 @@ NB_PRESCRIPTIONS = 10
 # OBJECTIVE_WEIGHTS = [0.01, 0.1, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8, 0.9, 0.99]
 OBJECTIVE_WEIGHTS = [0.5, 1.0]
 
+LOAD = True
 class Bandit(BasePrescriptor):
     def __init__(self,
                  seed=base.SEED,
@@ -79,6 +81,7 @@ class Bandit(BasePrescriptor):
         self.hist_df = hist_df
         self.verbose = verbose
         self.bandits = {}
+        self.load = load
 
     def get_predictions(self, start_date_str, end_date_str, pres_df):
         start_date = pd.to_datetime(start_date_str)
@@ -100,12 +103,13 @@ class Bandit(BasePrescriptor):
 
 
     def fit(self, hist_df=None):
-        if self.load == True:
-            with open('covid-xprize-comp/bandits.pkl', 'rb') as f:
-                self.bandits = pickle.load(f)
-            return
         if hist_df is not None:
             self.hist_df = hist_df
+        if self.load == True:
+            print('loading bandit')
+            with open('bandits.pkl', 'rb') as f:
+                self.bandits = pickle.load(f)
+            return
         
 
         # eval_geos = self.choose_eval_geos()
@@ -274,17 +278,17 @@ class Bandit(BasePrescriptor):
 
                 rewards.append(mean_rewards[0:4])
 
-            print('Weight ' + str(weight) + ' done.')
-            np.savetxt('rewards_cumulative_' + str(weight) + '_' + str(self.bandits[weight]['Canada'].choice),
-                       rewards,
-                       fmt='%1.10f')
-            indiv_rewards = self.bandits[weight]['Canada'].rewards
-            np.savetxt('rewards_' + str(weight) + '_' + CHOICE,
-                       indiv_rewards,
-                       fmt='%1.10f')
+        #     print('Weight ' + str(weight) + ' done.')
+        #     np.savetxt('rewards_cumulative_' + str(weight) + '_' + str(self.bandits[weight]['Canada'].choice),
+        #                rewards,
+        #                fmt='%1.10f')
+        #     indiv_rewards = self.bandits[weight]['Canada'].rewards
+        #     np.savetxt('rewards_' + str(weight) + '_' + CHOICE,
+        #                indiv_rewards,
+        #                fmt='%1.10f')
 
-        with open('bandits.pkl', 'wb') as f:
-            pickle.dump(self.bandits, f)
+        # with open('bandits.pkl', 'wb') as f:
+        #     pickle.dump(self.bandits, f)
         
         return
 
@@ -296,9 +300,8 @@ class Bandit(BasePrescriptor):
                   cost_df):
 
         if self.load == True:
-            with open('covid-xprize-comp/bandits.pkl', 'rb') as f:
+            with open('bandits.pkl', 'rb') as f:
                 self.bandits = pickle.load(f)
-            return
 
         start_date = pd.to_datetime(start_date_str, format='%Y-%m-%d')
         end_date = pd.to_datetime(end_date_str, format='%Y-%m-%d')
@@ -335,6 +338,12 @@ class Bandit(BasePrescriptor):
         # Generate prescriptions iteratively, feeding resulting
         # predictions from the predictor back into the prescriptor.
         prescription_dfs = []
+
+        for weight in OBJECTIVE_WEIGHTS:
+            for geo in geos:
+                start_time = time.time()
+                self.bandits[weight][geo] = copy.deepcopy(self.bandits[weight]['Canada'])
+                print(time.time()-start_time)
 
         for idx, weight in enumerate(OBJECTIVE_WEIGHTS):
             current_date = start_date
@@ -385,7 +394,7 @@ class Bandit(BasePrescriptor):
                     break
 
                 for geo in geos:
-                    bandit = self.bandits[weight][geo]
+                    bandit = self.bandits[weight]['Canada']
                     geo_pres = new_pres_df[new_pres_df['GeoID'] == geo]
                     geo_pred = new_pred_df[new_pred_df['GeoID'] == geo]
 
@@ -398,7 +407,7 @@ class Bandit(BasePrescriptor):
                                                 geo, geo_pres, geo_pred)
 
                     bandit.update(eval_past_cases[geo][-1], (np.max([0.1,geo_pred[PRED_CASES_COL].values[0][0]])), eval_stringency[current_date][geo], weight)
-
+                    print('geo ' + str(geo) + ' done.')
                 # Move on to next date
 
                 new_pred_df = new_pred_df.merge(new_pres_df, on=['CountryName', 'RegionName', 'GeoID', 'Date'], how='left')
@@ -425,6 +434,8 @@ class Bandit(BasePrescriptor):
 
                 current_date += pd.DateOffset(days=1)
 
+                print('day ' + str(current_date) + ' done.')
+
             pres_df['PrescriptionIndex'] = idx
             prescription_dfs.append(pres_df)
 
@@ -439,7 +450,7 @@ class Bandit(BasePrescriptor):
         
         prescription_df = pd.concat(prescription_dfs)
         prescription_df = prescription_df.drop(columns='GeoID')
-        prescription_df.to_csv('inspection_prescribe.csv')
+        # prescription_df.to_csv('inspection_prescribe.csv')
 
         return prescription_df
 
