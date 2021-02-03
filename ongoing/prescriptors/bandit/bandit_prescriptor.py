@@ -21,8 +21,8 @@ TMP_PRESCRIPTION_FILE = os.path.join(ROOT_DIR, 'tmp_prescription.csv')
 # Number of iterations of training for the bandit. 
 # Each iteration presents the bandit with a new context.
 # Each iteration trains the bandit for the entire prediction window.
-NB_ITERATIONS = 2500
-EXPLORE_ITERATIONS = 2400
+NB_ITERATIONS = 2000
+EXPLORE_ITERATIONS = 1900
 CHOICE = 'fixed'
 # Number of days the prescriptors will look at in the past.
 # Larger values here may make convergence slower, but give
@@ -62,7 +62,8 @@ class Bandit(BasePrescriptor):
                  hist_df=None,
                  start_date=None,
                  end_date=None,
-                 verbose=True):
+                 verbose=True,
+                 load=True):
 
         super().__init__(seed=seed)
         # self.eval_start_date = pd.to_datetime(eval_start_date, format='%Y-%m-%d')
@@ -99,7 +100,10 @@ class Bandit(BasePrescriptor):
 
 
     def fit(self, hist_df=None):
-        
+        if self.load == True:
+            with open('covid-xprize-comp/bandits.pkl', 'rb') as f:
+                self.bandits = pickle.load(f)
+            return
         if hist_df is not None:
             self.hist_df = hist_df
         
@@ -291,6 +295,11 @@ class Bandit(BasePrescriptor):
                   prior_ips_df,
                   cost_df):
 
+        if self.load == True:
+            with open('covid-xprize-comp/bandits.pkl', 'rb') as f:
+                self.bandits = pickle.load(f)
+            return
+
         start_date = pd.to_datetime(start_date_str, format='%Y-%m-%d')
         end_date = pd.to_datetime(end_date_str, format='%Y-%m-%d')
 
@@ -347,8 +356,8 @@ class Bandit(BasePrescriptor):
 
                 # Get prescription for all regions
                 for geo in geos:
-
-                    bandit = self.bandits[weight][geo]
+                    # only Canada bandit is trained
+                    bandit = self.bandits[weight]['Canada']
                     X_costs = geo_costs[geo]
                     bandit.observe(X_costs)
                     prescribed_ips = bandit.act()
