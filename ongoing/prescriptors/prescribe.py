@@ -7,8 +7,11 @@ import time
 import zipfile
 import os.path
 
-from ongoing.prescriptors.neat_multi.neat_prescriptor_many_objective import Neat
+from ongoing.prescriptors.neat_multi.neat_prescriptor_many_objective import Neat as Neat2D
+from ongoing.prescriptors.neat_13D.neat_prescriptor_many_objective import Neat as Neat13D
+from ongoing.prescriptors.bandit.bandit_prescriptor import Bandit
 from ongoing.prescriptors.heuristic.heuristic_prescriptor import Heuristic
+from ongoing.prescriptors.blind_greedy.blind_greedy_prescriptor import BlindGreedy
 from covid_xprize.standard_predictor.xprize_predictor import XPrizePredictor
 import ongoing.prescriptors.base as base
 
@@ -19,12 +22,29 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 # but this is likely not the most complementary set of prescriptors.
 # Many approaches can be taken to generate/collect more diverse sets.
 # Note: this set can contain up to 10 prescriptors for evaluation.
-path = os.path.join(ROOT_DIR, 'neat_multi/models/5days-results-2d-1-hidden/')
-num_checkpoint = 26
-PRESCRIPTORS_FILE = os.path.join(path, 'neat-checkpoint-{}'.format(num_checkpoint))
-PRESCRIPTORS_FILE_ZIP = os.path.join(path, 'neat-checkpoint-{}.zip'.format(num_checkpoint))
-CONFIG_FILE = path + 'config-prescriptor-{}'.format(num_checkpoint)
+
+# Neat2D configs
+NEAT2D_PATH = os.path.join(ROOT_DIR, 'neat_multi/models/5days-results-2d-1-hidden/')
+NEAT2D_CHECKPOINT = 26
+NEAT2D_FILE = os.path.join(NEAT2D_PATH, 'neat-checkpoint-{}'.format(NEAT2D_CHECKPOINT))
+NEAT2D_FILE_ZIP = os.path.join(NEAT2D_PATH, 'neat-checkpoint-{}.zip'.format(NEAT2D_CHECKPOINT))
+NEAT2D_CONFIG_FILE = NEAT2D_PATH + 'config-prescriptor-{}'.format(NEAT2D_CHECKPOINT)
+
+# Neat13D configs
+NEAT13D_PATH = os.path.join(ROOT_DIR, 'neat_13D/models/13d_5days/')
+NEAT13D_CHECKPOINT_0 = 50
+NEAT13D_FILE_0 = os.path.join(NEAT13D_PATH, 'neat-checkpoint-{}'.format(NEAT13D_CHECKPOINT_0))
+NEAT13D_FILE_ZIP_0 = os.path.join(NEAT13D_PATH, 'neat-checkpoint-{}.zip'.format(NEAT13D_CHECKPOINT_0))
+NEAT13D_CONFIG_FILE_0 = NEAT13D_PATH + 'config-prescriptor-{}'.format(NEAT13D_CHECKPOINT_0)
+NEAT13D_CHECKPOINT_1 = 70
+NEAT13D_FILE_1 = os.path.join(NEAT13D_PATH, 'neat-checkpoint-{}'.format(NEAT13D_CHECKPOINT_1))
+NEAT13D_FILE_ZIP_1 = os.path.join(NEAT13D_PATH, 'neat-checkpoint-{}.zip'.format(NEAT13D_CHECKPOINT_1))
+NEAT13D_CONFIG_FILE_1 = NEAT13D_PATH + 'config-prescriptor-{}'.format(NEAT13D_CHECKPOINT_1)
+
 PREDICTOR_PATH = 'covid_xprize/standard_predictor/models/trained_model_weights.h5'
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(ROOT_DIR, os.pardir, 'data')
+OXFORD_FILEPATH = os.path.join(DATA_DIR, 'OxCGRT_latest.csv')
 
 # number of prescriptions
 NUM_REQUIRED = 10
@@ -52,73 +72,99 @@ def prescribe(start_date_str: str,
     cost_df = base.add_geo_id(cost_df)
 
     # unpack the model if required
-    if os.path.isfile(PRESCRIPTORS_FILE):
+    if os.path.isfile(NEAT2D_FILE):
         print("Model file exists")
     else:
         print("Un-zipping model file")
-        with zipfile.ZipFile(PRESCRIPTORS_FILE_ZIP, 'r') as zip_ref:
-            zip_ref.extractall(path)
+        with zipfile.ZipFile(NEAT2D_FILE_ZIP, 'r') as zip_ref:
+            zip_ref.extractall(NEAT2D_PATH)
+
+    # unpack the model if required
+    if os.path.isfile(NEAT13D_FILE_0):
+        print("Model file exists")
+    else:
+        print("Please unzip model file {}".format(NEAT13D_FILE_ZIP_0))
+        exit(-2)
+
+    # unpack the model if required
+    if os.path.isfile(NEAT13D_FILE_1):
+        print("Model file exists")
+    else:
+        print("Please unzip model file {}".format(NEAT13D_FILE_ZIP_1))
+        exit(-2)
 
     # instantiate prescriptors
-    neat = Neat(prescriptors_file=PRESCRIPTORS_FILE, hist_df=hist_df, config_file=CONFIG_FILE)
+    bandit = Bandit(load=True)
+    neat2d_ad15 = Neat2D(prescriptors_file=NEAT2D_FILE, hist_df=hist_df, config_file=NEAT2D_CONFIG_FILE, action_duration=15)
+    neat2d_ad1 = Neat2D(prescriptors_file=NEAT2D_FILE, hist_df=hist_df, config_file=NEAT2D_CONFIG_FILE, action_duration=1)
+    neat13d_ckp0 = Neat13D(prescriptors_file=NEAT13D_FILE_0, hist_df=hist_df, config_file=NEAT13D_CONFIG_FILE_0)
+    neat13d_ckp1 = Neat13D(prescriptors_file=NEAT13D_FILE_1, hist_df=hist_df, config_file=NEAT13D_CONFIG_FILE_1)
     heuristic = Heuristic()
-    prescriptors = {'Neat': neat, 'Heuristic': heuristic}
+    blind_greedy = BlindGreedy()
+    prescriptors = {'Bandit': bandit, 'Neat2D_AD15': neat2d_ad15, 'Neat2D_AD1': neat2d_ad1, 'Neat13D-CKP0': neat13d_ckp0, 'Neat13D-CKP1': neat13d_ckp1, 'Heuristic': heuristic, 'BlindGreedy': blind_greedy}
 
     # generate prescriptions and predictions for all prescriptors
     prescriptions = {}
     eval = []
+    predictor = XPrizePredictor(PREDICTOR_PATH, OXFORD_FILEPATH)
     for presc_name, presc in prescriptors.items():
-        pres_df = presc.prescribe(start_date_str, end_date_str, npi_df, cost_df)
-        pres_df = base.add_geo_id(pres_df)
-        prescriptions[presc_name] = pres_df
+        try:  # in case anything goes wrong with this prescriptor, ignore it and move to the next one
+            print('Generating prescriptions for {}'.format(presc_name))
+            pres_df = presc.prescribe(start_date_str, end_date_str, npi_df, cost_df)
+            pres_df = base.add_geo_id(pres_df)
+            prescriptions[presc_name] = pres_df
 
-        # generate predictions with the given prescriptions
-        pred_dfs = []
-        for idx in pres_df['PrescriptionIndex'].unique():
-            idx_df = pres_df[pres_df['PrescriptionIndex'] == idx]
-            idx_df = idx_df.drop(columns='PrescriptionIndex') # predictor doesn't need this
-            last_known_date = presc.predictor.df['Date'].max()
-            if last_known_date < pd.to_datetime(idx_df['Date'].min()) - np.timedelta64(1, 'D'):
-                # append prior NPIs to the prescripted ones because the predictor will need them
-                idx_df = idx_df.append(npi_df[npi_df['Date'] > last_known_date].drop(columns='GeoID'))
-            pred_df = presc.predictor.predict(start_date_str, end_date_str, idx_df)
-            pred_df['PrescriptionIndex'] = idx
-            pred_dfs.append(pred_df)
-        pred_df = pd.concat(pred_dfs)
-        # aggregate cases by prescription index and geo
-        agg_pred_df = pred_df.groupby(['CountryName',
-                                       'RegionName',
-                                       'PrescriptionIndex'], dropna=False).mean().reset_index()
+            # generate predictions with the given prescriptions
+            print('Generating predictions for {}'.format(presc_name))
+            pred_dfs = []
+            for idx in pres_df['PrescriptionIndex'].unique():
+                idx_df = pres_df[pres_df['PrescriptionIndex'] == idx]
+                idx_df = idx_df.drop(columns='PrescriptionIndex') # predictor doesn't need this
+                last_known_date = predictor.df['Date'].max()
+                if last_known_date < pd.to_datetime(idx_df['Date'].min()) - np.timedelta64(1, 'D'):
+                    # append prior NPIs to the prescripted ones because the predictor will need them
+                    idx_df = idx_df.append(npi_df[npi_df['Date'] > last_known_date].drop(columns='GeoID'))
+                pred_df = predictor.predict(start_date_str, end_date_str, idx_df)
+                pred_df['PrescriptionIndex'] = idx
+                pred_dfs.append(pred_df)
+            pred_df = pd.concat(pred_dfs)
+            # aggregate cases by prescription index and geo
+            agg_pred_df = pred_df.groupby(['CountryName',
+                                           'RegionName',
+                                           'PrescriptionIndex'], dropna=False).mean().reset_index()
 
-        # only use costs of geos we've predicted for
-        cost_df = cost_df[cost_df['CountryName'].isin(agg_pred_df['CountryName']) &
-                  cost_df['RegionName'].isin(agg_pred_df['RegionName'])]
+            # only use costs of geos we've predicted for
+            cost_df = cost_df[cost_df['CountryName'].isin(agg_pred_df['CountryName']) &
+                      cost_df['RegionName'].isin(agg_pred_df['RegionName'])]
 
-        # apply weights to prescriptions
-        pres_df = base.weight_prescriptions_by_cost(pres_df, cost_df)
+            # apply weights to prescriptions
+            pres_df = base.weight_prescriptions_by_cost(pres_df, cost_df)
 
-        # aggregate stringency across npis
-        pres_df['Stringency'] = pres_df[base.NPI_COLUMNS].sum(axis=1)
+            # aggregate stringency across npis
+            pres_df['Stringency'] = pres_df[base.NPI_COLUMNS].sum(axis=1)
 
-        # aggregate stringency by prescription index and geo
-        agg_pres_df = pres_df.groupby(['CountryName',
-                                       'RegionName',
-                                       'PrescriptionIndex'], dropna=False).mean().reset_index()
+            # aggregate stringency by prescription index and geo
+            agg_pres_df = pres_df.groupby(['CountryName',
+                                           'RegionName',
+                                           'PrescriptionIndex'], dropna=False).mean().reset_index()
 
-        # combine stringency and cases into a single df
-        df = agg_pres_df.merge(agg_pred_df, how='outer', on=['CountryName',
-                                                             'RegionName',
-                                                             'PrescriptionIndex'])
+            # combine stringency and cases into a single df
+            df = agg_pres_df.merge(agg_pred_df, how='outer', on=['CountryName',
+                                                                 'RegionName',
+                                                                 'PrescriptionIndex'])
 
-        # only keep columns of interest
-        df = df[['CountryName',
-                 'RegionName',
-                 'PrescriptionIndex',
-                 'PredictedDailyNewCases',
-                 'Stringency']]
-        df['TestName'] = 'NA'
-        df['source'] = presc_name
-        eval.append(df)
+            # only keep columns of interest
+            df = df[['CountryName',
+                     'RegionName',
+                     'PrescriptionIndex',
+                     'PredictedDailyNewCases',
+                     'Stringency']]
+            df['TestName'] = 'NA'
+            df['source'] = presc_name
+            eval.append(df)
+        except:
+            print('Something went wrong with {}. Skipping it.'.format(presc_name))
+            continue
 
     # run the aggregation to find the best prescriptions
     pareto_presc = aggregate_results(eval)
@@ -131,6 +177,7 @@ def prescribe(start_date_str: str,
         agg_df_dict[npi] = []
 
     # get the best prescription for each prescription index and for each geo
+    winner = {presc_name: 0 for presc_name in prescriptors}
     for idx in pareto_presc['PrescriptionIndex'].unique():
         for geo in pareto_presc['GeoID'].unique():
             tmp_df = pareto_presc[(pareto_presc['PrescriptionIndex'] == idx) & (pareto_presc['GeoID'] == geo)]
@@ -149,6 +196,8 @@ def prescribe(start_date_str: str,
             for npi in base.NPI_COLUMNS:
                 agg_df_dict[npi].extend(pres_df[npi].tolist())
 
+            winner[src_name] += 1
+
     agg_df = pd.DataFrame(agg_df_dict)
 
     # Create the directory for writing the output file, if necessary.
@@ -159,6 +208,10 @@ def prescribe(start_date_str: str,
 
     # Save output csv file.
     agg_df.to_csv(output_file_path, index=False)
+
+    print('No. of times each model was chosen:')
+    for presc_name, wins in winner.items():
+        print('{}: {}'.format(presc_name, wins))
 
     return
 
