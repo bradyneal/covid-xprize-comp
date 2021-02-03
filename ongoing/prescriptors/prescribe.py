@@ -100,7 +100,15 @@ def prescribe(start_date_str: str,
     neat13d_ckp1 = Neat13D(prescriptors_file=NEAT13D_FILE_1, hist_df=hist_df, config_file=NEAT13D_CONFIG_FILE_1)
     heuristic = Heuristic()
     blind_greedy = BlindGreedy()
-    prescriptors = {'Bandit': bandit, 'Neat2D_AD15': neat2d_ad15, 'Neat2D_AD1': neat2d_ad1, 'Neat13D-CKP0': neat13d_ckp0, 'Neat13D-CKP1': neat13d_ckp1, 'Heuristic': heuristic, 'BlindGreedy': blind_greedy}
+    prescriptors = {
+        'Bandit': bandit,
+        'Neat2D_AD15': neat2d_ad15,
+        'Neat2D_AD1': neat2d_ad1,
+        'Neat13D-CKP0': neat13d_ckp0,
+        'Neat13D-CKP1': neat13d_ckp1,
+        'Heuristic': heuristic,
+        'BlindGreedy': blind_greedy,
+    }
 
     # generate prescriptions and predictions for all prescriptors
     prescriptions = {}
