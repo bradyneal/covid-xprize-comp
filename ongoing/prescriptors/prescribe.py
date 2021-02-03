@@ -42,7 +42,6 @@ NEAT13D_FILE_ZIP_1 = os.path.join(NEAT13D_PATH, 'neat-checkpoint-{}.zip'.format(
 NEAT13D_CONFIG_FILE_1 = NEAT13D_PATH + 'config-prescriptor-{}'.format(NEAT13D_CHECKPOINT_1)
 
 PREDICTOR_PATH = 'covid_xprize/standard_predictor/models/trained_model_weights.h5'
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT_DIR, os.pardir, 'data')
 OXFORD_FILEPATH = os.path.join(DATA_DIR, 'OxCGRT_latest.csv')
 
