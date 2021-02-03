@@ -112,7 +112,7 @@ class Bandit(BasePrescriptor):
             with open(MODEL_FILE, 'rb') as f:
                 self.bandits = pickle.load(f)
             return
-        
+
 
         # eval_geos = self.choose_eval_geos()
         # eval_geos = list(self.hist_df.groupby('GeoID').max()['ConfirmedCases'].sort_values(
@@ -291,7 +291,7 @@ class Bandit(BasePrescriptor):
 
         # with open('bandits.pkl', 'wb') as f:
         #     pickle.dump(self.bandits, f)
-        
+
         return
 
 
@@ -345,7 +345,6 @@ class Bandit(BasePrescriptor):
             for geo in geos:
                 start_time = time.time()
                 self.bandits[weight][geo] = copy.deepcopy(self.bandits[weight]['Canada'])
-                print(time.time()-start_time)
 
         for idx, weight in enumerate(OBJECTIVE_WEIGHTS):
             current_date = start_date
@@ -409,7 +408,6 @@ class Bandit(BasePrescriptor):
                                                 geo, geo_pres, geo_pred)
 
                     bandit.update(eval_past_cases[geo][-1], (np.max([0.1,geo_pred[PRED_CASES_COL].values[0][0]])), eval_stringency[current_date][geo], weight)
-                    print('geo ' + str(geo) + ' done.')
                 # Move on to next date
 
                 new_pred_df = new_pred_df.merge(new_pres_df, on=['CountryName', 'RegionName', 'GeoID', 'Date'], how='left')
@@ -435,8 +433,6 @@ class Bandit(BasePrescriptor):
                 self.predictor.df['PredictionRatio'] = self.predictor.df['CaseRatio'] / (1 - self.predictor.df['ProportionInfected'])
 
                 current_date += pd.DateOffset(days=1)
-
-                print('day ' + str(current_date) + ' done.')
 
             pres_df['PrescriptionIndex'] = idx
             prescription_dfs.append(pres_df)
