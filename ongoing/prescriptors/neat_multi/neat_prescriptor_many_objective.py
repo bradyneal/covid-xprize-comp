@@ -1,3 +1,5 @@
+import gzip
+import pickle5 as pickle
 from collections import defaultdict
 
 import numpy as np
@@ -63,6 +65,7 @@ NB_GENERATIONS = 200
 # Many approaches can be taken to generate/collect more diverse sets.
 # Note: this set can contain up to 10 prescriptors for evaluation.
 PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, '{}/neat-checkpoint-{}'.format(path, num_checkpoint))
+# PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, '{}/neat-checkpoint-{}_short'.format(path, num_checkpoint))
 
 
 def dominates(one, other):
@@ -688,7 +691,9 @@ class Neat(BasePrescriptor):
                   start_date_str,
                   end_date_str,
                   prior_ips_df,
-                  cost_df):
+                  cost_df,
+                  restore_from_dic=False,
+                  ):
 
         start_date = pd.to_datetime(start_date_str, format='%Y-%m-%d')
         end_date = pd.to_datetime(end_date_str, format='%Y-%m-%d')
@@ -742,28 +747,30 @@ class Neat(BasePrescriptor):
         # Gather values for scaling network output
         ip_max_values_arr = np.array([NPI_MAX_VALUES[ip] for ip in NPI_COLUMNS])
 
-        # Load prescriptors
-        checkpoint = neat.Checkpointer.restore_checkpoint(self.prescriptors_file)
-        # read population and prepare data
-        pop = checkpoint.population
-        pop_arr = [pop[key] for key in pop]
-        # is population 2-objective?
-        #print('!!!!!!!!!!!!!! Problem dim {}'.format(len(pop_arr[0].fitness_mult)))
-        #print('!!!!!!!!!!!!!! pop_size = {}'.format(len(pop_arr)))
-        if len(pop_arr[0].fitness_mult) == 2:
-            x_arr = [el.fitness_mult[0] for el in pop_arr]
-            y_arr = [el.fitness_mult[1] for el in pop_arr]
-            chosen_points_pos = get_best_n_points(NB_PRESCRIPTIONS, x_arr, y_arr)
-            prescriptors_all = np.array(pop_arr)[chosen_points_pos]
-            pass
-        else:
-            # create new attribute for every genome
-            for el in pop_arr:
-                el.fitness_manyD = deepcopy(el.fitness_mult)
+        if not restore_from_dic:
+            # Load prescriptors
+            checkpoint = neat.Checkpointer.restore_checkpoint(self.prescriptors_file)
+            # read population and prepare data
+            pop = checkpoint.population
+            pop_arr = [pop[key] for key in pop]
+            # is population 2-objective?
+            # print('!!!!!!!!!!!!!! Problem dim {}'.format(len(pop_arr[0].fitness_mult)))
+            # print('!!!!!!!!!!!!!! pop_size = {}'.format(len(pop_arr)))
+            if len(pop_arr[0].fitness_mult) == 2:
+                x_arr = [el.fitness_mult[0] for el in pop_arr]
+                y_arr = [el.fitness_mult[1] for el in pop_arr]
+                chosen_points_pos = get_best_n_points(NB_PRESCRIPTIONS, x_arr, y_arr)
+                prescriptors_all = np.array(pop_arr)[chosen_points_pos]
                 pass
-            prescriptors_all = pop_arr
+            else:
+                # create new attribute for every genome
+                for el in pop_arr:
+                    el.fitness_manyD = deepcopy(el.fitness_mult)
+                    pass
+                prescriptors_all = pop_arr
+                pass
+            # prescriptors = list(checkpoint.population.values())[:self.nb_prescriptions]
             pass
-        #prescriptors = list(checkpoint.population.values())[:self.nb_prescriptions]
         config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                              neat.DefaultSpeciesSet, neat.DefaultStagnation,
                              self.config_file)
@@ -777,38 +784,46 @@ class Neat(BasePrescriptor):
 
         # Generate prescriptions
         prescription_dfs = []
-        if len(prescriptors_all) == NB_PRESCRIPTIONS:
-            prescriptors = prescriptors_all
+
+        if restore_from_dic:
+            print('Using file {}'.format(self.prescriptors_file))
+            with gzip.open(self.prescriptors_file) as f:
+                prescriptors_dic = pickle.load(f)
+            prescriptors = [prescriptors_dic[key] for key in prescriptors_dic]
         else:
-            for el in pop_arr:
-                npi_arr = np.array(el.fitness_manyD[0:-1])
-                new_cases = el.fitness_manyD[-1]
-                el.fitness_mult = (new_cases, sum(npi_arr*cost_arr))
-                pass
-            fronts = sortNondominatedNSGA2(pop_arr, len(pop))
-            for front in fronts:
-                assignCrowdingDist(front)
-            num_fronts = len(fronts)
-            for i in range(0, num_fronts):
-                front = fronts[i]
-                for el in front:
-                    el.fitness = (num_fronts - i) + el.crowding_dist
+            if len(prescriptors_all) == NB_PRESCRIPTIONS:
+                prescriptors = prescriptors_all
+            else:
+                for el in pop_arr:
+                    npi_arr = np.array(el.fitness_manyD[0:-1])
+                    new_cases = el.fitness_manyD[-1]
+                    el.fitness_mult = (new_cases, sum(npi_arr * cost_arr))
+                    pass
+                fronts = sortNondominatedNSGA2(pop_arr, len(pop))
+                for front in fronts:
+                    assignCrowdingDist(front)
+                num_fronts = len(fronts)
+                for i in range(0, num_fronts):
+                    front = fronts[i]
+                    for el in front:
+                        el.fitness = (num_fronts - i) + el.crowding_dist
+                        pass
                     pass
                 pass
-            pass
 
-            tmp_chosen = []
-            for i in range(0, len(fronts)):
-                tmp_chosen.extend(fronts[i])
-                if len(tmp_chosen) >= NB_PRESCRIPTIONS:
-                    break
+                tmp_chosen = []
+                for i in range(0, len(fronts)):
+                    tmp_chosen.extend(fronts[i])
+                    if len(tmp_chosen) >= NB_PRESCRIPTIONS:
+                        break
+                    pass
+                # print('!!!!!!!!!!! Choosing among {} prescriptors'.format(len(tmp_chosen)))
+
+                x_arr = [el.fitness_mult[0] for el in tmp_chosen]
+                y_arr = [el.fitness_mult[1] for el in tmp_chosen]
+                chosen_points_pos = get_best_n_points(NB_PRESCRIPTIONS, x_arr, y_arr)
+                prescriptors = np.array(tmp_chosen)[chosen_points_pos]
                 pass
-            # print('!!!!!!!!!!! Choosing among {} prescriptors'.format(len(tmp_chosen)))
-
-            x_arr = [el.fitness_mult[0] for el in tmp_chosen]
-            y_arr = [el.fitness_mult[1] for el in tmp_chosen]
-            chosen_points_pos = get_best_n_points(NB_PRESCRIPTIONS, x_arr, y_arr)
-            prescriptors = np.array(tmp_chosen)[chosen_points_pos]
             pass
         for prescription_idx, prescriptor in enumerate(prescriptors):
             if self.verbose:
