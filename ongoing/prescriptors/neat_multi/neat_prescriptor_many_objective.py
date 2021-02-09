@@ -1,5 +1,6 @@
 import gzip
 import pickle5 as pickle
+# import pickle
 from collections import defaultdict
 
 import numpy as np
@@ -48,7 +49,7 @@ NB_PRESCRIPTIONS = 10
 # want to change policy every day. Increasing this value also
 # can speed up the prescriptor, at the cost of potentially less
 # interesting prescriptions.
-ACTION_DURATION = 15
+ACTION_DURATION = 14
 
 # Range of days the prescriptors will be evaluated on.
 # To save time during training, this range may be significantly
@@ -64,8 +65,8 @@ NB_GENERATIONS = 200
 # but this is likely not the most complementary set of prescriptors.
 # Many approaches can be taken to generate/collect more diverse sets.
 # Note: this set can contain up to 10 prescriptors for evaluation.
-PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, '{}/neat-checkpoint-{}'.format(path, num_checkpoint))
-# PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, '{}/neat-checkpoint-{}_short'.format(path, num_checkpoint))
+# PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, '{}/neat-checkpoint-{}'.format(path, num_checkpoint))
+PRESCRIPTORS_FILE = os.path.join(ROOT_DIR, '{}/neat-checkpoint-{}_short_pickle4'.format(path, num_checkpoint))
 
 
 def dominates(one, other):
@@ -680,10 +681,7 @@ class Neat(BasePrescriptor):
         # unless evolution finds the solution that uses 0 for all ips. A different
         # value can be placed in the config for automatic stopping at other thresholds.
         # winner = p.run(eval_genomes, n=self.nb_generations)
-        # winner = p.run_NSGA2(eval_genomes_2d, n=self.nb_generations, multi=True, algo='NSGA-2')
-        # winner = p.run_NSGA2(eval_genomes_2d_ones, n=self.nb_generations, multi=True, algo='PO')
-        # winner = p.run_NSGA2(eval_genomes_multy_ones, n=self.nb_generations, multi=True, algo='PO')
-        # winner = p.run_NSGA2(eval_genomes_multy_ones, n=self.nb_generations, multi=True, algo='PO-repair')
+        winner = p.run_NSGA2(eval_genomes_2d, n=self.nb_generations, multi=True, algo='NSGA-2')
 
         return
 

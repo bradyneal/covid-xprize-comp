@@ -151,54 +151,6 @@ class Population(object):
                 return False
         return not_equal
 
-    def sortNondominatedPO(self, k, first_front_only=False):
-        if k == 0:
-            return []
-
-        pop_size = len(self.population)
-        fit_array = np.array([list(self.population[key].fitness_mult) for key in self.population])
-
-        po_vals = []
-        for el in fit_array:
-            po_vals.append(((el < fit_array).sum(axis=0) / pop_size).prod())
-            pass
-
-        el_arr = [el[1] for el in list(iteritems(self.population))]
-        ind_to_po_val = list(zip(el_arr, po_vals))
-        ind_to_po_val.sort(key=lambda x: x[1])
-
-        fronts = []
-        curr_po_level = -1
-        N = min(len(self.population), k)
-        pareto_sorted = 0
-        for m in range(0, pop_size):
-            el = ind_to_po_val[m]
-            ind = el[0]
-            po_val = el[1]
-            if first_front_only and po_val > 0:
-                break
-            if curr_po_level < po_val:
-                # create new front
-                curr_po_level = po_val
-                fronts.append([])
-                pass
-            # add element to the last front
-            fronts[-1].append(ind)
-            pareto_sorted += 1
-            if pareto_sorted >= N:
-                break
-            pass
-        # add all elements with the same value of po
-        for i in range(m + 1, pop_size):
-            el = ind_to_po_val[i]
-            po_val = el[1]
-            if po_val == curr_po_level:
-                fronts[-1].append(el[0])
-            else:
-                break
-            pass
-        return fronts
-
     def sortNondominatedNSGA2(self, k, first_front_only=False):
         """Sort the first *k* *individuals* into different nondomination levels
         using the "Fast Nondominated Sorting Approach" proposed by Deb et al.,
@@ -368,10 +320,6 @@ class Population(object):
                     # sort NSGA-2
                     fronts = self.sortNondominatedNSGA2(len(self.population))
                     pass
-                elif algo == 'PO':
-                    # sort PO
-                    fronts = self.sortNondominatedPO(len(self.population))
-                    pass
                 # assign crowding distance
                 for front in fronts:
                     self.assignCrowdingDist(front)
@@ -414,10 +362,6 @@ class Population(object):
                 if algo == 'NSGA-2':
                     # sort NSGA-2
                     fronts = self.sortNondominatedNSGA2(len(self.population))
-                    pass
-                elif algo == 'PO':
-                    # sort PO
-                    fronts = self.sortNondominatedPO(len(self.population))
                     pass
                 # assign crowding distance
                 for front in fronts:
