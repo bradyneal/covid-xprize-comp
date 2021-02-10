@@ -1,3 +1,11 @@
+# covid-xprize-comp
+
+This is the GitHub repo for the M-montreal-quebec team in the [XPRIZE Pandemic Response Challenge](https://xprize.org/pandemicresponse).
+
+## Licensing Note
+
+Although this repo has the Apache 2.0 License on it (from forking the original [covid-xprize repo](https://github.com/leaf-ai/covid-xprize)), one of the libraries we modify (NEAT-Python) is licensed under [a 3-Clause BSD license](https://github.com/CodeReclaimers/neat-python/blob/master/LICENSE), so consider our NEAT code that relies on modifications to NEAT-Python as licensed under a 3-Clause BSD license as well.
+
 # XPRIZE Pandemic Response Challenge
 
 ## Introduction
